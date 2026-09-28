@@ -1,3 +1,4 @@
+import { CategoryGrid } from "@/components/home/CategoryGrid";
 import { ExchangeNotice } from "@/components/home/ExchangeNotice";
 import { FeaturedProducts } from "@/components/home/FeaturedProducts";
 import { FitCompare } from "@/components/home/FitCompare";
@@ -17,6 +18,9 @@ import { PRODUCTS } from "@/data/products";
  *   WHY         왜 실측을 다 공개하는가 — 격자를 만나기 전에 읽는 법을 준다
  *   제품        카탈로그. 히어로와 같은 제품이지만 역할이 다르고, 사이에 한 섹션이 끼어
  *                한 화면 안에서 두 번 보이지 않는다. 실측 요약이 붙은 카드다
+ *   카테고리    "셔츠 말고 다른 것도 있다" — 대표 4점을 본 직후가 이 말의 자리다.
+ *                위가 카드(살 물건)라면 여기는 타일(갈 곳)이라 격자가 두 번 이어져도
+ *                반복으로 읽히지 않는다
  *   핏 비교     그 주장의 증거. 문장이 아니라 표
  *   사이즈 찾기 증거를 본 사람이 바로 자기 사이즈를 확인한다
  *   교환 안내   마지막 벽("안 맞으면?")을 결제 직전이 아니라 여기서 치운다
@@ -54,6 +58,8 @@ export default function Home() {
         <WhySection />
 
         <FeaturedProducts products={FEATURED} />
+
+        <CategoryGrid />
 
         <FitCompare />
 

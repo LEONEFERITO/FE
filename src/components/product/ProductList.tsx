@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 
 import { ProductCard } from "@/components/product/ProductCard";
 import {
@@ -19,9 +19,20 @@ import {
  * 미확정(null)이라 가격 슬라이더를 붙이면 **아무것도 걸러지지 않는 조작 장치**가 된다.
  * 동작하지 않는 컨트롤은 없는 것보다 나쁘다. 가격이 확정되면(B-2) 그때 넣는다.
  *
- * ── 왜 URL 이 아니라 컴포넌트 상태인가 ─────────────────
- * 지금은 공유·뒤로가기보다 반응 속도가 중요하고 상품 수가 적다.
- * "필터 걸린 목록을 링크로 보내는" 요구가 생기면 searchParams 로 올린다.
+ * ── URL 과 컴포넌트 상태 ───────────────────────────────
+ * 상태는 여전히 컴포넌트가 들고 있다. 다만 메인의 카테고리 격자가
+ * `/products?category=JACKET` 로 들어오기 시작해서, **들어올 때 한 번만** URL 을 읽는다.
+ * (그게 앞 주석에서 미뤄뒀던 "필터 걸린 목록을 링크로 보내는" 요구다)
+ *
+ * 읽는 방법이 useSearchParams 도 effect 도 아닌 이유:
+ *   - useSearchParams: 정적 내보내기에서 이 페이지를 Suspense 경계로 묶으라고 요구한다.
+ *   - effect + setState: 첫 렌더 뒤에 한 번 더 렌더가 돈다(연쇄 렌더).
+ * URL 은 React 밖에 있는 값이고, 그걸 **렌더 중에 안전하게 읽는** API 가
+ * useSyncExternalStore 다. 서버 스냅샷은 null 이라 정적 HTML 은 전체 목록으로 나가고,
+ * 하이드레이션 때 React 가 스스로 맞춘다 — 불일치 경고가 나지 않는다.
+ *
+ * 쓰기는 하지 않는다. 필터를 조작해도 URL 은 그대로다. 양방향으로 묶으면
+ * 뒤로가기 한 번에 필터가 한 단계씩 풀려서, 목록을 빠져나가는 데 여러 번 눌러야 한다.
  *
  * ── 접근성 ────────────────────────────────────────────
  * 필터는 버튼이지만 aria-pressed 로 눌림 상태를 알린다.
@@ -87,13 +98,31 @@ export function ProductList({
   sizes: string[];
 }) {
   const [fit, setFit] = useState<string | null>(null);
-  const [category, setCategory] = useState<string | null>(null);
   const [size, setSize] = useState<string | null>(null);
   const [inStockOnly, setInStockOnly] = useState(false);
 
+  // 메인의 카테고리 격자가 /products?category=JACKET 로 들어온다.
+  const fromUrl = useSyncExternalStore(
+    () => () => {}, // 페이지가 사는 동안 바뀌지 않는다 — 구독할 게 없다
+    () => new URLSearchParams(window.location.search).get("category"),
+    () => null, // 서버(정적 HTML) 스냅샷
+  );
+
+  /*
+    카탈로그에 실제로 있는 값만 받는다. 모르는 값이 오면 빈 목록이 되는데,
+    그건 "그런 카테고리가 없다" 가 아니라 "고장났다" 로 보인다.
+  */
+  const initialCategory =
+    fromUrl && categories.includes(fromUrl as Category) ? fromUrl : null;
+
+  // undefined = 아직 손대지 않음(= URL 을 따른다). null = 사용자가 '전체' 를 골랐다.
+  const [picked, setPicked] = useState<string | null | undefined>(undefined);
+  const category = picked === undefined ? initialCategory : picked;
+  const setCategory = setPicked;
+
   const reset = () => {
     setFit(null);
-    setCategory(null);
+    setCategory(null); // undefined 가 아니라 null — URL 로 되돌아가면 안 된다
     setSize(null);
     setInStockOnly(false);
   };

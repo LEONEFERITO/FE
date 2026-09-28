@@ -31,8 +31,9 @@ import { CATEGORY_LABEL, LINE_LABEL, type Product } from "@/types/product";
  * 첫 제품은 정적 HTML 에 박혀 나가고(LCP·검색), 나머지는 사용자가 ‹ › 로 넘긴다.
  *
  * ── 헤더 ───────────────────────────────────────────────
- * 이 히어로 위에서는 헤더를 투명하게 두지 않는다. 데스크톱은 왼쪽 베이지 · 오른쪽 벨벳이라
- * 어느 글자색을 골라도 한쪽에서 사라진다. 평소의 유리 알약이 양쪽 다 읽힌다.
+ * 이 히어로 위에서는 헤더를 투명하게 두지 않는다. 좌우가 사진(와인)과 정보 판(딥 와인)으로
+ * 갈라져 있어, 투명하게 두면 어느 글자색을 골라도 한쪽에서 대비가 무너진다.
+ * 화면 폭을 채운 와인 배너가 양쪽 다 읽히고, 사진의 천장 역할도 한다.
  *
  * 전환은 opacity 만 쓴다 — transform/opacity 외의 속성은 애니메이션하지 않는다.
  */
@@ -70,7 +71,7 @@ export function HeroSplit({ products }: { products: Product[] }) {
     <section
       aria-roledescription="carousel"
       aria-label="대표 제품"
-      className="bg-velvet grid min-h-[calc(100dvh-72px)] md:min-h-[calc(100dvh-88px)] md:grid-cols-2"
+      className="bg-velvet grid min-h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-72px)] md:grid-cols-2"
     >
       {/* ── 사진. 모바일은 위, 데스크톱은 오른쪽 ────────────────── */}
       <div className="relative order-first aspect-[4/5] overflow-hidden md:order-none md:aspect-auto">
@@ -122,7 +123,7 @@ export function HeroSplit({ products }: { products: Product[] }) {
           h1 은 페이지에 하나 — 대표 제품명이 곧 이 페이지의 제목이다.
         */}
         <div id={liveId} aria-live="polite" className="my-6 md:my-auto">
-          <p className="text-on-accent/60 text-2xs tracking-label md:text-accent">
+          <p className="text-accent text-2xs tracking-label">
             {CATEGORY_LABEL[product.category].en}
             <span aria-hidden="true"> · </span>
             {fit.ko}
@@ -131,29 +132,31 @@ export function HeroSplit({ products }: { products: Product[] }) {
             두 줄 높이를 미리 잡고 두 줄에서 자른다. 슬라이드를 넘길 때 이름 길이가 달라져
             버튼이 위아래로 밀리는 것(content jumping)을 막는다.
           */}
-          <h1 className="font-display text-on-accent leading-display tracking-display mt-3 line-clamp-2 min-h-[2.4em] text-2xl md:text-primary md:mt-4 md:text-4xl lg:text-hero">
+          <h1 className="font-display text-primary leading-display tracking-display mt-3 line-clamp-2 min-h-[2.4em] text-2xl md:mt-4 md:text-4xl lg:text-hero">
             {name}
           </h1>
-          <p className="text-on-accent/75 mt-2 text-base tabular-nums md:text-secondary md:mt-4 md:text-xl">
+          <p className="text-secondary mt-2 text-base tabular-nums md:mt-4 md:text-xl">
             {product.priceKrw !== null ? (
               <>{KRW.format(product.priceKrw)}원</>
             ) : (
               // D1 이 카탈로그+문의로 확정되면 이 표시가 정상 상태가 된다.
-              <span className="text-on-accent/60 md:text-muted">가격 문의</span>
+              <span className="text-secondary md:text-muted">가격 문의</span>
             )}
           </p>
 
           {/*
-            버튼 색이 화면마다 다르다. 고동색 채움은 베이지 위에서 9.64:1 이지만
-            벨벳 위에서는 1.6:1 이라 사라진다. 모바일은 크림 채움 + 크림 테두리다.
+            주 버튼은 두 화면 모두 골드 채움이다. 예전에는 모바일만 크림 채움이었는데,
+            그건 누끼가 **베이지 바탕** 위에 있던 시절의 규칙이다. 지금은 모바일도
+            와인 면이라 골드가 그대로 산다 (와인 위 5.07:1).
+            보조 버튼 테두리만 다르다 — border-strong 은 와인 위에서 묻힌다.
           */}
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3 md:mt-8 md:justify-start">
             <Link
               href={`/products/${product.slug}`}
-              className="group text-accent shadow-button hover:shadow-button-hover tracking-button ease-fluid inline-flex items-center gap-2 rounded-full bg-primary py-2.5 pl-5 pr-1.5 text-xs transition-all duration-500 hover:-translate-y-px hover:bg-white active:scale-[0.98] md:bg-accent md:text-on-accent md:hover:bg-accent-hover md:gap-3 md:py-3 md:pl-6 md:pr-2 md:text-sm"
+              className="group bg-accent text-on-accent hover:bg-accent-hover shadow-button hover:shadow-button-hover tracking-button ease-fluid inline-flex items-center gap-2 rounded-full py-2.5 pl-5 pr-1.5 text-xs transition-all duration-500 hover:-translate-y-px active:scale-[0.98] md:gap-3 md:py-3 md:pl-6 md:pr-2 md:text-sm"
             >
               자세히 보기
-              <span className="bg-velvet/10 ease-fluid flex h-7 w-7 items-center justify-center rounded-full transition-transform duration-500 group-hover:-translate-y-px group-hover:translate-x-1 group-hover:scale-105 md:bg-on-accent/12 md:h-8 md:w-8">
+              <span className="bg-on-accent/12 ease-fluid flex h-7 w-7 items-center justify-center rounded-full transition-transform duration-500 group-hover:-translate-y-px group-hover:translate-x-1 group-hover:scale-105 md:h-8 md:w-8">
                 <ArrowUpRight size={11} weight="light" aria-hidden="true" />
               </span>
             </Link>

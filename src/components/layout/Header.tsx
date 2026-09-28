@@ -6,14 +6,18 @@ import { useEffect, useState } from "react";
 import { Logo } from "@/components/brand/Logo";
 
 /**
- * 전역 헤더 — 떠 있는 유리 아일랜드.
+ * 전역 헤더 — 화면 폭을 가득 채우는 배너.
  *
- * 화면 맨 위에 딱 붙은 풀와이드 바를 쓰지 않는다. 브라우저 크롬과 경계가 붙어
- * 사이트가 문서처럼 보인다. 위아래 여백을 두고 떠 있는 알약 형태로 두면
- * 페이지가 하나의 지면처럼 읽힌다.
+ * 처음에는 여백 위에 떠 있는 알약이었는데, 히어로가 **풀블리드 분할**로 바뀌면서
+ * 틀렸다. 사진이 화면 끝까지 닿는데 그 위 알약만 양옆에 여백을 남기니,
+ * 헤더가 페이지에 얹힌 게 아니라 **떠다니는 조각**으로 보였다.
+ * 화면 폭을 가득 채우고 아래에 1px 경계를 두면, 헤더가 사진의 천장이 된다.
  *
- * `overHero` 를 주면 히어로(벨벳) 구간 위에서는 배경 없이 투명해지고,
- * 히어로를 지나면 원래의 유리 알약으로 돌아온다.
+ * 안쪽 내용도 컨테이너로 묶지 않고 화면 양끝에 붙인다. 1320px 안으로 넣으면
+ * 바는 풀와이드인데 내용만 가운데 모여서, 채운 의미가 없어진다.
+ *
+ * `overHero` 를 주면 히어로 구간 위에서는 면 없이 투명해지고(위에서 아래로
+ * 옅어지는 scrim 만 남는다), 히어로를 지나면 와인 배너로 굳는다.
  * 벨벳 위에서는 글자를 크림색으로 바꾼다 — 고동색 글자는 벨벳 위에서 1.6:1 이라 안 보인다.
  *
  * backdrop-blur 는 이 고정 요소에만 건다. 스크롤되는 본문에 걸면 GPU 가 매 프레임
@@ -86,14 +90,14 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
 
   return (
     <>
-      <header className="sticky top-0 z-40 px-4 pt-4 md:px-6 md:pt-6">
-        <div
-          className={`ease-fluid relative mx-auto flex h-14 max-w-[1320px] items-center justify-between rounded-full px-5 transition-all duration-700 md:h-16 md:px-7 ${
-            light
-              ? "border border-transparent bg-transparent"
-              : "border-subtle/70 bg-surface/70 shadow-soft border backdrop-blur-xl"
-          }`}
-        >
+      <header
+        className={`ease-fluid sticky top-0 z-40 w-full border-b transition-all duration-700 ${
+          light
+            ? "border-transparent bg-gradient-to-b from-black/45 to-transparent"
+            : "border-subtle/70 bg-base/85 shadow-soft backdrop-blur-xl"
+        }`}
+      >
+        <div className="relative flex h-14 w-full items-center justify-between px-5 md:h-18 md:px-10">
           {/*
             히어로 위에서는 로고를 숨긴다.
 
@@ -122,9 +126,10 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
           </Link>
 
           {/*
-            내비는 **알약의 정중앙**에 고정한다.
+            내비는 **화면 정중앙**에 고정한다.
             justify-between 안에 두면 좌우 그룹(로고 · 카트)의 폭 차이만큼 밀린다.
             지금은 오른쪽으로 44px 밀려 있었고, 히어로 위에서 로고가 사라지면 더 틀어진다.
+            바가 풀와이드가 되면서 이 정중앙이 곧 화면 정중앙이라 기준이 하나로 맞는다.
           */}
           <nav
             aria-label="주요 메뉴"
