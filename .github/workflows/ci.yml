@@ -1,0 +1,83 @@
+name: CI
+
+# LEONEFERITO/FE — Next.js 16 / React 19 / Tailwind 4 / 정적 내보내기
+#
+# Phase 1 범위: 시크릿 검사 + 린트 + 빌드 + 내보내기 산출물 확인.
+# 배포(S3 업로드, CloudFront 무효화)는 Phase 7 에서 D6·D7 확정 후 추가한다.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: 시크릿 검사
+    runs-on: ubuntu-latest
+    steps:
+      # 외부 액션은 커밋 해시로 고정한다 (태그는 나중에 다른 코드를 가리킬 수 있다).
+      - name: 체크아웃
+        # actions/checkout v5.0.0
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          fetch-depth: 0
+
+      - name: 시크릿 검사 (커밋 훅과 같은 스크립트)
+        run: |
+          chmod +x scripts/check-secrets.sh
+          ./scripts/check-secrets.sh
+
+  build:
+    name: 린트·빌드
+    runs-on: ubuntu-latest
+    steps:
+      - name: 체크아웃
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+
+      - name: Node 설치
+        # actions/setup-node v5.0.0
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: 의존성 설치
+        # ci 는 package-lock.json 을 그대로 따른다 (install 과 달리 잠금파일을 바꾸지 않는다).
+        run: npm ci
+
+      - name: 린트
+        # Next 16 부터 next.config 의 eslint 키가 제거되어 빌드와 분리됐다. 별도 단계로 돌린다.
+        run: npm run lint
+
+      - name: 빌드 (정적 내보내기)
+        run: npm run build
+
+      - name: 내보내기 결과 확인
+        # output: "export" 가 out/ 을 만들었는지 확인한다.
+        # 설정이 빠지면 빌드는 성공하는데 배포할 정적 파일이 없는 상태가 된다.
+        run: |
+          test -f out/index.html || { echo "out/index.html 이 없습니다 — 정적 내보내기 설정을 확인하세요."; exit 1; }
+          echo "생성된 HTML:"
+          find out -name '*.html'
+
+      - name: SEO 태그 확인
+        # D3(Next.js 정적 내보내기)를 고른 이유가 이것이다. 회귀하면 즉시 알아야 한다:
+        # 정적 HTML 에 title/description 이 박혀 나가야 검색 노출과 카톡 공유 미리보기가 동작한다.
+        run: |
+          grep -q '<title>' out/index.html || { echo "정적 HTML 에 <title> 이 없습니다."; exit 1; }
+          grep -q 'name="description"' out/index.html || { echo "정적 HTML 에 description 이 없습니다."; exit 1; }
+          grep -q '<html lang="ko"' out/index.html || { echo "lang=\"ko\" 가 없습니다."; exit 1; }
+          echo "SEO 태그 확인 완료"
+
+      - name: 내보내기 산출물 업로드
+        if: always()
+        # actions/upload-artifact v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: static-export
+          path: out/
+          retention-days: 7
