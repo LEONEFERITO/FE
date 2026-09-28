@@ -12,13 +12,19 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
  * 사진이 장식이 아니라 **문장의 증거**가 된다. 왼쪽이 비어 있는 구도라 글자 자리가
  * 이미 사진 안에 있다 — 크롭으로 억지로 만들지 않아도 된다.
  *
- * 파일이 없으면 배경 없이 베이지 단색으로 렌더한다. 빌드 시점에 존재를 확인하므로
+ * 파일이 없으면 배경 없이 와인 단색으로 렌더한다. 빌드 시점에 존재를 확인하므로
  * 깨진 이미지 아이콘도, 404 요청도 나가지 않는다. 파일을 넣고 다시 빌드하면 켜진다.
  *
+ * ── 이 사진이 아이보리 포인트다 ─────────────────────────
+ * 페이지 전체가 딥 와인이라 한 덩어리로 읽힌다. 구간을 통째로 밝게 뒤집는 대신
+ * **크림 톤 사진 한 장**이 그 자리를 맡는다. 색을 칠해서 만든 포인트가 아니라
+ * 콘텐츠가 만든 포인트라 더 자연스럽고, 사진이 바뀌면 포인트도 같이 바뀐다.
+ *
  * ── 글자 대비 ───────────────────────────────────────────
- * 사진 위에 글자를 얹을 때는 사진이 어떻게 바뀌든 대비가 보장돼야 한다.
- * 그래서 왼쪽 46% 는 **불투명한 베이지**로 덮고 거기서부터 서서히 걷어낸다.
- * 글자는 그 불투명 구간 안에만 놓는다(max-w-[560px]). 실측 11.71:1.
+ * 사진이 밝고 바탕이 어두우므로, 글자 쪽은 **어두운 채로 지켜야** 한다.
+ * 왼쪽 46% 는 불투명한 와인으로 덮고 거기서부터 사진 쪽으로 걷어낸다.
+ * 글자는 그 불투명 구간 안에만 놓는다(max-w-[560px]) — 크림 글자 16.64:1 유지.
+ * 오른쪽 끝은 가림막을 완전히 걷어 사진이 제 밝기로 드러나게 둔다. 그게 포인트다.
  *
  * 모바일에서는 사진을 걸지 않는다. 폭이 좁아 글자가 인물 위로 올라가고,
  * 배경 한 장을 더 받는 비용도 모바일에서 더 비싸다.
@@ -27,8 +33,8 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 const PILLARS = [
   {
     no: "01",
-    title: "핏 구분",
-    body: "운동체형과 일반체형 패턴을 나눠 제작합니다. 상품마다 어느 쪽인지 표시합니다.",
+    title: "두 개의 라인",
+    body: "레오네(클래식)와 페리토(애슬레틱)로 패턴을 나눠 제작합니다. 상품마다 어느 라인인지 표시합니다.",
   },
   {
     no: "02",
@@ -78,7 +84,7 @@ export function WhySection() {
             className="absolute inset-0"
             style={{
               background:
-                "linear-gradient(to right, var(--bg-subtle) 0%, var(--bg-subtle) 46%, color-mix(in srgb, var(--bg-subtle) 78%, transparent) 60%, color-mix(in srgb, var(--bg-subtle) 30%, transparent) 78%, transparent 92%)",
+                "linear-gradient(to right, var(--bg-subtle) 0%, var(--bg-subtle) 44%, color-mix(in srgb, var(--bg-subtle) 82%, transparent) 58%, color-mix(in srgb, var(--bg-subtle) 42%, transparent) 72%, color-mix(in srgb, var(--bg-subtle) 12%, transparent) 86%, transparent 96%)",
             }}
           />
         </div>
@@ -126,7 +132,7 @@ export function WhySection() {
               <li key={item.no} className="border-subtle border-t py-6">
                 <Reveal delay={i * 100}>
                   <div className="flex gap-5">
-                    <span className="text-velvet text-2xs tracking-label pt-1 tabular-nums">
+                    <span className="text-accent text-2xs tracking-label pt-1 tabular-nums">
                       {item.no}
                     </span>
                     <div className="min-w-0">

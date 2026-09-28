@@ -8,7 +8,7 @@ import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductNoticeTable } from "@/components/product/ProductNoticeTable";
 import { PurchasePanel } from "@/components/product/PurchasePanel";
 import { PRODUCTS, findProduct } from "@/data/products";
-import { FIT_LABEL } from "@/types/product";
+import { LINE_LABEL } from "@/types/product";
 
 /**
  * 상품 상세.
@@ -37,7 +37,7 @@ export async function generateMetadata({
   if (!product) return {};
 
   const name = product.name ?? "제품 준비 중";
-  const fit = FIT_LABEL[product.fitType];
+  const fit = LINE_LABEL[product.line];
 
   return {
     title: name,

@@ -26,7 +26,8 @@ import { Logo } from "@/components/brand/Logo";
 
 const NAV = [
   { href: "/collection", label: "COLLECTION" },
-  { href: "/fit", label: "ATHLETIC FIT" },
+  // TODO(고객확인) 전체 IA 는 BRAND_BRIEF.md 5장 참고 — 가치관·이용 메뉴얼·룩북이 더 붙는다
+  { href: "/fit", label: "LEONE · FERITO" },
   { href: "/size-guide", label: "SIZE GUIDE" },
   { href: "/about", label: "ABOUT" },
 ] as const;
@@ -107,7 +108,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
             href="/"
             className={`ease-fluid transition-all duration-700 ${
               light
-                ? "pointer-events-none text-[#FAF7F2] opacity-0 focus-visible:pointer-events-auto focus-visible:opacity-100"
+                ? "pointer-events-none text-primary opacity-0 focus-visible:pointer-events-auto focus-visible:opacity-100"
                 : "text-accent-deep hover:text-accent opacity-100"
             }`}
             aria-label="LEONE FERITO 홈"
@@ -136,8 +137,8 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
                     href={item.href}
                     className={`text-2xs tracking-label ease-fluid transition-colors duration-700 ${
                       light
-                        ? "text-[#FAF7F2]/80 hover:text-[#FAF7F2]"
-                        : "text-secondary hover:text-velvet"
+                        ? "text-primary/80 hover:text-primary"
+                        : "text-secondary hover:text-accent"
                     }`}
                   >
                     {item.label}
@@ -152,8 +153,8 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
               href="/cart"
               className={`text-2xs tracking-label ease-fluid hidden transition-colors duration-700 sm:inline-block ${
                 light
-                  ? "text-[#FAF7F2] hover:text-white"
-                  : "text-accent-deep hover:text-velvet"
+                  ? "text-primary hover:text-white"
+                  : "text-accent-deep hover:text-accent"
               }`}
             >
               CART <span className="tabular-nums">(0)</span>
@@ -170,12 +171,12 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
             >
               <span
                 className={`ease-fluid absolute left-1/2 top-1/2 block h-px w-5 -translate-x-1/2 transition-all duration-500 ${
-                  light ? "bg-[#FAF7F2]" : "bg-accent-deep"
+                  light ? "bg-primary" : "bg-accent-deep"
                 } ${open ? "rotate-45" : "-translate-y-1"}`}
               />
               <span
                 className={`ease-fluid absolute left-1/2 top-1/2 block h-px w-5 -translate-x-1/2 transition-all duration-500 ${
-                  light ? "bg-[#FAF7F2]" : "bg-accent-deep"
+                  light ? "bg-primary" : "bg-accent-deep"
                 } ${open ? "-rotate-45" : "translate-y-1"}`}
               />
             </button>
@@ -207,7 +208,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
                 <Link
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="font-display text-accent-deep hover:text-velvet ease-fluid text-3xl transition-colors duration-500"
+                  className="font-display text-accent-deep hover:text-accent ease-fluid text-3xl transition-colors duration-500"
                 >
                   {item.label}
                 </Link>

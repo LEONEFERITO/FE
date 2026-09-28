@@ -1,6 +1,7 @@
 import Link from "next/link";
 
-import { FitBadge } from "@/components/product/FitBadge";
+import { LineBadge } from "@/components/product/LineBadge";
+import { CATEGORY_LABEL } from "@/types/product";
 import type { Product } from "@/types/product";
 
 /**
@@ -64,13 +65,13 @@ export function ProductCard({ product }: { product: Product }) {
                 className="ease-fluid absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
               />
             ) : (
-              <span className="text-2xs tracking-label absolute inset-0 flex items-center justify-center text-[#FAF7F2]/60">
+              <span className="text-2xs tracking-label absolute inset-0 flex items-center justify-center text-primary/60">
                 촬영본 준비 중
               </span>
             )}
 
             {allSoldOut && (
-              <span className="text-2xs tracking-label absolute left-3 top-3 rounded-full bg-[#FAF7F2] px-3 py-1 text-[#2E2925] shadow-soft">
+              <span className="text-2xs tracking-label absolute left-3 top-3 rounded-full bg-primary px-3 py-1 text-[#2E2925] shadow-soft">
                 SOLD OUT
               </span>
             )}
@@ -79,12 +80,12 @@ export function ProductCard({ product }: { product: Product }) {
 
         <div className="mt-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <FitBadge fitType={product.fitType} />
-            <h3 className="text-primary ease-fluid group-hover:text-velvet mt-2 text-sm font-medium transition-colors duration-500">
+            <LineBadge line={product.line} />
+            <h3 className="text-primary ease-fluid group-hover:text-accent mt-2 text-sm font-medium transition-colors duration-500">
               {name}
             </h3>
             <p className="text-muted text-2xs tracking-label mt-1">
-              {product.category}
+              {CATEGORY_LABEL[product.category].en}
             </p>
           </div>
         </div>

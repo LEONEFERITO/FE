@@ -11,12 +11,12 @@ import {
   FIT_COMPARISON,
   FIT_COMPARISON_BASIS,
 } from "@/data/fit";
-import { FIT_LABEL, type FitType } from "@/types/product";
+import { LINE_LABEL, type ProductLine } from "@/types/product";
 
 /**
- * 핏 비교 — 이 브랜드의 유일한 차별점을 **문장이 아니라 표**로 보여준다.
+ * 라인 비교 — 레오네와 페리토가 무엇이 다른지 **문장이 아니라 표**로 보여준다.
  *
- * "운동체형 패턴을 씁니다" 는 아무 브랜드나 할 수 있는 말이다.
+ * "체형별 패턴을 나눕니다" 는 아무 브랜드나 할 수 있는 말이다.
  * 같은 사이즈에서 어깨가 몇 cm 더 넓고 허리가 몇 cm 더 잡히는지가 그 말의 증거다.
  *
  * ── 지금 수치가 비어 있는 것에 대해 ────────────────────
@@ -29,7 +29,7 @@ import { FIT_LABEL, type FitType } from "@/types/product";
  * 그래서 넓힘/좁힘을 색으로 구분하지 않고 **아이콘과 낱말** 을 같이 쓴다.
  */
 
-const FITS: FitType[] = ["ATHLETIC", "REGULAR"];
+const LINES: ProductLine[] = ["LEONE", "FERITO"];
 
 /** 넓힘/좁힘/표준. 색이 아니라 **모양**으로 갈린다 — 옆의 낱말과 함께 읽힌다. */
 const DIRECTION_ICON = {
@@ -40,7 +40,7 @@ const DIRECTION_ICON = {
 
 export function FitCompare() {
   const hasNumbers = FIT_COMPARISON.some((r) =>
-    FITS.some((f) => r.cm[f] !== null),
+    LINES.some((f) => r.cm[f] !== null),
   );
 
   return (
@@ -58,7 +58,7 @@ export function FitCompare() {
         </h2>
         <p className="text-secondary mt-5 max-w-2xl text-sm">
           어깨·가슴·허벅지는 끼는데 허리는 남는다면 문제는 체형이 아니라
-          패턴입니다. 운동체형 핏은 그 네 곳을 다르게 잡습니다.
+          패턴입니다. 페리토 라인은 그 네 곳을 레오네와 다르게 잡습니다.
         </p>
 
         {/* 바깥 껍데기 + 안쪽 알맹이 — 표를 배경에 납작하게 얹지 않는다 */}
@@ -66,7 +66,7 @@ export function FitCompare() {
           <div className="bg-surface min-w-0 overflow-x-auto rounded-[calc(1rem-0.375rem)]">
             <table className="w-full min-w-[540px] border-collapse">
               <caption className="sr-only">
-                운동체형 핏과 일반체형 핏의 부위별 패턴 차이
+                레오네 라인과 페리토 라인의 부위별 패턴 차이
               </caption>
               <thead>
                 <tr className="border-subtle border-b">
@@ -76,17 +76,17 @@ export function FitCompare() {
                   >
                     부위
                   </th>
-                  {FITS.map((f) => (
+                  {LINES.map((f) => (
                     <th
                       key={f}
                       scope="col"
                       className="text-muted text-2xs px-5 py-4 text-center font-medium"
                     >
                       <span className="tracking-label block">
-                        {FIT_LABEL[f].en}
+                        {LINE_LABEL[f].en}
                       </span>
                       <span className="text-muted/80 mt-1 block">
-                        {FIT_LABEL[f].ko}
+                        {LINE_LABEL[f].ko}
                       </span>
                     </th>
                   ))}
@@ -108,7 +108,7 @@ export function FitCompare() {
                       </span>
                     </th>
 
-                    {FITS.map((f) => {
+                    {LINES.map((f) => {
                       const dir = DIRECTION_LABEL[row.direction[f]];
                       const DirectionIcon = DIRECTION_ICON[row.direction[f]];
                       const cm = row.cm[f];

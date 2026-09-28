@@ -5,23 +5,43 @@
  * 이 타입에 맞추거나, 다르면 여기를 고친다 — 어느 쪽이든 화면이 기대하는 모양이 문서로 남는다.
  */
 
-/** 핏 종류. 이 사이트의 존재 이유이므로 문자열이 아니라 열거형으로 고정한다. */
-export type FitType = "ATHLETIC" | "REGULAR";
+/**
+ * 제품 라인. 브랜드 이름이 곧 라인 이름이다 (2026-09-28 고객 확정).
+ *
+ *   레오네 = 클래식 기반의 정제된 포멀
+ *   페리토 = 운동형 체형을 고려한 섹시한 포멀
+ *
+ * `ATHLETIC`/`REGULAR` 같은 일반 명사로 두지 않는다. 그렇게 두면 화면에는
+ * 브랜드 이름이 나오는데 코드에는 없어서, 나중에 둘이 어긋나도 아무도 모른다.
+ */
+export type ProductLine = "LEONE" | "FERITO";
 
-export const FIT_LABEL: Record<
-  FitType,
-  { en: string; ko: string; description: string }
+export const LINE_LABEL: Record<
+  ProductLine,
+  { en: string; ko: string; kind: string; description: string }
 > = {
-  ATHLETIC: {
-    en: "ATHLETIC FIT",
-    ko: "운동체형",
-    description: "어깨·가슴·허벅지는 넉넉하게, 허리는 잡아주는 패턴입니다.",
+  LEONE: {
+    en: "LEONE",
+    ko: "레오네 라인",
+    kind: "클래식",
+    description: "클래식을 기반으로 정제한 포멀 실루엣입니다.",
   },
-  REGULAR: {
-    en: "REGULAR FIT",
-    ko: "일반체형",
-    description: "표준 체형 기준으로 전체 균형을 맞춘 패턴입니다.",
+  FERITO: {
+    en: "FERITO",
+    ko: "페리토 라인",
+    kind: "애슬레틱",
+    description: "운동으로 발달한 체형을 고려한, 섹시한 포멀 실루엣입니다.",
   },
+};
+
+/** 제품 분류. 목록 필터와 내비게이션이 같은 값을 본다. */
+export type Category = "JACKET" | "TROUSERS" | "SHIRT" | "SHOES";
+
+export const CATEGORY_LABEL: Record<Category, { en: string; ko: string }> = {
+  JACKET: { en: "JACKET", ko: "자켓" },
+  TROUSERS: { en: "TROUSERS", ko: "트라우저" },
+  SHIRT: { en: "SHIRT", ko: "셔츠" },
+  SHOES: { en: "SHOES", ko: "구두 · 로퍼" },
 };
 
 /**
@@ -100,8 +120,8 @@ export interface ProductNotice {
 export interface Product {
   slug: string;
   name: string | null;
-  category: string;
-  fitType: FitType;
+  category: Category;
+  line: ProductLine;
   /** 판매가(원). 서버가 계산한 값만 신뢰한다 — 화면은 표시만 한다. */
   priceKrw: number | null;
   /** 정가(원). 할인 중이 아니면 null. */

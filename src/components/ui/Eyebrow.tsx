@@ -16,7 +16,7 @@ export function Eyebrow({
 }) {
   return (
     <p
-      className={`text-velvet text-2xs tracking-label flex items-center gap-3 ${className}`}
+      className={`text-accent text-2xs tracking-label flex items-center gap-3 ${className}`}
     >
       <span aria-hidden="true" className="bg-velvet h-[2px] w-6 shrink-0" />
       <span>{children}</span>

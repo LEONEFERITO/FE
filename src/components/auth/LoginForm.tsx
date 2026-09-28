@@ -158,7 +158,7 @@ export function LoginForm() {
             onClick={() => setVisible((v) => !v)}
             aria-pressed={visible}
             aria-label={visible ? "비밀번호 가리기" : "비밀번호 보기"}
-            className="text-muted hover:text-velvet ease-fluid flex h-11 w-11 items-center justify-center rounded-lg transition-colors duration-300"
+            className="text-muted hover:text-accent ease-fluid flex h-11 w-11 items-center justify-center rounded-lg transition-colors duration-300"
           >
             {visible ? (
               <EyeSlash size={18} weight="light" aria-hidden="true" />
@@ -175,14 +175,14 @@ export function LoginForm() {
             type="checkbox"
             checked={remember}
             onChange={(e) => setRemember(e.target.checked)}
-            className="accent-velvet h-4 w-4"
+            className="accent-accent h-4 w-4"
           />
           로그인 유지
         </label>
 
         <Link
           href="/find"
-          className="text-muted hover:text-velvet ease-fluid text-2xs underline underline-offset-4 transition-colors duration-300"
+          className="text-muted hover:text-accent ease-fluid text-2xs underline underline-offset-4 transition-colors duration-300"
         >
           비밀번호를 잊으셨나요?
         </Link>
@@ -191,7 +191,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="group bg-accent text-on-dark hover:bg-accent-hover shadow-button hover:shadow-button-hover tracking-button ease-fluid flex min-h-14 items-center justify-center gap-3 rounded-full text-sm transition-all duration-500 hover:-translate-y-px active:scale-[0.99] disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
+        className="group bg-accent text-on-accent hover:bg-accent-hover shadow-button hover:shadow-button-hover tracking-button ease-fluid flex min-h-14 items-center justify-center gap-3 rounded-full text-sm transition-all duration-500 hover:-translate-y-px active:scale-[0.99] disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
       >
         {/*
           진행 중에는 라벨을 바꾼다. 버튼이 회색으로만 변하면 "눌렸나?" 를 모른다.
@@ -236,7 +236,7 @@ export function LoginForm() {
         아직 회원이 아니신가요?{" "}
         <Link
           href="/signup"
-          className="text-accent hover:text-velvet ease-fluid underline underline-offset-4 transition-colors duration-300"
+          className="text-accent hover:text-accent ease-fluid underline underline-offset-4 transition-colors duration-300"
         >
           회원가입
         </Link>

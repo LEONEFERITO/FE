@@ -9,7 +9,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useId, useState } from "react";
 
 import { Logo } from "@/components/brand/Logo";
-import { FIT_LABEL, type Product } from "@/types/product";
+import { CATEGORY_LABEL, LINE_LABEL, type Product } from "@/types/product";
 
 /**
  * 히어로 — 제품 한 장.
@@ -64,7 +64,7 @@ export function HeroSplit({ products }: { products: Product[] }) {
   if (!product) return null;
 
   const name = product.name ?? "제품명 확인 중";
-  const fit = FIT_LABEL[product.fitType];
+  const fit = LINE_LABEL[product.line];
 
   return (
     <section
@@ -122,8 +122,8 @@ export function HeroSplit({ products }: { products: Product[] }) {
           h1 은 페이지에 하나 — 대표 제품명이 곧 이 페이지의 제목이다.
         */}
         <div id={liveId} aria-live="polite" className="my-6 md:my-auto">
-          <p className="text-on-dark/60 text-2xs tracking-label md:text-velvet">
-            {product.category}
+          <p className="text-on-accent/60 text-2xs tracking-label md:text-accent">
+            {CATEGORY_LABEL[product.category].en}
             <span aria-hidden="true"> · </span>
             {fit.ko}
           </p>
@@ -131,15 +131,15 @@ export function HeroSplit({ products }: { products: Product[] }) {
             두 줄 높이를 미리 잡고 두 줄에서 자른다. 슬라이드를 넘길 때 이름 길이가 달라져
             버튼이 위아래로 밀리는 것(content jumping)을 막는다.
           */}
-          <h1 className="font-display text-on-dark leading-display tracking-display mt-3 line-clamp-2 min-h-[2.4em] text-2xl md:text-primary md:mt-4 md:text-4xl lg:text-hero">
+          <h1 className="font-display text-on-accent leading-display tracking-display mt-3 line-clamp-2 min-h-[2.4em] text-2xl md:text-primary md:mt-4 md:text-4xl lg:text-hero">
             {name}
           </h1>
-          <p className="text-on-dark/75 mt-2 text-base tabular-nums md:text-secondary md:mt-4 md:text-xl">
+          <p className="text-on-accent/75 mt-2 text-base tabular-nums md:text-secondary md:mt-4 md:text-xl">
             {product.priceKrw !== null ? (
               <>{KRW.format(product.priceKrw)}원</>
             ) : (
               // D1 이 카탈로그+문의로 확정되면 이 표시가 정상 상태가 된다.
-              <span className="text-on-dark/60 md:text-muted">가격 문의</span>
+              <span className="text-on-accent/60 md:text-muted">가격 문의</span>
             )}
           </p>
 
@@ -150,16 +150,16 @@ export function HeroSplit({ products }: { products: Product[] }) {
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3 md:mt-8 md:justify-start">
             <Link
               href={`/products/${product.slug}`}
-              className="group text-velvet shadow-button hover:shadow-button-hover tracking-button ease-fluid inline-flex items-center gap-2 rounded-full bg-[#FAF7F2] py-2.5 pl-5 pr-1.5 text-xs transition-all duration-500 hover:-translate-y-px hover:bg-white active:scale-[0.98] md:bg-accent md:text-on-dark md:hover:bg-accent-hover md:gap-3 md:py-3 md:pl-6 md:pr-2 md:text-sm"
+              className="group text-accent shadow-button hover:shadow-button-hover tracking-button ease-fluid inline-flex items-center gap-2 rounded-full bg-primary py-2.5 pl-5 pr-1.5 text-xs transition-all duration-500 hover:-translate-y-px hover:bg-white active:scale-[0.98] md:bg-accent md:text-on-accent md:hover:bg-accent-hover md:gap-3 md:py-3 md:pl-6 md:pr-2 md:text-sm"
             >
               자세히 보기
-              <span className="bg-velvet/10 ease-fluid flex h-7 w-7 items-center justify-center rounded-full transition-transform duration-500 group-hover:-translate-y-px group-hover:translate-x-1 group-hover:scale-105 md:bg-on-dark/12 md:h-8 md:w-8">
+              <span className="bg-velvet/10 ease-fluid flex h-7 w-7 items-center justify-center rounded-full transition-transform duration-500 group-hover:-translate-y-px group-hover:translate-x-1 group-hover:scale-105 md:bg-on-accent/12 md:h-8 md:w-8">
                 <ArrowUpRight size={11} weight="light" aria-hidden="true" />
               </span>
             </Link>
             <Link
               href="/products"
-              className="tracking-button ease-fluid inline-flex items-center rounded-full border border-[#FAF7F2]/45 px-5 py-2.5 text-xs text-[#FAF7F2] transition-all duration-500 hover:border-[#FAF7F2] active:scale-[0.98] md:border-strong md:text-primary md:hover:border-velvet md:hover:text-velvet md:hover:shadow-soft md:px-6 md:py-3 md:text-sm"
+              className="tracking-button ease-fluid inline-flex items-center rounded-full border border-primary/45 px-5 py-2.5 text-xs text-primary transition-all duration-500 hover:border-primary active:scale-[0.98] md:border-strong md:text-primary md:hover:border-accent md:hover:text-accent md:hover:shadow-soft md:px-6 md:py-3 md:text-sm"
             >
               전체 제품
             </Link>
@@ -171,14 +171,14 @@ export function HeroSplit({ products }: { products: Product[] }) {
           데스크톱: 워드마크(왼쪽) · 넘기기(오른쪽) 한 줄.
         */}
         <div className="flex w-full flex-col-reverse items-center gap-6 md:flex-row md:items-end md:justify-between">
-          <div className="text-velvet-deep w-[112%] max-w-none md:text-accent-deep md:w-[min(60%,320px)]">
+          <div className="text-accent w-[112%] max-w-none md:text-accent-deep md:w-[min(60%,320px)]">
             <Logo fluid label="" />
           </div>
 
           {count > 1 && (
             <div className="flex items-center gap-2">
               <span
-                className="text-on-dark/60 text-2xs tabular-nums md:text-muted"
+                className="text-on-accent/60 text-2xs tabular-nums md:text-muted"
                 aria-hidden="true"
               >
                 {String(index + 1).padStart(2, "0")}
@@ -190,7 +190,7 @@ export function HeroSplit({ products }: { products: Product[] }) {
                 type="button"
                 onClick={() => go(-1)}
                 aria-label="이전 제품"
-                className="ease-fluid flex h-11 w-11 items-center justify-center rounded-full border border-[#FAF7F2]/45 text-[#FAF7F2] transition-all duration-300 hover:border-[#FAF7F2] active:scale-[0.96] md:border-strong md:text-primary md:hover:border-accent md:hover:shadow-soft"
+                className="ease-fluid flex h-11 w-11 items-center justify-center rounded-full border border-primary/45 text-primary transition-all duration-300 hover:border-primary active:scale-[0.96] md:border-strong md:text-primary md:hover:border-accent md:hover:shadow-soft"
               >
                 <ArrowLeft size={16} weight="light" aria-hidden="true" />
               </button>
@@ -198,7 +198,7 @@ export function HeroSplit({ products }: { products: Product[] }) {
                 type="button"
                 onClick={() => go(1)}
                 aria-label="다음 제품"
-                className="ease-fluid flex h-11 w-11 items-center justify-center rounded-full border border-[#FAF7F2]/45 text-[#FAF7F2] transition-all duration-300 hover:border-[#FAF7F2] active:scale-[0.96] md:border-strong md:text-primary md:hover:border-accent md:hover:shadow-soft"
+                className="ease-fluid flex h-11 w-11 items-center justify-center rounded-full border border-primary/45 text-primary transition-all duration-300 hover:border-primary active:scale-[0.96] md:border-strong md:text-primary md:hover:border-accent md:hover:shadow-soft"
               >
                 <ArrowRight size={16} weight="light" aria-hidden="true" />
               </button>

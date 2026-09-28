@@ -98,7 +98,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         */}
         <a
           href="#main"
-          className="bg-accent text-on-dark sr-only rounded-full text-sm focus-visible:not-sr-only focus-visible:fixed focus-visible:top-4 focus-visible:left-4 focus-visible:z-50 focus-visible:px-5 focus-visible:py-3"
+          className="bg-accent text-on-accent sr-only rounded-full text-sm focus-visible:not-sr-only focus-visible:fixed focus-visible:top-4 focus-visible:left-4 focus-visible:z-50 focus-visible:px-5 focus-visible:py-3"
         >
           본문으로 건너뛰기
         </a>

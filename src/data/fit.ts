@@ -1,4 +1,4 @@
-import type { FitType } from "@/types/product";
+import type { ProductLine } from "@/types/product";
 
 /**
  * 핏 비교 · 사이즈 기준표.
@@ -26,9 +26,9 @@ export interface FitComparisonRow {
   label: string;
   /** 어디를 재는지. 기준이 없으면 숫자가 와도 해석이 갈린다. */
   how: string;
-  direction: Record<FitType, FitDirection>;
+  direction: Record<ProductLine, FitDirection>;
   /** 같은 사이즈 기준 실측(cm). TODO(고객확인) B-4 */
-  cm: Record<FitType, number | null>;
+  cm: Record<ProductLine, number | null>;
 }
 
 /** 비교 기준이 되는 사이즈. TODO(고객확인) B-3 (95/100/105 인지 S/M/L 인지) */
@@ -39,29 +39,29 @@ export const FIT_COMPARISON: FitComparisonRow[] = [
     key: "shoulder",
     label: "어깨",
     how: "어깨 끝점에서 반대쪽 끝점까지",
-    direction: { ATHLETIC: "wider", REGULAR: "standard" },
-    cm: { ATHLETIC: null, REGULAR: null },
+    direction: { FERITO: "wider", LEONE: "standard" },
+    cm: { FERITO: null, LEONE: null },
   },
   {
     key: "chest",
     label: "가슴",
     how: "겨드랑이 아래 한 바퀴",
-    direction: { ATHLETIC: "wider", REGULAR: "standard" },
-    cm: { ATHLETIC: null, REGULAR: null },
+    direction: { FERITO: "wider", LEONE: "standard" },
+    cm: { FERITO: null, LEONE: null },
   },
   {
     key: "waist",
     label: "허리",
     how: "가장 잘록한 지점 한 바퀴",
-    direction: { ATHLETIC: "narrower", REGULAR: "standard" },
-    cm: { ATHLETIC: null, REGULAR: null },
+    direction: { FERITO: "narrower", LEONE: "standard" },
+    cm: { FERITO: null, LEONE: null },
   },
   {
     key: "thigh",
     label: "허벅지",
     how: "가랑이 아래 가장 굵은 지점",
-    direction: { ATHLETIC: "wider", REGULAR: "standard" },
-    cm: { ATHLETIC: null, REGULAR: null },
+    direction: { FERITO: "wider", LEONE: "standard" },
+    cm: { FERITO: null, LEONE: null },
   },
 ];
 
@@ -81,9 +81,9 @@ export interface BodySizeRow {
   chest: [number, number] | null;
 }
 
-export const BODY_SIZE_CHART: Record<FitType, BodySizeRow[]> = {
-  ATHLETIC: [],
-  REGULAR: [],
+export const BODY_SIZE_CHART: Record<ProductLine, BodySizeRow[]> = {
+  FERITO: [],
+  LEONE: [],
 };
 
 /** 몸 치수를 재는 법. 기준표가 비어 있어도 이 안내는 지금 바로 쓸모가 있다. */

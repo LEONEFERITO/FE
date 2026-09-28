@@ -79,12 +79,12 @@ export function MeasurementTable({ table, highlightSize }: Props) {
                     key={row.size}
                     className={`ease-fluid transition-colors duration-500 ${
                       i > 0 ? "border-subtle border-t" : ""
-                    } ${isHighlighted ? "bg-velvet-tint" : ""}`}
+                    } ${isHighlighted ? "bg-accent-tint" : ""}`}
                   >
                     <th
                       scope="row"
                       className={`px-3 py-3 text-xs font-medium tabular-nums ${
-                        isHighlighted ? "text-velvet-deep" : "text-primary"
+                        isHighlighted ? "text-accent" : "text-primary"
                       }`}
                     >
                       {row.size}

@@ -1,4 +1,4 @@
-import type { Product } from "@/types/product";
+import type { Category, Product, ProductLine } from "@/types/product";
 
 import { SAMPLE_PRODUCT } from "./sample-product";
 
@@ -53,8 +53,8 @@ const TOP_FIELDS = [
 
 function draft(
   slug: string,
-  category: string,
-  fitType: Product["fitType"],
+  category: Category,
+  line: ProductLine,
   image: string,
   cutout: string,
   soldOut: string[] = [],
@@ -63,7 +63,7 @@ function draft(
     slug,
     name: null, // TODO(고객확인) B-1 제품명
     category,
-    fitType,
+    line,
     priceKrw: null, // TODO(고객확인) B-2 가격
     listPriceKrw: null,
     images: [image],
@@ -86,7 +86,7 @@ export const PRODUCTS: Product[] = [
   draft(
     "brown-shirt",
     "SHIRT",
-    "ATHLETIC",
+    "FERITO",
     "/products/photo-brown-shirt.webp",
     "/products/cutout-brown-shirt.webp",
     ["110"],
@@ -94,14 +94,14 @@ export const PRODUCTS: Product[] = [
   draft(
     "white-shirt",
     "SHIRT",
-    "ATHLETIC",
+    "FERITO",
     "/products/photo-white-shirt.webp",
     "/products/cutout-white-shirt.webp",
   ),
   draft(
     "grey-shirt",
     "SHIRT",
-    "REGULAR",
+    "LEONE",
     "/products/photo-grey-shirt.webp",
     "/products/cutout-grey-shirt.webp",
     ["95"],
@@ -109,7 +109,7 @@ export const PRODUCTS: Product[] = [
   draft(
     "black-shirt",
     "SHIRT",
-    "REGULAR",
+    "LEONE",
     "/products/photo-black-shirt.webp",
     "/products/cutout-black-shirt.webp",
   ),
@@ -122,6 +122,9 @@ export function findProduct(slug: string): Product | undefined {
 
 /** 목록 필터에 쓸 선택지. 데이터에서 뽑는다 — 하드코딩하면 상품이 늘 때 조용히 빠진다. */
 export const CATEGORIES = [...new Set(PRODUCTS.map((p) => p.category))].sort();
+
+/** 라인 필터 선택지. 카탈로그에 실제로 있는 라인만 노출한다. */
+export const LINES = [...new Set(PRODUCTS.map((p) => p.line))];
 export const SIZE_OPTIONS = [
   ...new Set(PRODUCTS.flatMap((p) => p.skus.map((s) => s.size))),
 ].sort();

@@ -3,7 +3,13 @@
 import { useMemo, useState } from "react";
 
 import { ProductCard } from "@/components/product/ProductCard";
-import { FIT_LABEL, type FitType, type Product } from "@/types/product";
+import {
+  CATEGORY_LABEL,
+  Category,
+  LINE_LABEL,
+  type Product,
+  type ProductLine,
+} from "@/types/product";
 
 /**
  * 필터 + 격자.
@@ -26,7 +32,7 @@ import { FIT_LABEL, type FitType, type Product } from "@/types/product";
  * 데스크톱은 포인터가 정확하므로 원래 크기로 되돌린다.
  */
 
-const FITS: FitType[] = ["ATHLETIC", "REGULAR"];
+const LINES: ProductLine[] = ["LEONE", "FERITO"];
 
 interface Chip {
   value: string | null;
@@ -59,8 +65,8 @@ function ChipRow({
             onClick={() => onSelect(o.value)}
             className={`ease-fluid text-2xs inline-flex min-h-[44px] items-center rounded-full border px-4 transition-all duration-300 md:min-h-0 md:py-2 ${
               active
-                ? "border-velvet bg-velvet-tint text-velvet-deep shadow-soft"
-                : "border-subtle text-secondary hover:border-velvet"
+                ? "border-accent bg-accent-tint text-accent shadow-soft"
+                : "border-subtle text-secondary hover:border-accent"
             }`}
           >
             {o.label}
@@ -77,7 +83,7 @@ export function ProductList({
   sizes,
 }: {
   products: Product[];
-  categories: string[];
+  categories: Category[];
   sizes: string[];
 }) {
   const [fit, setFit] = useState<string | null>(null);
@@ -95,7 +101,7 @@ export function ProductList({
   const visible = useMemo(
     () =>
       products.filter((p) => {
-        if (fit && p.fitType !== fit) return false;
+        if (fit && p.line !== fit) return false;
         if (category && p.category !== category) return false;
 
         if (size) {
@@ -123,12 +129,12 @@ export function ProductList({
     <>
       <div className="border-subtle mt-12 flex flex-col gap-7 border-y py-8">
         <ChipRow
-          legend="핏"
+          legend="라인"
           selected={fit}
           onSelect={setFit}
           options={[
             { value: null, label: "전체" },
-            ...FITS.map((f) => ({ value: f, label: FIT_LABEL[f].ko })),
+            ...LINES.map((l) => ({ value: l, label: LINE_LABEL[l].ko })),
           ]}
         />
         <ChipRow
@@ -137,7 +143,10 @@ export function ProductList({
           onSelect={setCategory}
           options={[
             { value: null, label: "전체" },
-            ...categories.map((c) => ({ value: c, label: c })),
+            ...categories.map((c) => ({
+              value: c,
+              label: CATEGORY_LABEL[c].ko,
+            })),
           ]}
         />
         <ChipRow
@@ -194,7 +203,7 @@ export function ProductList({
           <p className="text-primary text-sm">조건에 맞는 제품이 없습니다</p>
           <p className="text-muted text-2xs mt-2">
             {[
-              fit && FIT_LABEL[fit as FitType].ko,
+              fit && LINE_LABEL[fit as ProductLine].ko,
               category,
               size && `${size} 사이즈`,
               inStockOnly && "재고 있는 것만",
@@ -205,7 +214,7 @@ export function ProductList({
           <button
             type="button"
             onClick={reset}
-            className="text-accent hover:text-velvet ease-fluid text-2xs mt-5 underline underline-offset-4 transition-colors duration-300"
+            className="text-accent hover:text-accent ease-fluid text-2xs mt-5 underline underline-offset-4 transition-colors duration-300"
           >
             필터 초기화
           </button>

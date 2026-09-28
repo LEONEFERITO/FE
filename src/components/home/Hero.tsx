@@ -286,7 +286,7 @@ export function Hero() {
               글자가 하나도 없는 메인은 검색 결과에서 "제목 없음" 으로 잡히고,
               스크린리더로는 빈 화면이 된다. 조용하게 두되 빼지는 않는다.
             */}
-            <h1 className="text-center text-sm leading-relaxed text-[#FAF7F2]/70 md:text-left">
+            <h1 className="text-center text-sm leading-relaxed text-primary/70 md:text-left">
               운동으로 달라진 체형을 위한 남성 기성복
             </h1>
 
@@ -297,7 +297,7 @@ export function Hero() {
             <div className="flex flex-wrap items-center justify-center gap-3 md:justify-start">
               <Link
                 href="/collection"
-                className="group text-velvet tracking-button ease-fluid inline-flex items-center gap-2 rounded-full bg-[#FAF7F2] py-2.5 pl-5 pr-1.5 text-xs shadow-[0_14px_30px_-14px_rgba(18,2,7,0.9)] transition-all duration-500 hover:bg-white active:scale-[0.98] md:gap-3 md:py-3 md:pl-6 md:pr-2 md:text-sm"
+                className="group text-accent tracking-button ease-fluid inline-flex items-center gap-2 rounded-full bg-primary py-2.5 pl-5 pr-1.5 text-xs shadow-[0_14px_30px_-14px_rgba(18,2,7,0.9)] transition-all duration-500 hover:bg-white active:scale-[0.98] md:gap-3 md:py-3 md:pl-6 md:pr-2 md:text-sm"
               >
                 COLLECTION
                 <span className="bg-velvet/10 ease-fluid flex h-7 w-7 items-center justify-center rounded-full transition-transform duration-500 group-hover:-translate-y-px group-hover:translate-x-1 group-hover:scale-105 md:h-8 md:w-8">
@@ -307,9 +307,9 @@ export function Hero() {
 
               <Link
                 href="/fit"
-                className="tracking-button ease-fluid inline-flex items-center rounded-full border border-[#FAF7F2]/45 px-5 py-2.5 text-xs text-[#FAF7F2] transition-all duration-500 hover:border-[#FAF7F2] active:scale-[0.98] md:px-6 md:py-3 md:text-sm"
+                className="tracking-button ease-fluid inline-flex items-center rounded-full border border-primary/45 px-5 py-2.5 text-xs text-primary transition-all duration-500 hover:border-primary active:scale-[0.98] md:px-6 md:py-3 md:text-sm"
               >
-                ATHLETIC FIT
+                LEONE · FERITO
               </Link>
             </div>
           </div>

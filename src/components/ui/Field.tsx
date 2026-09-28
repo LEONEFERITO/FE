@@ -61,7 +61,7 @@ export function Field({
           className={`text-primary placeholder:text-muted/70 ease-fluid w-full rounded-xl border bg-transparent px-4 py-3.5 text-sm transition-colors duration-300 ${
             error
               ? "border-error"
-              : "border-interactive focus-visible:border-velvet"
+              : "border-interactive focus-visible:border-accent"
           } ${trailing ? "pr-12" : ""} ${className}`}
           {...input}
         />
