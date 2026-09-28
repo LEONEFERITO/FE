@@ -28,12 +28,25 @@ import { Logo } from "@/components/brand/Logo";
  * 자간이라는 **형태**로도 "분류" 임을 알 수 있게 한다 (WCAG 1.4.1).
  */
 
+/*
+ * 내비는 **지금 존재하는 곳**만 가리킨다.
+ *
+ * 전에는 /collection · /fit · /size-guide · /about 을 가리켰는데 넷 다 없는 페이지였다.
+ * QA 로 확인해 보니 헤더의 모든 항목이 404 였다 — 둘러보려던 사람이 메뉴를 누르는 족족
+ * 오류 화면을 만난다. 만들 예정인 주소를 미리 걸어두면 "곧 생긴다" 가 아니라
+ * "고장났다" 로 읽힌다.
+ *
+ * 그래서 아직 페이지가 없는 항목은 **메인의 해당 구간**으로 보낸다. 내용은 이미 거기 있다.
+ * 페이지가 생기면 href 만 바꾸면 된다.
+ *
+ * TODO(고객확인) 전체 IA 는 BRAND_BRIEF.md 5장 참고 —
+ * 가치관 · 이용 메뉴얼 · 룩북 · QnA · 연결 링크 · 마이페이지가 더 붙는다.
+ */
 const NAV = [
-  { href: "/collection", label: "COLLECTION" },
-  // TODO(고객확인) 전체 IA 는 BRAND_BRIEF.md 5장 참고 — 가치관·이용 메뉴얼·룩북이 더 붙는다
-  { href: "/fit", label: "LEONE · FERITO" },
-  { href: "/size-guide", label: "SIZE GUIDE" },
-  { href: "/about", label: "ABOUT" },
+  { href: "/products", label: "COLLECTION" },
+  { href: "/#fit-compare-heading", label: "LEONE · FERITO" },
+  { href: "/#size-finder-heading", label: "SIZE GUIDE" },
+  { href: "/#category-heading", label: "ABOUT" },
 ] as const;
 
 export function Header({ overHero = false }: { overHero?: boolean }) {
@@ -156,7 +169,8 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
           <div className="flex items-center gap-5">
             <Link
               href="/cart"
-              className={`text-2xs tracking-label ease-fluid hidden transition-colors duration-700 sm:inline-block ${
+              // min-h-11: 높이가 20px 이라 터치 표적 기준(24px)에 미달이었다 (WCAG 2.5.8)
+              className={`text-2xs tracking-label ease-fluid hidden min-h-11 items-center transition-colors duration-700 sm:inline-flex ${
                 light
                   ? "text-primary hover:text-white"
                   : "text-accent-deep hover:text-accent"

@@ -112,7 +112,7 @@ export function ExchangeNotice() {
                 {CORE.href && (
                   <Link
                     href={CORE.href}
-                    className="text-accent hover:text-accent ease-fluid mt-auto pt-10 text-2xs underline underline-offset-4 transition-colors duration-300"
+                    className="text-accent hover:text-accent ease-fluid mt-auto inline-flex min-h-11 w-fit items-center pt-10 text-2xs underline underline-offset-4 transition-colors duration-300"
                   >
                     {CORE.linkLabel}
                   </Link>
@@ -143,7 +143,7 @@ export function ExchangeNotice() {
                 {item.href && (
                   <Link
                     href={item.href}
-                    className="text-accent hover:text-accent ease-fluid mt-4 text-2xs underline underline-offset-4 transition-colors duration-300"
+                    className="text-accent hover:text-accent ease-fluid mt-4 inline-flex min-h-11 w-fit items-center text-2xs underline underline-offset-4 transition-colors duration-300"
                   >
                     {item.linkLabel}
                   </Link>

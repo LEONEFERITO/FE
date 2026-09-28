@@ -251,7 +251,7 @@ export function SizeFinder() {
                   </p>
                   <Link
                     href="/products"
-                    className="text-accent hover:text-accent ease-fluid text-2xs mt-2 underline underline-offset-4 transition-colors duration-300"
+                    className="text-accent hover:text-accent ease-fluid text-2xs mt-2 inline-flex min-h-11 w-fit items-center underline underline-offset-4 transition-colors duration-300"
                   >
                     상품별 상세 실측 보기
                   </Link>

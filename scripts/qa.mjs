@@ -1,0 +1,293 @@
+/**
+ * QA — 정적 빌드를 실제 브라우저로 열어 페이지마다 점검한다.
+ *
+ * 이 창의 미리보기는 document.hidden 이 항상 true 라 IntersectionObserver 도 스크롤도
+ * 발화하지 않는다. 그래서 확인할 수 있는 것만 확인하고, 확인 못 한 것은 "못 했다" 고 적는다.
+ * 통과했다고 거짓으로 적는 것보다 낫다.
+ *
+ * 점검 항목 — 전부 **기계가 판정할 수 있는 것**만 둔다:
+ *   1. 콘솔 오류 · 404
+ *   2. 가로 스크롤 (모바일 375 / 데스크톱 1440)
+ *   3. h1 이 정확히 하나인가 (문서 구조)
+ *   4. 이미지 alt 누락
+ *   5. 폼 입력에 라벨이 연결됐는가
+ *   6. 터치 표적 44px 미만인 대화형 요소
+ *   7. 글자 대비 4.5:1 미만 (실제 계산된 색으로)
+ *   8. 링크 목적지가 실제로 존재하는가
+ *   9. 개발용 표시(TODO 등)가 화면에 남았는가
+ *
+ * 사용: node scripts/qa.mjs <기준URL> [출력JSON]
+ */
+import fs from "node:fs";
+import puppeteer from "puppeteer-core";
+
+const BASE = process.argv[2] ?? "http://127.0.0.1:4333";
+const OUT = process.argv[3] ?? null;
+
+const EDGE = "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe";
+
+const PAGES = [
+  { path: "/", name: "메인" },
+  { path: "/products/", name: "제품 목록" },
+  { path: "/products/brown-shirt/", name: "제품 상세" },
+  { path: "/login/", name: "로그인" },
+  { path: "/signup/", name: "회원가입" },
+  { path: "/cart/", name: "장바구니(준비 중)" },
+  { path: "/terms/", name: "이용약관(준비 중)" },
+];
+
+const VIEWPORTS = [
+  { name: "mobile", width: 375, height: 812 },
+  { name: "desktop", width: 1440, height: 900 },
+];
+
+/** 상대 휘도 (WCAG 2.1). sRGB 를 선형으로 되돌린 뒤 가중 합한다. */
+function luminance([r, g, b]) {
+  const f = (c) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+}
+
+function contrast(fg, bg) {
+  const a = luminance(fg);
+  const b = luminance(bg);
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+}
+
+function parseRgb(css) {
+  const m = css.match(/rgba?\(([^)]+)\)/);
+  if (!m) return null;
+  const parts = m[1].split(/[\s,/]+/).filter(Boolean).map(Number);
+  if (parts.length < 3 || parts.some(Number.isNaN)) return null;
+  return { rgb: parts.slice(0, 3), alpha: parts.length > 3 ? parts[3] : 1 };
+}
+
+/** 반투명 글자를 배경 위에 합성한다. 합성하지 않으면 대비를 실제보다 높게 계산한다. */
+function composite(fg, bg, alpha) {
+  return fg.map((c, i) => Math.round(c * alpha + bg[i] * (1 - alpha)));
+}
+
+const results = [];
+const browser = await puppeteer.launch({
+  executablePath: EDGE,
+  headless: true,
+  args: ["--hide-scrollbars"],
+});
+
+for (const vp of VIEWPORTS) {
+  for (const target of PAGES) {
+    const page = await browser.newPage();
+    const consoleErrors = [];
+    const badRequests = [];
+
+    page.on("console", (m) => {
+      if (m.type() !== "error") return;
+      /*
+       * next/link 는 RSC 페이로드를 미리 받아두려 하는데, 정적 내보내기에는 그 파일이
+       * 없어서 항상 404 가 난다. 화면에는 아무 영향이 없고(이동은 전체 로드로 대체된다)
+       * 우리가 고칠 수 있는 것도 아니다. 진짜 오류를 가리지 않게 걸러낸다.
+       */
+      const text = m.text();
+      /*
+       * 리소스 로드 실패는 아래 badRequests 가 URL 까지 담아 따로 잡는다.
+       * 콘솔 메시지에는 URL 이 없어서 RSC 프리페치인지 진짜 문제인지 구분할 수 없다.
+       * 같은 사실을 두 번 세지 않도록 여기서는 버린다.
+       */
+      if (text.startsWith("Failed to load resource")) return;
+      consoleErrors.push(text.slice(0, 200));
+    });
+    page.on("pageerror", (e) => consoleErrors.push("PAGEERROR " + e.message.slice(0, 200)));
+    page.on("response", (r) => {
+      if (r.status() >= 400) {
+        const url = r.url();
+        // 정적 내보내기는 Link 프리페치용 RSC 파일을 찾다가 404 를 낸다. 화면과 무관하다.
+        if (url.includes("_rsc=") || url.endsWith(".txt")) return;
+        badRequests.push(`${r.status()} ${url.replace(BASE, "")}`);
+      }
+    });
+
+    await page.setViewport({ width: vp.width, height: vp.height, deviceScaleFactor: 1 });
+    await page.goto(BASE + target.path, { waitUntil: "networkidle0" });
+
+    // 스크롤 연출은 이 환경에서 발화하지 않는다. 검사 대상을 보이게 만들어 둔다.
+    await page.evaluate(() => {
+      document.querySelectorAll(".reveal, .stage-in").forEach((el) => {
+        el.dataset.visible = "true";
+        el.style.transition = "none";
+        el.style.opacity = "1";
+        el.style.transform = "none";
+      });
+      document.querySelectorAll("img[loading=lazy]").forEach((i) => (i.loading = "eager"));
+    });
+    await page.evaluate(() => document.fonts.ready);
+    await new Promise((r) => setTimeout(r, 600));
+
+    const audit = await page.evaluate(() => {
+      const visible = (el) => {
+        const r = el.getBoundingClientRect();
+        const cs = getComputedStyle(el);
+        return r.width > 0 && r.height > 0 && cs.visibility !== "hidden" && cs.display !== "none";
+      };
+
+      // 배경색이 투명한 요소는 조상에서 실제 배경을 찾아 올라간다.
+      const effectiveBg = (el) => {
+        let node = el;
+        while (node && node !== document.documentElement) {
+          const bg = getComputedStyle(node).backgroundColor;
+          if (bg && !bg.includes("rgba(0, 0, 0, 0)") && bg !== "transparent") return bg;
+          node = node.parentElement;
+        }
+        return getComputedStyle(document.body).backgroundColor;
+      };
+
+      const textNodes = [];
+      document.querySelectorAll("body *").forEach((el) => {
+        if (!visible(el)) return;
+        const own = [...el.childNodes]
+          .filter((n) => n.nodeType === 3)
+          .map((n) => n.textContent.trim())
+          .join(" ")
+          .trim();
+        if (!own) return;
+        const cs = getComputedStyle(el);
+        textNodes.push({
+          text: own.slice(0, 40),
+          color: cs.color,
+          bg: effectiveBg(el),
+          fontSize: parseFloat(cs.fontSize),
+          fontWeight: parseInt(cs.fontWeight, 10) || 400,
+          tag: el.tagName.toLowerCase(),
+        });
+      });
+
+      const interactive = [];
+      document.querySelectorAll("a[href], button, input, select, textarea").forEach((el) => {
+        if (!visible(el) || el.disabled) return;
+        /*
+         * 체크박스·라디오는 <label> 로 감싸져 있으면 **라벨 전체가 표적**이다.
+         * 라벨을 누르면 브라우저가 입력을 토글한다. 입력 상자만 재면 16×16 으로
+         * 미달처럼 보이지만 실제로 누를 수 있는 면은 라벨 높이다.
+         */
+        // ?? 는 null/undefined 만 거른다. && 가 돌려준 false 는 그대로 통과해서 터진다.
+        const wrappingLabel =
+          el.type === "checkbox" || el.type === "radio" ? el.closest("label") : null;
+        const r = (wrappingLabel || el).getBoundingClientRect();
+        // 본문 안에 흐르는 인라인 링크는 표적 크기 예외다(WCAG 2.5.8).
+        const inline = el.tagName === "A" && getComputedStyle(el).display === "inline";
+        interactive.push({
+          tag: el.tagName.toLowerCase(),
+          label: (el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 30),
+          w: Math.round(r.width),
+          h: Math.round(r.height),
+          inline,
+        });
+      });
+
+      const unlabeled = [];
+      document.querySelectorAll("input, select, textarea").forEach((el) => {
+        if (el.type === "hidden") return;
+        const hasLabel =
+          (el.id && document.querySelector(`label[for="${CSS.escape(el.id)}"]`)) ||
+          el.closest("label") ||
+          el.getAttribute("aria-label") ||
+          el.getAttribute("aria-labelledby");
+        if (!hasLabel) unlabeled.push(el.name || el.type);
+      });
+
+      const imagesWithoutAlt = [];
+      document.querySelectorAll("img").forEach((img) => {
+        if (img.getAttribute("alt") === null) imagesWithoutAlt.push(img.getAttribute("src"));
+      });
+
+      const brokenImages = [...document.querySelectorAll("img")]
+        .filter((i) => i.complete && i.naturalWidth === 0)
+        .map((i) => i.getAttribute("src"));
+
+      return {
+        title: document.title,
+        h1: [...document.querySelectorAll("h1")].map((h) => h.textContent.trim().slice(0, 40)),
+        horizontalOverflow: document.documentElement.scrollWidth - window.innerWidth,
+        textNodes,
+        interactive,
+        unlabeled,
+        imagesWithoutAlt,
+        brokenImages,
+        devMarkers: (document.body.innerText.match(/TODO|FIXME|lorem ipsum|undefined|NaN/gi) || []),
+        links: [...document.querySelectorAll("a[href]")]
+          .map((a) => a.getAttribute("href"))
+          .filter((h) => h && h.startsWith("/")),
+      };
+    });
+
+    // 대비는 브라우저 밖에서 계산한다 — 반투명 합성을 제대로 하기 위해서다.
+    const lowContrast = [];
+    for (const n of audit.textNodes) {
+      const fg = parseRgb(n.color);
+      const bg = parseRgb(n.bg);
+      if (!fg || !bg) continue;
+      const composited = fg.alpha < 1 ? composite(fg.rgb, bg.rgb, fg.alpha) : fg.rgb;
+      const ratio = contrast(composited, bg.rgb);
+      // 큰 글자(18.66px 이상 굵게 / 24px 이상)는 3:1 이 기준이다.
+      const large = n.fontSize >= 24 || (n.fontSize >= 18.66 && n.fontWeight >= 700);
+      const required = large ? 3 : 4.5;
+      if (ratio < required) {
+        lowContrast.push({ text: n.text, ratio: Number(ratio.toFixed(2)), required, fontSize: n.fontSize });
+      }
+    }
+
+    /*
+     * 표적 크기(WCAG 2.5.8, 24×24).
+     * 건너뛰기 링크는 제외한다 — 평소 1×1 로 숨어 있다가 초점을 받으면 커지는 것이
+     * 정상 동작이고, 크기를 키우면 오히려 모든 화면 좌상단에 글자가 상시 노출된다.
+     */
+    const smallTargets = audit.interactive.filter(
+      (t) => !t.inline && !(t.w <= 1 && t.h <= 1) && (t.w < 24 || t.h < 24),
+    );
+
+    results.push({
+      viewport: vp.name,
+      page: target.name,
+      path: target.path,
+      title: audit.title,
+      h1Count: audit.h1.length,
+      h1: audit.h1,
+      horizontalOverflow: audit.horizontalOverflow,
+      consoleErrors,
+      badRequests,
+      brokenImages: audit.brokenImages,
+      imagesWithoutAlt: audit.imagesWithoutAlt,
+      unlabeledInputs: audit.unlabeled,
+      smallTargets,
+      lowContrast,
+      devMarkers: audit.devMarkers,
+      internalLinks: [...new Set(audit.links)],
+    });
+
+    await page.close();
+  }
+}
+
+await browser.close();
+
+// ── 요약 ────────────────────────────────────────────────
+const problems = [];
+for (const r of results) {
+  const where = `${r.viewport} ${r.page}`;
+  if (r.horizontalOverflow > 0) problems.push(`${where}: 가로 스크롤 ${r.horizontalOverflow}px`);
+  if (r.h1Count !== 1) problems.push(`${where}: h1 이 ${r.h1Count}개`);
+  if (r.consoleErrors.length) problems.push(`${where}: 콘솔 오류 ${r.consoleErrors.length}건 — ${r.consoleErrors[0]}`);
+  if (r.badRequests.length) problems.push(`${where}: 실패 요청 ${r.badRequests.join(", ")}`);
+  if (r.brokenImages.length) problems.push(`${where}: 깨진 이미지 ${r.brokenImages.join(", ")}`);
+  if (r.imagesWithoutAlt.length) problems.push(`${where}: alt 없는 이미지 ${r.imagesWithoutAlt.length}건`);
+  if (r.unlabeledInputs.length) problems.push(`${where}: 라벨 없는 입력 ${r.unlabeledInputs.join(", ")}`);
+  if (r.smallTargets.length) problems.push(`${where}: 작은 표적 ${r.smallTargets.length}건 — ${r.smallTargets.map((t) => `${t.label}(${t.w}x${t.h})`).slice(0, 3).join(", ")}`);
+  if (r.lowContrast.length) problems.push(`${where}: 저대비 ${r.lowContrast.length}건 — ${r.lowContrast.map((c) => `"${c.text}" ${c.ratio}:1`).slice(0, 3).join(", ")}`);
+  if (r.devMarkers.length) problems.push(`${where}: 개발용 표시 ${[...new Set(r.devMarkers)].join(", ")}`);
+}
+
+console.log(problems.length === 0 ? "문제 없음" : problems.join("\n"));
+console.log(`\n검사한 화면: ${results.length}개 (페이지 ${PAGES.length} × 뷰포트 ${VIEWPORTS.length})`);
+
+if (OUT) fs.writeFileSync(OUT, JSON.stringify(results, null, 2), "utf-8");

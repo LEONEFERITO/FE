@@ -70,8 +70,8 @@ export function PurchasePanel({ product }: { product: Product }) {
       <div className="flex items-baseline justify-between">
         <h2 className="text-primary text-sm font-medium">사이즈</h2>
         <Link
-          href="/size-guide"
-          className="text-accent hover:text-accent ease-fluid group inline-flex items-center gap-1.5 text-xs transition-colors duration-500"
+          href="/#size-finder-heading"
+          className="text-accent hover:text-accent ease-fluid group inline-flex min-h-11 items-center gap-1.5 text-xs transition-colors duration-500"
         >
           사이즈 가이드
           <span className="ease-fluid transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">

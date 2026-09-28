@@ -189,7 +189,7 @@ export function ProductList({
         />
 
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <label className="text-secondary text-2xs flex cursor-pointer items-center gap-2.5">
+          <label className="flex min-h-11 cursor-pointer items-center gap-2.5 text-secondary text-2xs flex cursor-pointer items-center gap-2.5">
             <input
               type="checkbox"
               checked={inStockOnly}
@@ -203,7 +203,7 @@ export function ProductList({
             <button
               type="button"
               onClick={reset}
-              className="text-muted hover:text-accent ease-fluid text-2xs underline underline-offset-4 transition-colors duration-300"
+              className="text-muted hover:text-accent ease-fluid inline-flex min-h-11 items-center text-2xs underline underline-offset-4 transition-colors duration-300"
             >
               필터 초기화
             </button>

@@ -296,7 +296,7 @@ export function Hero() {
             */}
             <div className="flex flex-wrap items-center justify-center gap-3 md:justify-start">
               <Link
-                href="/collection"
+                href="/products"
                 className="group text-accent tracking-button ease-fluid inline-flex items-center gap-2 rounded-full bg-primary py-2.5 pl-5 pr-1.5 text-xs shadow-[0_14px_30px_-14px_rgba(18,2,7,0.9)] transition-all duration-500 hover:bg-white active:scale-[0.98] md:gap-3 md:py-3 md:pl-6 md:pr-2 md:text-sm"
               >
                 COLLECTION
@@ -306,7 +306,7 @@ export function Hero() {
               </Link>
 
               <Link
-                href="/fit"
+                href="/#fit-compare-heading"
                 className="tracking-button ease-fluid inline-flex items-center rounded-full border border-primary/45 px-5 py-2.5 text-xs text-primary transition-all duration-500 hover:border-primary active:scale-[0.98] md:px-6 md:py-3 md:text-sm"
               >
                 LEONE · FERITO

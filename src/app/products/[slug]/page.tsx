@@ -71,10 +71,17 @@ export default async function ProductDetailPage({
             정보 컬럼이 좁으면 실측표가 가로 스크롤을 타게 되어 핵심 정보가 묻힌다.
           */}
           <div className="grid gap-12 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-20">
-            <Reveal>
+            {/*
+              min-w-0 이 필요하다. grid 자식의 기본 min-width 는 auto 라
+              "내용보다 작아지지 않는다" 가 기본이고, 정보 컬럼 안의 실측표가
+              min-w-[420px] 를 갖고 있어서 375px 화면에서 컬럼을 434px 로 밀어냈다.
+              (실측표 자체는 이미 overflow-x-auto 로 감싸져 있는데, 그걸 감싼
+               이 래퍼가 못 줄어들면 소용이 없다 — 페이지가 통째로 가로 스크롤을 탄다)
+            */}
+            <Reveal className="min-w-0">
               <ProductGallery images={product.images} />
             </Reveal>
-            <Reveal delay={140}>
+            <Reveal delay={140} className="min-w-0">
               <PurchasePanel product={product} />
             </Reveal>
           </div>

@@ -10,7 +10,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 
 import { Field } from "@/components/ui/Field";
-import { AUTH_MESSAGE, AuthError, SOCIAL_PROVIDERS, signIn } from "@/lib/auth";
+import { AuthError, SOCIAL_PROVIDERS, signIn } from "@/lib/auth";
 
 /**
  * 로그인 폼.
@@ -83,12 +83,22 @@ export function LoginForm() {
     setPending(true);
     try {
       await signIn({ email: email.trim(), password, remember });
-      // Phase 5: 성공하면 원래 가려던 곳으로 보낸다
+      /*
+        성공하면 원래 가려던 곳으로 보낸다.
+        TODO: 돌아갈 주소는 **서버가 준 값이나 우리 경로 목록에서만** 고른다.
+        쿼리스트링의 next= 를 그대로 믿고 이동하면 외부 사이트로 튕기는
+        오픈 리다이렉트가 된다 — 피싱에 그대로 쓰인다.
+      */
+      window.location.assign("/");
     } catch (err) {
+      /*
+        displayMessage 를 쓴다. 대부분은 정해진 문구지만, 서버만 아는 이유
+        (비밀번호 규칙 등)는 서버 문구를 그대로 보여줘야 고칠 수 있다.
+      */
       setFormError(
         err instanceof AuthError
-          ? AUTH_MESSAGE[err.kind]
-          : AUTH_MESSAGE.unknown,
+          ? err.displayMessage
+          : "로그인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
       );
       requestAnimationFrame(() => summaryRef.current?.focus());
     } finally {
@@ -182,7 +192,7 @@ export function LoginForm() {
 
         <Link
           href="/find"
-          className="text-muted hover:text-accent ease-fluid text-2xs underline underline-offset-4 transition-colors duration-300"
+          className="inline-flex min-h-11 items-center text-muted hover:text-accent ease-fluid text-2xs underline underline-offset-4 transition-colors duration-300"
         >
           비밀번호를 잊으셨나요?
         </Link>

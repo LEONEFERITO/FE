@@ -35,7 +35,7 @@ export default function LoginPage() {
       <Header />
 
       <main id="main" className="flex-1">
-        <div className="grid min-h-[calc(100dvh-72px)] md:min-h-[calc(100dvh-88px)] md:grid-cols-2">
+        <div className="grid min-h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-72px)] md:grid-cols-2">
           {/* 왼쪽 — 촬영 원본. 모바일에서는 숨긴다 */}
           <div className="bg-velvet relative hidden overflow-hidden md:block">
             {/* eslint-disable-next-line @next/next/no-img-element */}
