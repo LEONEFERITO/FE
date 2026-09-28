@@ -91,7 +91,7 @@ for f in $FILES; do
   HITS=$(grep -nEi "$SECRET_KEY_RE" "$f" 2>/dev/null \
     | grep -vE '\$\{[A-Za-z_]+' \
     | grep -vE '[:=][[:space:]]*(""|'"''"'|$)' \
-    | grep -vEi '(example|placeholder|changeme|your[_-]|TODO|xxx+)' \
+    | grep -vEi '(example|placeholder|changeme|your[_-]|TODO|xxx+)'     `# 타입 표기를 값으로 오인하지 않는다: credentials: Credentials) · token: AuthToken,`     `# 값이 대문자로 시작하는 식별자이고 뒤에 구두점이 오면 코드의 타입/변수 참조다.`     `# 리터럴이 아니므로 시크릿일 수 없다. .env·yml 처럼 구두점이 없는 줄은 그대로 걸린다.`     | grep -vE ':[[:space:]]*[A-Z][A-Za-z0-9_]*(<[^>]*>)?[[:space:]]*[),;|&=]' \
     | grep -vE "$ALLOW_RE" || true)
   if [ -n "$HITS" ]; then
     report "하드코딩된 시크릿으로 보입니다" "$f"
