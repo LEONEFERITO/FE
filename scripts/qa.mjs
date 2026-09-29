@@ -34,11 +34,21 @@ const PAGES = [
   { path: "/signup/", name: "회원가입" },
   { path: "/cart/", name: "장바구니(준비 중)" },
   { path: "/terms/", name: "이용약관(준비 중)" },
+  { path: "/admin/products/new/", name: "관리자 상품 등록" },
 ];
 
+/*
+ * 폭을 늘렸다. 375 와 1440 만 보면 그 사이가 빈다 —
+ * 실제로 상품 상세의 실측표가 **1024 에서만** 잘리고 있었고 두 폭에서는 안 보였다.
+ * 320 은 가장 좁은 실기기(iPhone SE 1세대), 768/1024 는 태블릿, 1920 은 큰 모니터다.
+ */
 const VIEWPORTS = [
+  { name: "320", width: 320, height: 812 },
   { name: "mobile", width: 375, height: 812 },
+  { name: "768", width: 768, height: 1024 },
+  { name: "1024", width: 1024, height: 900 },
   { name: "desktop", width: 1440, height: 900 },
+  { name: "1920", width: 1920, height: 1000 },
 ];
 
 /** 상대 휘도 (WCAG 2.1). sRGB 를 선형으로 되돌린 뒤 가중 합한다. */

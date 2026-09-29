@@ -7,6 +7,7 @@ import {
   Warning,
 } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
 import { Field } from "@/components/ui/Field";
@@ -54,6 +55,7 @@ function validate(email: string, password: string): Errors {
 }
 
 export function LoginForm() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
@@ -89,7 +91,7 @@ export function LoginForm() {
         쿼리스트링의 next= 를 그대로 믿고 이동하면 외부 사이트로 튕기는
         오픈 리다이렉트가 된다 — 피싱에 그대로 쓰인다.
       */
-      window.location.assign("/");
+      router.push("/");
     } catch (err) {
       /*
         displayMessage 를 쓴다. 대부분은 정해진 문구지만, 서버만 아는 이유
