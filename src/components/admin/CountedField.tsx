@@ -50,6 +50,11 @@ interface Props {
   rows?: number;
   required?: boolean;
   inputMode?: "text" | "numeric" | "email" | "tel";
+  /**
+   * 읽기 전용. disabled 가 아니라 readOnly 인 이유: disabled 는 초점을 못 받아서
+   * 키보드·스크린리더 사용자가 값을 읽을 수 없고, 복사도 안 된다.
+   */
+  readOnly?: boolean;
 }
 
 export function CountedField({
@@ -64,6 +69,7 @@ export function CountedField({
   rows = 4,
   required = false,
   inputMode,
+  readOnly = false,
 }: Props) {
   const id = useId();
   const hintId = `${id}-hint`;
@@ -85,12 +91,19 @@ export function CountedField({
     value,
     placeholder,
     inputMode,
+    readOnly,
     "aria-invalid": shownError ? (true as const) : undefined,
     "aria-describedby": describedBy,
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       onChange(e.target.value),
-    className: `text-primary placeholder:text-muted/70 ease-fluid w-full rounded-xl border bg-transparent px-4 py-3.5 text-sm transition-colors duration-300 ${
-      shownError ? "border-error" : "border-interactive focus-visible:border-accent"
+    className: `placeholder:text-muted/70 ease-fluid w-full rounded-xl border px-4 py-3.5 text-sm transition-colors duration-300 ${
+      readOnly ? "text-secondary bg-band/60 border-subtle" : "text-primary bg-transparent"
+    } ${
+      shownError
+        ? "border-error"
+        : readOnly
+          ? ""
+          : "border-interactive focus-visible:border-accent"
     }`,
   };
 

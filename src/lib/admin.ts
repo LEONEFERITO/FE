@@ -161,8 +161,15 @@ export interface ProductDraft {
   modelWeightKg: number | null;
   modelSize: string;
   leadTimeDays: number | null;
-  images: { mediaId: string; kind: string; alt: string }[];
-  skus: { size: string; orderable: boolean }[];
+  /** 노출 순서. 폼에 칸이 없어도 수정 때는 원래 값을 그대로 돌려보낸다. */
+  displayOrder?: number;
+  images: { mediaId: string; kind: string; alt: string; sortOrder?: number }[];
+  skus: {
+    size: string;
+    orderable: boolean;
+    sortOrder?: number;
+    measurements?: { part: string; valueCm: number; toleranceCm: number | null }[];
+  }[];
   /**
    * 상세 사이즈 차트 이미지.
    *
@@ -205,11 +212,138 @@ export async function createProduct(draft: ProductDraft): Promise<string> {
   return body.id;
 }
 
+/**
+ * 수정 저장. 폼이 보낸 것이 "현재 상태 전체" 다 — 서버는 이미지·사이즈를 통째로 교체한다.
+ * 그래서 폼이 다루지 않는 값(실측·모델 정보 등)도 반드시 함께 보내야 한다.
+ * 빼면 저장할 때마다 지워진다. 그 책임은 `ProductForm` 이 진다.
+ */
+export async function updateProduct(id: string, draft: ProductDraft): Promise<void> {
+  if (!ADMIN_CONNECTED) {
+    throw new AdminApiError("NOT_CONNECTED", "서버가 아직 연결되지 않았습니다.");
+  }
+
+  const res = await fetch(`${API_BASE}/api/admin/products/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...(await csrfHeader()) },
+    body: JSON.stringify(blankToNull(draft)),
+  });
+  if (!res.ok) return fail(res);
+}
+
 export async function publishProduct(id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/api/admin/products/${id}/publish`, {
+  const res = await fetch(`${API_BASE}/api/admin/products/${encodeURIComponent(id)}/publish`, {
     method: "POST",
     credentials: "include",
     headers: await csrfHeader(),
   });
   if (!res.ok) return fail(res);
+}
+
+export async function unpublishProduct(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/admin/products/${encodeURIComponent(id)}/unpublish`, {
+    method: "POST",
+    credentials: "include",
+    headers: await csrfHeader(),
+  });
+  if (!res.ok) return fail(res);
+}
+
+// ── 조회 ─────────────────────────────────────────────────────
+
+export type ProductStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
+
+export const STATUS_LABEL: Record<ProductStatus, string> = {
+  DRAFT: "초안",
+  PUBLISHED: "공개",
+  ARCHIVED: "보관",
+};
+
+/**
+ * 공개에 모자란 항목의 이름.
+ *
+ * 서버가 주는 값(`Product.missingForPublish`)은 필드 키다. 관리자가 읽는 말로 바꾼다.
+ * 모르는 키가 오면 키를 그대로 보여준다 — 서버가 조건을 늘렸는데 화면이 숨기면
+ * "왜 공개가 안 되지?" 로 돌아간다.
+ */
+export const MISSING_LABEL: Record<string, string> = {
+  name: "상품명",
+  priceKrw: "판매가",
+  leadTimeDays: "제작 기간",
+  mainImage: "대표 이미지",
+};
+
+export function missingLabel(key: string): string {
+  return MISSING_LABEL[key] ?? key;
+}
+
+export interface AdminProductRow {
+  id: string;
+  slug: string;
+  name: string | null;
+  category: string;
+  line: string;
+  status: ProductStatus;
+  priceKrw: number | null;
+  mainImageUrl: string | null;
+  missingForPublish: string[];
+  updatedAt: string;
+}
+
+/** 수정 화면. 서버의 저장 요청과 같은 모양 + 읽기 전용 값. */
+export interface AdminProductEdit {
+  id: string;
+  status: ProductStatus;
+  missingForPublish: string[];
+  slug: string;
+  name: string | null;
+  category: string;
+  line: string;
+  priceKrw: number | null;
+  listPriceKrw: number | null;
+  summary: string | null;
+  description: string | null;
+  intent: string | null;
+  features: string | null;
+  fabric: string | null;
+  care: string | null;
+  modelHeightCm: number | null;
+  modelWeightKg: number | null;
+  modelSize: string | null;
+  leadTimeDays: number | null;
+  displayOrder: number;
+  sizeChartMediaId: string | null;
+  sizeChartUrl: string | null;
+  sizeChartAlt: string | null;
+  images: { mediaId: string; url: string; kind: string; alt: string; sortOrder: number }[];
+  skus: {
+    size: string;
+    sortOrder: number;
+    orderable: boolean;
+    measurements: { part: string; valueCm: number; toleranceCm: number | null }[];
+  }[];
+}
+
+async function getJson<T>(path: string): Promise<T> {
+  if (!ADMIN_CONNECTED) {
+    throw new AdminApiError("NOT_CONNECTED", "서버가 아직 연결되지 않았습니다.");
+  }
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, { credentials: "include" });
+  } catch {
+    // 서버가 꺼져 있으면 fetch 자체가 던진다. 응답이 없으니 fail() 로 갈 수 없다.
+    throw new AdminApiError("NETWORK", "서버에 연결하지 못했습니다.");
+  }
+  if (!res.ok) return fail(res);
+  return (await res.json()) as T;
+}
+
+/** 전체 목록. 초안 포함. 상태별로 거르는 건 화면이 한다 — 수십 점이라 요청 한 번이면 된다. */
+export function listProducts(): Promise<AdminProductRow[]> {
+  return getJson("/api/admin/products");
+}
+
+export function getProduct(id: string): Promise<AdminProductEdit> {
+  return getJson(`/api/admin/products/${encodeURIComponent(id)}`);
 }

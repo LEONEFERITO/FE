@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { ProductForm } from "@/components/admin/ProductForm";
 import { Footer } from "@/components/layout/Footer";
@@ -30,6 +31,12 @@ export default function AdminNewProductPage() {
 
       <main id="main" className="flex-1">
         <div className="mx-auto max-w-[1320px] px-5 py-14 md:px-15 md:py-20">
+          <Link
+            href="/admin/products"
+            className="text-secondary hover:text-accent ease-fluid text-2xs mb-4 inline-flex min-h-11 items-center transition-colors duration-300"
+          >
+            ← 상품 목록
+          </Link>
           <Eyebrow>ADMIN</Eyebrow>
           <h1 className="font-display text-primary leading-display tracking-display mt-3 text-3xl md:text-4xl">
             상품 등록

@@ -1,6 +1,7 @@
 "use client";
 
 import { Warning } from "@phosphor-icons/react/dist/ssr";
+import Link from "next/link";
 import { useRef, useState } from "react";
 
 import { CountedField, countGraphemes } from "@/components/admin/CountedField";
@@ -9,7 +10,15 @@ import {
   type ImageFieldValue,
 } from "@/components/admin/ImageField";
 import { ProductPreview } from "@/components/admin/ProductPreview";
-import { LIMITS, AdminApiError, createProduct, ADMIN_CONNECTED } from "@/lib/admin";
+import {
+  LIMITS,
+  AdminApiError,
+  createProduct,
+  updateProduct,
+  ADMIN_CONNECTED,
+  type AdminProductEdit,
+  type ProductDraft,
+} from "@/lib/admin";
 import { CATEGORY_LABEL, LINE_LABEL, type Category, type ProductLine } from "@/types/product";
 
 /**
@@ -28,6 +37,11 @@ import { CATEGORY_LABEL, LINE_LABEL, type Category, type ProductLine } from "@/t
  * ── 등록 = 초안 ─────────────────────────────────────────
  * 저장한다고 손님에게 보이지 않는다. 공개는 따로 누른다. 문구를 고치는 중에
  * 반쪽짜리가 노출되지 않게 하기 위한 것이고, 서버도 같은 규칙이다.
+ *
+ * ── 수정 모드 (initial 이 있을 때) ──────────────────────
+ * 서버는 받은 내용으로 이미지·사이즈를 **통째로 교체**한다. 이 폼에는 실측·모델 정보
+ * 칸이 아직 없으므로, 그 값들은 `initial` 에서 그대로 실어 보낸다. 빠뜨리면
+ * 저장 한 번에 실측표가 사라진다 — 화면에 없는 값이라 누구도 눈치채지 못한다.
  */
 
 const IMAGE_SLOTS = [
@@ -64,27 +78,58 @@ const IMAGE_SLOTS = [
 const CATEGORIES: Category[] = ["JACKET", "TROUSERS", "SHIRT", "SHOES"];
 const LINES: ProductLine[] = ["LEONE", "FERITO"];
 
-type Images = Partial<Record<(typeof IMAGE_SLOTS)[number]["key"], ImageFieldValue>>;
+type SlotKey = (typeof IMAGE_SLOTS)[number]["key"];
+type Images = Partial<Record<SlotKey, ImageFieldValue>>;
 
-export function ProductForm() {
-  const [slug, setSlug] = useState("");
-  const [name, setName] = useState("");
-  const [summary, setSummary] = useState("");
-  const [category, setCategory] = useState<Category>("SHIRT");
-  const [line, setLine] = useState<ProductLine>("LEONE");
-  const [priceKrw, setPriceKrw] = useState("");
-  const [leadTimeDays, setLeadTimeDays] = useState("");
-  const [fabric, setFabric] = useState("");
-  const [care, setCare] = useState("");
-  const [description, setDescription] = useState("");
-  const [images, setImages] = useState<Images>({});
-  const [sizeChart, setSizeChart] = useState<ImageFieldValue | null>(null);
-  const [sizeChartAlt, setSizeChartAlt] = useState("");
+/** 서버에 이미 있는 이미지를 폼 칸에 채운다. 파일명은 모르므로 "등록된 이미지" 로 둔다. */
+function imagesFrom(initial?: AdminProductEdit): Images {
+  const out: Images = {};
+  for (const img of initial?.images ?? []) {
+    if (IMAGE_SLOTS.some((s) => s.key === img.kind) && !out[img.kind as SlotKey]) {
+      out[img.kind as SlotKey] = { mediaId: img.mediaId, url: img.url, filename: "등록된 이미지" };
+    }
+  }
+  return out;
+}
+
+interface Props {
+  /** 있으면 수정 모드. 서버에서 받은 현재 상태. */
+  initial?: AdminProductEdit;
+  /** 수정 저장이 끝난 뒤. 부모가 상태(공개 가능 여부 등)를 다시 읽는다. */
+  onSaved?: () => void;
+}
+
+export function ProductForm({ initial, onSaved }: Props = {}) {
+  const editing = initial !== undefined;
+
+  const [slug, setSlug] = useState(initial?.slug ?? "");
+  const [name, setName] = useState(initial?.name ?? "");
+  const [summary, setSummary] = useState(initial?.summary ?? "");
+  const [category, setCategory] = useState<Category>(
+    (initial?.category as Category | undefined) ?? "SHIRT",
+  );
+  const [line, setLine] = useState<ProductLine>(
+    (initial?.line as ProductLine | undefined) ?? "LEONE",
+  );
+  const [priceKrw, setPriceKrw] = useState(initial?.priceKrw?.toString() ?? "");
+  const [leadTimeDays, setLeadTimeDays] = useState(initial?.leadTimeDays?.toString() ?? "");
+  const [fabric, setFabric] = useState(initial?.fabric ?? "");
+  const [care, setCare] = useState(initial?.care ?? "");
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [images, setImages] = useState<Images>(() => imagesFrom(initial));
+  const [sizeChart, setSizeChart] = useState<ImageFieldValue | null>(
+    initial?.sizeChartMediaId && initial.sizeChartUrl
+      ? { mediaId: initial.sizeChartMediaId, url: initial.sizeChartUrl, filename: "등록된 차트" }
+      : null,
+  );
+  const [sizeChartAlt, setSizeChartAlt] = useState(initial?.sizeChartAlt ?? "");
 
   const [submitted, setSubmitted] = useState(false);
   const [pending, setPending] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [createdId, setCreatedId] = useState<string | null>(null);
+  /** 수정 저장 성공 알림. 폼을 치우지 않고 제자리에서 알린다 — 이어서 고칠 수 있게. */
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
 
   const summaryRef = useRef<HTMLDivElement>(null);
 
@@ -132,6 +177,59 @@ export function ProductForm() {
     return e;
   }
 
+  function buildDraft(): ProductDraft {
+    return {
+      slug: slug.trim(),
+      name: name.trim(),
+      category,
+      line,
+      priceKrw: priceKrw ? Number(priceKrw) : null,
+      summary: summary.trim(),
+      description: description.trim(),
+      fabric: fabric.trim(),
+      care: care.trim(),
+      leadTimeDays: leadTimeDays ? Number(leadTimeDays) : null,
+
+      // ↓ 이 폼에 칸이 없는 값. 수정이면 원래 값을 그대로 돌려보낸다(위 주석 참고).
+      listPriceKrw: initial?.listPriceKrw ?? null,
+      intent: initial?.intent ?? "",
+      features: initial?.features ?? "",
+      modelHeightCm: initial?.modelHeightCm ?? null,
+      modelWeightKg: initial?.modelWeightKg ?? null,
+      modelSize: initial?.modelSize ?? "",
+      displayOrder: initial?.displayOrder,
+      skus: (initial?.skus ?? []).map((s) => ({
+        size: s.size,
+        orderable: s.orderable,
+        sortOrder: s.sortOrder,
+        measurements: s.measurements,
+      })),
+
+      images: IMAGE_SLOTS.flatMap((slot, i) => {
+        const v = images[slot.key];
+        if (!v) return [];
+        /*
+         * 같은 이미지면 원래 설명을 지킨다. 등록 때 임시로 이름을 넣어 두었더라도
+         * 누군가 API 로 고쳐 놓은 설명을 저장 한 번에 덮어쓰면 안 된다.
+         * 새로 바꾼 이미지만 이름으로 채운다 — 비면 서버가 거부한다.
+         */
+        const before = initial?.images.find(
+          (img) => img.kind === slot.key && img.mediaId === v.mediaId,
+        );
+        return [
+          {
+            mediaId: v.mediaId,
+            kind: slot.key,
+            alt: before?.alt ?? (name.trim() || "상품 이미지"),
+            sortOrder: i,
+          },
+        ];
+      }),
+      sizeChartMediaId: sizeChart?.mediaId ?? null,
+      sizeChartAlt: sizeChartAlt.trim(),
+    };
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitted(true);
@@ -143,42 +241,22 @@ export function ProductForm() {
     }
 
     setPending(true);
+    setSavedAt(null);
     try {
-      const id = await createProduct({
-        slug: slug.trim(),
-        name: name.trim(),
-        category,
-        line,
-        priceKrw: priceKrw ? Number(priceKrw) : null,
-        listPriceKrw: null,
-        summary: summary.trim(),
-        description: description.trim(),
-        intent: "",
-        features: "",
-        fabric: fabric.trim(),
-        care: care.trim(),
-        modelHeightCm: null,
-        modelWeightKg: null,
-        modelSize: "",
-        leadTimeDays: leadTimeDays ? Number(leadTimeDays) : null,
-        images: Object.entries(images)
-          .filter(([, v]) => v)
-          .map(([kind, v]) => ({
-            mediaId: v!.mediaId,
-            kind,
-            // 대체 텍스트가 비면 서버가 거부한다. 임시로 이름을 쓰되 나중에 고칠 수 있게 둔다.
-            alt: name.trim() || "상품 이미지",
-          })),
-        skus: [],
-        sizeChartMediaId: sizeChart?.mediaId ?? null,
-        sizeChartAlt: sizeChartAlt.trim(),
-      });
-      setCreatedId(id);
+      const draft = buildDraft();
+      if (editing) {
+        await updateProduct(initial.id, draft);
+        setSavedAt(new Date());
+        setSubmitted(false);
+        onSaved?.();
+      } else {
+        setCreatedId(await createProduct(draft));
+      }
     } catch (err) {
       setFormError(
         err instanceof AdminApiError
           ? err.message
-          : "등록하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+          : "저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
       );
       requestAnimationFrame(() => summaryRef.current?.focus());
     } finally {
@@ -196,6 +274,20 @@ export function ProductForm() {
         <p className="text-secondary mt-3 text-sm leading-relaxed">
           아직 손님에게는 보이지 않습니다. 내용을 확인한 뒤 공개해 주세요.
         </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Link
+            href={`/admin/products/edit?id=${encodeURIComponent(createdId)}`}
+            className="bg-accent text-on-accent hover:bg-accent-hover ease-fluid inline-flex min-h-12 items-center rounded-full px-6 text-sm transition-colors duration-300"
+          >
+            이어서 편집 · 공개
+          </Link>
+          <Link
+            href="/admin/products"
+            className="border-interactive text-primary hover:border-accent ease-fluid inline-flex min-h-12 items-center rounded-full border px-6 text-sm transition-colors duration-300"
+          >
+            상품 목록
+          </Link>
+        </div>
       </div>
     );
   }
@@ -245,9 +337,14 @@ export function ProductForm() {
           value={slug}
           onChange={setSlug}
           max={LIMITS.slug}
-          required
+          required={!editing}
+          readOnly={editing}
           placeholder="brown-shirt"
-          hint="상품 주소가 됩니다 (/products/brown-shirt). 공개 후에는 바꿀 수 없습니다."
+          hint={
+            editing
+              ? "주소는 바꿀 수 없습니다. 바꾸면 걸어 둔 링크가 전부 끊깁니다."
+              : "상품 주소가 됩니다 (/products/brown-shirt). 공개 후에는 바꿀 수 없습니다."
+          }
           error={submitted ? errors.slug : undefined}
         />
 
@@ -427,11 +524,21 @@ export function ProductForm() {
           disabled={pending}
           className="group bg-accent text-on-accent hover:bg-accent-hover shadow-button hover:shadow-button-hover tracking-button ease-fluid flex min-h-14 items-center justify-center rounded-full text-sm transition-all duration-500 hover:-translate-y-px active:scale-[0.99] disabled:cursor-wait disabled:opacity-60"
         >
-          {pending ? "저장하는 중" : "초안으로 저장"}
+          {pending ? "저장하는 중" : editing ? "변경 사항 저장" : "초안으로 저장"}
         </button>
 
+        {savedAt && (
+          <p role="status" className="text-primary text-2xs text-center leading-relaxed">
+            저장했습니다 ·{" "}
+            {savedAt.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}
+          </p>
+        )}
+
         <p className="text-muted text-2xs text-center leading-relaxed">
-          저장해도 손님에게는 보이지 않습니다. 공개는 따로 누릅니다.
+          {initial?.status === "PUBLISHED"
+            ? // 공개 중인 상품은 저장이 곧 반영이다. 모르고 누르면 고치던 문구가 그대로 나간다.
+              "공개 중인 상품입니다. 저장하면 손님 화면에 바로 반영됩니다."
+            : "저장해도 손님에게는 보이지 않습니다. 공개는 따로 누릅니다."}
         </p>
       </div>
 

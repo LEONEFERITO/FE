@@ -41,6 +41,9 @@ const PAGES = [
   { path: "/qna/", name: "QnA" },
   { path: "/mypage/", name: "마이페이지" },
   { path: "/admin/products/new/", name: "관리자 상품 등록" },
+  // QA 브라우저는 로그인하지 않았으므로 "로그인이 필요합니다" 상태를 검사하게 된다.
+  { path: "/admin/products/", name: "관리자 상품 목록" },
+  { path: "/admin/products/edit/", name: "관리자 상품 수정(id 없음)" },
 ];
 
 /*
