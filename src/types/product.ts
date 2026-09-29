@@ -71,6 +71,33 @@ export interface MeasurementRow {
   values: Record<string, number | null>;
 }
 
+/**
+ * 상세 사이즈 차트 이미지.
+ *
+ * 고객이 만든 차트를 그대로 올린다(2026-09-29 결정). 카테고리마다 재는 곳이 달라
+ * 브랜드 쪽에서 쓰는 표를 그대로 쓰고 싶다는 요구다.
+ *
+ * `alt` 가 필수인 이유: 표를 그림으로 만들면 **스크린리더에게는 이 문장이 유일한
+ * 정보원**이다. 비어 있으면 그 사용자에게 사이즈 구간이 통째로 존재하지 않는다.
+ *
+ * `width`/`height` 는 자리를 미리 잡기 위한 것이다. 없으면 이미지가 도착하는 순간
+ * 아래 구매 버튼이 밀린다.
+ */
+export interface SizeChartImage {
+  url: string;
+  alt: string;
+  width: number | null;
+  height: number | null;
+}
+
+/**
+ * 숫자 실측표.
+ *
+ * ⚠️ 화면에서는 지금 쓰지 않는다. 상세 사이즈는 {@link SizeChartImage} 로 보여준다.
+ * 그래도 타입과 DB 테이블을 지우지 않는 이유는, 숫자가 있어야만 되는 것들이
+ * 언제든 다시 필요해지기 때문이다 — 목록 카드의 실측 요약, 사이즈 추천, 상품 간 비교.
+ * 값이 들어오는 날 표를 다시 켜면 된다.
+ */
 export interface MeasurementTable {
   fields: MeasurementField[];
   rows: MeasurementRow[];
@@ -135,6 +162,8 @@ export interface Product {
   cutout: string | null;
   skus: Sku[];
   measurements: MeasurementTable;
+  /** 상세 사이즈 차트 이미지. 없으면 그 자리를 비운다. */
+  sizeChart: SizeChartImage | null;
   model: ModelInfo;
   notice: ProductNotice;
 }

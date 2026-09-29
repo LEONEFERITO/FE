@@ -19,6 +19,8 @@
   /* 이름이 "band" 인 이유: --color-subtle 은 아래 border-subtle 이 이미 쓴다.
    * Tailwind 4 는 색 하나가 bg-/text-/border- 를 모두 만들어서 이름이 겹치면 충돌한다. */
   --color-band: var(--bg-subtle);
+  /* 히어로 무대 → bg-stage. 구간 밴드(band)와 쓰임이 달라 이름을 나눈다. */
+  --color-stage: var(--velvet-stage);
 
   /* ── 포인트(고동색) → bg-accent, text-accent, border-accent ── */
   --color-accent: var(--accent-base);
@@ -203,11 +205,16 @@ body {
    *
    * keep-all 은 띄어쓰기에서만 끊는다. 한국어에서는 이게 맞다.
    * 다만 띄어쓰기가 전혀 없는 긴 문자열(URL·주문번호·해시)은 keep-all 이면
-   * 칸을 밀어내 가로 스크롤을 만든다. anywhere 가 그럴 때만 끊어 준다.
-   * 둘을 같이 써야 "평소엔 단어 유지, 어쩔 수 없을 때만 강제 줄바꿈" 이 된다.
+   * 칸을 밀어내 가로 스크롤을 만든다. break-word 가 그럴 때만 끊어 준다.
+   *
+   * ⚠️ anywhere 가 아니라 break-word 다. 둘 다 "넘치면 끊는다" 지만
+   * anywhere 는 **칸의 최소 너비 계산에도 관여한다** — 즉 브라우저가 "이 칸은 한 글자까지
+   * 줄일 수 있다" 고 판단한다. 그래서 좁은 칸에 놓인 "01" 같은 짧은 라벨이
+   * 0 / 1 로 쪼개졌다(WHY 구간에서 실제로 발생). break-word 는 최소 너비를 건드리지 않고,
+   * 정말 넘칠 때만 끊는다.
    */
   word-break: keep-all;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 /*
@@ -252,6 +259,94 @@ body::after {
  *
  * data-motion 은 layout.tsx 의 인라인 스크립트가 본문 렌더 전에 붙인다.
  */
+/* ════════════════════════════════════════════════════════
+ * 바텀 시트 — 아래에서 올라오는 <dialog>
+ *
+ * ── 왜 JS 로 안 하는가 ──────────────────────────────────
+ * <dialog> 는 열릴 때 display:none 에서 벗어나고 닫힐 때 다시 들어간다.
+ * 그래서 예전에는 "닫기 애니메이션이 끝날 때까지 close() 를 미루는" 타이머를
+ * 손으로 달아야 했다. 그 타이머는 연타하면 반드시 어긋난다.
+ *
+ * allow-discrete 가 그 문제를 없앤다. display 와 overlay 를 전환 대상에 넣으면
+ * 브라우저가 **닫히는 동안 요소를 살려 둔다.** 열 때의 시작값은 @starting-style 이 준다.
+ * 결과적으로 여는 것도 닫는 것도 CSS 가 하고, React 는 open 여부만 관리한다.
+ *
+ * ── 무엇을 움직이나 ─────────────────────────────────────
+ * transform 과 opacity 만 움직인다. height 나 top 을 건드리면 매 프레임 레이아웃을
+ * 다시 계산해서 저사양 기기에서 끊긴다.
+ *
+ * 나가는 시간이 들어오는 시간보다 짧다(320 → 220ms). 닫기는 이미 결정이 끝난
+ * 동작이라 기다리게 하면 느리게 느껴진다.
+ * ════════════════════════════════════════════════════════ */
+.sheet {
+  transform: translateY(100%);
+  opacity: 0;
+  transition:
+    transform 0.22s var(--ease-fluid),
+    opacity 0.18s linear,
+    overlay 0.22s allow-discrete,
+    display 0.22s allow-discrete;
+}
+
+.sheet[open] {
+  transform: translateY(0);
+  opacity: 1;
+  transition:
+    transform 0.32s var(--ease-fluid),
+    opacity 0.2s linear,
+    overlay 0.32s allow-discrete,
+    display 0.32s allow-discrete;
+}
+
+/* 열릴 때의 시작 상태. 이게 없으면 첫 프레임부터 제자리라 그냥 툭 나타난다. */
+@starting-style {
+  .sheet[open] {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+.sheet::backdrop {
+  background: rgb(0 0 0 / 0);
+  transition:
+    background 0.22s linear,
+    overlay 0.22s allow-discrete,
+    display 0.22s allow-discrete;
+}
+
+.sheet[open]::backdrop {
+  background: rgb(0 0 0 / 0.7);
+}
+
+@starting-style {
+  .sheet[open]::backdrop {
+    background: rgb(0 0 0 / 0);
+  }
+}
+
+/*
+ * 움직임을 줄여 달라고 한 사용자에게는 **미끄러지지 않는다.**
+ * 다만 완전히 없애지는 않는다 — 시트가 어디서 왔는지 알 수 없으면 맥락이 끊긴다.
+ * 짧은 페이드만 남긴다.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .sheet,
+  .sheet[open] {
+    transform: none;
+    transition:
+      opacity 0.12s linear,
+      overlay 0.12s allow-discrete,
+      display 0.12s allow-discrete;
+  }
+
+  @starting-style {
+    .sheet[open] {
+      transform: none;
+      opacity: 0;
+    }
+  }
+}
+
 html[data-motion="on"] .reveal {
   opacity: 0;
   transform: translateY(2rem);

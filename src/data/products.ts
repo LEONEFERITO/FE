@@ -77,6 +77,8 @@ function draft(
       stock: soldOut.includes(size) ? 0 : 5,
     })),
     measurements: EMPTY_MEASUREMENTS(TOP_FIELDS),
+    // 차트 이미지는 관리자가 올린다. 아직 없다.
+    sizeChart: null,
     model: { heightCm: null, weightKg: null, wearingSize: null },
     notice: { ...EMPTY_NOTICE },
   };

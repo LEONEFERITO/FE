@@ -46,7 +46,12 @@ const HERO_VARIANT: "split" | "stage" = "split";
 export default function Home() {
   return (
     <>
-      <Header overHero={HERO_VARIANT === "stage"} />
+      {/*
+        히어로 구간에서 헤더를 투명하게 둔다 (모바일에만 적용 — Header 주석 참고).
+        분할형에서도 켜는 이유: 모바일 히어로가 무대색 한 판이라, 그 위에 헤더 면이
+        또 얹히면 같은 계열 색이 두 겹으로 보여 경계가 생긴다.
+      */}
+      <Header overHero />
 
       <main id="main" className="flex-1">
         {HERO_VARIANT === "split" ? (

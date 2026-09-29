@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 
+import { FilterSheet } from "@/components/product/FilterSheet";
 import { ProductCard } from "@/components/product/ProductCard";
 import {
   CATEGORY_LABEL,
@@ -44,6 +45,14 @@ import {
  */
 
 const LINES: ProductLine[] = ["LEONE", "FERITO"];
+
+/** 거르기 조건 한 벌. 적용값과 초안이 같은 모양이라 규칙을 한 번만 쓴다. */
+interface Filters {
+  fit: string | null;
+  category: string | null;
+  size: string | null;
+  inStockOnly: boolean;
+}
 
 interface Chip {
   value: string | null;
@@ -127,28 +136,68 @@ export function ProductList({
     setInStockOnly(false);
   };
 
-  const visible = useMemo(
-    () =>
-      products.filter((p) => {
-        if (fit && p.line !== fit) return false;
-        if (category && p.category !== category) return false;
+  /*
+   * 시트용 초안. 시트가 목록을 덮고 있어 고르는 즉시 적용해도 결과가 안 보인다.
+   * 그래서 시트 안에서는 이 값만 바꾸고, "보기" 를 눌러야 위의 실제 필터로 옮긴다.
+   */
+  const [draft, setDraft] = useState<Filters>({
+    fit: null, category: null, size: null, inStockOnly: false,
+  });
 
-        if (size) {
+  const openSheet = () =>
+    setDraft({ fit, category, size, inStockOnly });
+
+  const applyDraft = () => {
+    setFit(draft.fit);
+    setCategory(draft.category);
+    setSize(draft.size);
+    setInStockOnly(draft.inStockOnly);
+  };
+
+  const resetDraft = () =>
+    setDraft({ fit: null, category: null, size: null, inStockOnly: false });
+
+  /** 지금 걸린 필터 개수. 여는 버튼의 배지에 쓴다. */
+  const activeCount =
+    (fit ? 1 : 0) + (category ? 1 : 0) + (size ? 1 : 0) + (inStockOnly ? 1 : 0);
+
+  /*
+   * 거르는 규칙을 함수로 뺀다. 화면에 보이는 목록과 시트 버튼의 "N개 보기" 가
+   * **같은 규칙**을 써야 한다. 두 벌로 두면 한쪽만 고쳐지는 날이 온다.
+   */
+  const applyFilters = useCallback(
+    (f: Filters) =>
+      products.filter((p) => {
+        if (f.fit && p.line !== f.fit) return false;
+        if (f.category && p.category !== f.category) return false;
+
+        if (f.size) {
           /*
             사이즈 필터는 "그 사이즈가 있는가" 이지 "지금 재고가 있는가" 가 아니다.
             둘을 한 컨트롤에 섞으면 품절인 순간 상품이 사라져서
             "내 사이즈는 원래 안 만드는 브랜드" 로 오해된다. 재고는 별도 스위치다.
           */
-          const sku = p.skus.find((s) => s.size === size);
+          const sku = p.skus.find((s) => s.size === f.size);
           if (!sku) return false;
-          if (inStockOnly && sku.stock === 0) return false;
-        } else if (inStockOnly && p.skus.every((s) => s.stock === 0)) {
+          if (f.inStockOnly && sku.stock === 0) return false;
+        } else if (f.inStockOnly && p.skus.every((s) => s.stock === 0)) {
           return false;
         }
 
         return true;
       }),
-    [products, fit, category, size, inStockOnly],
+    [products],
+  );
+
+  const visible = useMemo(
+    () => applyFilters({ fit, category, size, inStockOnly }),
+    [applyFilters, fit, category, size, inStockOnly],
+  );
+
+  /** 초안대로 걸렀을 때 몇 개가 남는가. 시트 버튼에 실시간으로 띄운다. */
+  const draftResultCount = useMemo(
+    () => applyFilters(draft).length,
+    [applyFilters, draft],
   );
 
   const dirty =
@@ -156,7 +205,72 @@ export function ProductList({
 
   return (
     <>
-      <div className="border-subtle mt-12 flex flex-col gap-7 border-y py-8">
+      {/*
+        모바일: 거르기 버튼 하나. 라인·카테고리·사이즈·재고를 세로로 쌓으면
+        첫 상품이 보이기 전에 400px 넘게 필터가 차지한다.
+        데스크톱: 폭이 남으니 그대로 펼쳐 둔다 — 한 번에 보이는 게 낫다.
+      */}
+      <div className="border-subtle mt-12 flex items-center justify-between gap-4 border-y py-5 md:hidden">
+        <FilterSheet
+          activeCount={activeCount}
+          draftResultCount={draftResultCount}
+          onOpen={openSheet}
+          onApply={applyDraft}
+          onCancel={() => {}}
+          onReset={resetDraft}
+        >
+          <div className="flex flex-col gap-6 pt-2">
+            <ChipRow
+              legend="라인"
+              selected={draft.fit}
+              onSelect={(v) => setDraft((d) => ({ ...d, fit: v }))}
+              options={[
+                { value: null, label: "전체" },
+                ...LINES.map((l) => ({ value: l, label: LINE_LABEL[l].ko })),
+              ]}
+            />
+            <ChipRow
+              legend="카테고리"
+              selected={draft.category}
+              onSelect={(v) => setDraft((d) => ({ ...d, category: v }))}
+              options={[
+                { value: null, label: "전체" },
+                ...categories.map((c) => ({
+                  value: c,
+                  label: CATEGORY_LABEL[c].ko,
+                })),
+              ]}
+            />
+            <ChipRow
+              legend="사이즈"
+              selected={draft.size}
+              onSelect={(v) => setDraft((d) => ({ ...d, size: v }))}
+              options={[
+                { value: null, label: "전체" },
+                ...sizes.map((s) => ({ value: s, label: s })),
+              ]}
+            />
+            <label className="text-secondary text-2xs flex min-h-11 cursor-pointer items-center gap-2.5">
+              <input
+                type="checkbox"
+                checked={draft.inStockOnly}
+                onChange={(e) =>
+                  setDraft((d) => ({ ...d, inStockOnly: e.target.checked }))
+                }
+                className="accent-accent h-4 w-4"
+              />
+              재고 있는 것만
+            </label>
+          </div>
+        </FilterSheet>
+
+        <p aria-live="polite" className="text-muted text-2xs tabular-nums">
+          {visible.length}개
+        </p>
+      </div>
+
+      {/* 데스크톱: 펼쳐진 필터 */}
+      <div className="border-subtle mt-12 hidden flex-col gap-7 border-y py-8 md:flex">
         <ChipRow
           legend="라인"
           selected={fit}
@@ -211,7 +325,11 @@ export function ProductList({
         </div>
       </div>
 
-      <p aria-live="polite" className="text-muted text-2xs mt-6 tabular-nums">
+      {/* 개수는 모바일에서 거르기 버튼 옆에 이미 있다. 여기선 데스크톱만. */}
+      <p
+        aria-live="polite"
+        className="text-muted text-2xs mt-6 hidden tabular-nums md:block"
+      >
         {visible.length}개
       </p>
 

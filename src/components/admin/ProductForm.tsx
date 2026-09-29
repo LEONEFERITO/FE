@@ -78,6 +78,8 @@ export function ProductForm() {
   const [care, setCare] = useState("");
   const [description, setDescription] = useState("");
   const [images, setImages] = useState<Images>({});
+  const [sizeChart, setSizeChart] = useState<ImageFieldValue | null>(null);
+  const [sizeChartAlt, setSizeChartAlt] = useState("");
 
   const [submitted, setSubmitted] = useState(false);
   const [pending, setPending] = useState(false);
@@ -105,6 +107,18 @@ export function ProductForm() {
     if (countGraphemes(fabric) > LIMITS.shortBody) e.fabric = "너무 깁니다.";
     if (countGraphemes(care) > LIMITS.shortBody) e.care = "너무 깁니다.";
     if (countGraphemes(description) > LIMITS.body) e.description = "너무 깁니다.";
+
+    /*
+     * 차트를 올렸으면 대체 텍스트는 필수다.
+     * 표를 이미지로 만든 이상 이 문장이 스크린리더에게는 유일한 정보원이고,
+     * 비어 있으면 그 사용자에게 사이즈 구간이 통째로 없는 것과 같다.
+     */
+    if (sizeChart && !sizeChartAlt.trim()) {
+      e.sizeChartAlt = "차트에 무엇이 적혀 있는지 설명을 입력해 주세요.";
+    }
+    if (countGraphemes(sizeChartAlt) > LIMITS.sizeChartAlt) {
+      e.sizeChartAlt = `${LIMITS.sizeChartAlt}자를 넘었습니다.`;
+    }
 
     if (priceKrw && !/^\d+$/.test(priceKrw)) e.priceKrw = "숫자만 입력해 주세요.";
     if (leadTimeDays) {
@@ -156,6 +170,8 @@ export function ProductForm() {
             alt: name.trim() || "상품 이미지",
           })),
         skus: [],
+        sizeChartMediaId: sizeChart?.mediaId ?? null,
+        sizeChartAlt: sizeChartAlt.trim(),
       });
       setCreatedId(id);
     } catch (err) {
@@ -339,6 +355,36 @@ export function ProductForm() {
               />
             ))}
           </div>
+        </fieldset>
+
+        {/* ── 상세 사이즈 차트 ──────────────────────────── */}
+        <fieldset className="border-subtle flex flex-col gap-6 border-t pt-7">
+          <legend className="text-primary text-sm font-medium">상세 사이즈 차트</legend>
+          <p className="text-muted text-2xs -mt-4 leading-relaxed">
+            브랜드에서 만든 차트를 그대로 올립니다. 카테고리마다 재는 곳이 달라도
+            이미지 한 장이면 됩니다. 손님은 눌러서 크게 볼 수 있습니다.
+          </p>
+
+          <ImageField
+            label="사이즈 차트"
+            hint="상품 사진과 따로 보관됩니다. 갤러리에 섞이지 않습니다."
+            aspect="wide"
+            value={sizeChart}
+            onChange={setSizeChart}
+          />
+
+          <CountedField
+            label="차트 설명 (대체 텍스트)"
+            value={sizeChartAlt}
+            onChange={setSizeChartAlt}
+            max={LIMITS.sizeChartAlt}
+            required={sizeChart !== null}
+            multiline
+            rows={3}
+            placeholder="95~110 사이즈의 어깨·가슴·소매·총장 실측표"
+            hint="화면을 읽어 주는 기기에는 이 문장이 사이즈 정보의 전부입니다. 어떤 항목을 어느 사이즈 범위로 싣고 있는지 적어 주세요."
+            error={submitted ? errors.sizeChartAlt : undefined}
+          />
         </fieldset>
 
         {/* ── 상세 정보 ─────────────────────────────────── */}

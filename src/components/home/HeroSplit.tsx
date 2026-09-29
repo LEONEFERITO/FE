@@ -71,7 +71,21 @@ export function HeroSplit({ products }: { products: Product[] }) {
     <section
       aria-roledescription="carousel"
       aria-label="대표 제품"
-      className="bg-velvet grid min-h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-72px)] md:grid-cols-2"
+      /*
+        헤더가 "히어로를 지났는가" 를 판단하는 표식.
+        이게 없으면 Header 의 관찰자가 붙을 대상을 못 찾고 조용히 빠져나가,
+        투명 상태가 페이지 끝까지 남는다 — 실제로 그렇게 깨져 있었다.
+        무대형(Hero.tsx)에만 있었고 분할형으로 바꾸면서 빠졌다.
+      */
+      data-hero=""
+      /*
+        바탕은 --velvet-stage (#54090F). 고객 지정값이다.
+        전에는 bg-velvet(#7B1526) 이었는데, 모바일에서 그 면이 화면 절반을 덮어
+        거의 검정인 헤더·본문과 맞닿는 선에서 확 꺾였다(바닥 대비 1.82).
+        이 값은 1.31 이라 이어지면서도 적와인이 남는다.
+        이 면 위 글자 대비: 크림 13.16 · 보조 7.90 · 골드 7.04 — 전부 통과.
+      */
+      className="bg-stage grid min-h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-72px)] md:grid-cols-2"
     >
       {/* ── 사진. 모바일은 위, 데스크톱은 오른쪽 ────────────────── */}
       <div className="relative order-first aspect-[4/5] overflow-hidden md:order-none md:aspect-auto">

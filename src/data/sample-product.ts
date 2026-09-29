@@ -31,6 +31,8 @@ export const SAMPLE_PRODUCT: Product = {
     { id: "sku-110", size: "110", color: null, stock: 0 },
   ],
 
+  // 차트 이미지는 관리자가 올린다. 아직 없다.
+  sizeChart: null,
   measurements: {
     // 항목 목록 자체가 카테고리별 데이터다 (자켓과 팬츠가 다르다).
     fields: [

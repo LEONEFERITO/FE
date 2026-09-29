@@ -7,7 +7,7 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { pendingLabel } from "@/lib/pending";
 
 import { LineSummary } from "@/components/product/LineBadge";
-import { MeasurementTable } from "@/components/product/MeasurementTable";
+import { SizeChart } from "@/components/product/SizeChart";
 import { ModelInfo } from "@/components/product/ModelInfo";
 import { SizeSelector } from "@/components/product/SizeSelector";
 import { CATEGORY_LABEL } from "@/types/product";
@@ -88,9 +88,14 @@ export function PurchasePanel({ product }: { product: Product }) {
 
       <hr className="border-subtle my-2" />
 
-      <MeasurementTable
-        table={product.measurements}
-        highlightSize={selectedSize}
+      {/*
+        상세 사이즈는 고객이 만든 차트 이미지로 보여준다(2026-09-29 결정).
+        선택한 사이즈를 강조하던 기능은 이미지라 할 수 없다 — 그 대가는 SizeChart 주석 참고.
+      */}
+      <SizeChart
+        chart={product.sizeChart}
+        basis={product.measurements.basis}
+        tolerance={product.measurements.tolerance}
       />
 
       <ModelInfo model={product.model} />

@@ -34,6 +34,12 @@ const PAGES = [
   { path: "/signup/", name: "회원가입" },
   { path: "/cart/", name: "장바구니(준비 중)" },
   { path: "/terms/", name: "이용약관(준비 중)" },
+  // 고객이 요구한 메뉴들. 헤더에서 이 주소를 가리키므로 전부 검사한다.
+  { path: "/brand/", name: "브랜드" },
+  { path: "/guide/", name: "이용 안내" },
+  { path: "/lookbook/", name: "룩북" },
+  { path: "/qna/", name: "QnA" },
+  { path: "/mypage/", name: "마이페이지" },
   { path: "/admin/products/new/", name: "관리자 상품 등록" },
 ];
 

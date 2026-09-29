@@ -29,24 +29,31 @@ import { Logo } from "@/components/brand/Logo";
  */
 
 /*
- * 내비는 **지금 존재하는 곳**만 가리킨다.
+ * 내비는 **고객이 요구한 메뉴**만 둔다 (BRAND_BRIEF 1-3).
  *
- * 전에는 /collection · /fit · /size-guide · /about 을 가리켰는데 넷 다 없는 페이지였다.
- * QA 로 확인해 보니 헤더의 모든 항목이 404 였다 — 둘러보려던 사람이 메뉴를 누르는 족족
- * 오류 화면을 만난다. 만들 예정인 주소를 미리 걸어두면 "곧 생긴다" 가 아니라
- * "고장났다" 로 읽힌다.
+ * 뺀 것과 이유:
+ *   SIZE GUIDE      이용 메뉴얼(2-2) 안의 "내게 맞는 사이즈 고르는 법"
+ *   LEONE · FERITO  제품 구별(2-4) 안의 분류
+ * 둘 다 다른 메뉴 **안에 들어가는 내용**이라, 헤더에 따로 두면 같은 것을 두 군데서 찾게 된다.
  *
- * 그래서 아직 페이지가 없는 항목은 **메인의 해당 구간**으로 보낸다. 내용은 이미 거기 있다.
- * 페이지가 생기면 href 만 바꾸면 된다.
+ * 연결 링크(1-3 의 4번 — 인스타·네이버플레이스)는 여기 넣지 않는다.
+ * 사이트를 떠나는 링크라 헤더에 두면 둘러보던 사람을 밖으로 내보낸다. 푸터가 제자리다.
  *
- * TODO(고객확인) 전체 IA 는 BRAND_BRIEF.md 5장 참고 —
- * 가치관 · 이용 메뉴얼 · 룩북 · QnA · 연결 링크 · 마이페이지가 더 붙는다.
+ * 링크가 가리키는 페이지는 전부 실재한다. 없는 주소를 미리 걸어두면
+ * "곧 생긴다" 가 아니라 "고장났다" 로 읽힌다 — 내용이 없는 동안에는 준비 중 화면을 둔다.
  */
 const NAV = [
+  { href: "/brand", label: "BRAND" },
+  { href: "/guide", label: "GUIDE" },
+  { href: "/lookbook", label: "LOOKBOOK" },
   { href: "/products", label: "COLLECTION" },
-  { href: "/#fit-compare-heading", label: "LEONE · FERITO" },
-  { href: "/#size-finder-heading", label: "SIZE GUIDE" },
-  { href: "/#category-heading", label: "ABOUT" },
+  { href: "/qna", label: "QNA" },
+] as const;
+
+/** 오른쪽 묶음. 개인 영역이라 탐색 메뉴와 나눠 둔다. */
+const ACCOUNT_NAV = [
+  { href: "/mypage", label: "MY" },
+  { href: "/cart", label: "CART (0)" },
 ] as const;
 
 export function Header({ overHero = false }: { overHero?: boolean }) {
@@ -98,7 +105,17 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
-  // 메뉴가 열리면 오버레이가 베이지라 글자는 다시 고동색이어야 한다.
+  /*
+   * 히어로 위에 떠 있는 동안 투명해진다.
+   *
+   * **모바일에서만** 그렇게 둔다. 모바일 히어로는 무대색(#54090F) 한 판이라
+   * 그 위에 헤더 면이 또 얹히면 색이 두 겹으로 보인다. 투명하게 두면 사진이
+   * 화면 끝까지 이어진다.
+   * 데스크톱은 한쪽이 촬영 원본이라 사진 밝기에 따라 글자가 사라진다 — 면을 유지한다.
+   * 그래서 아래 클래스마다 md: 로 평소 모습을 되돌린다.
+   *
+   * 메뉴가 열리면 오버레이가 덮으므로 다시 평소 색이어야 한다.
+   */
   const light = onHero && !open;
 
   return (
@@ -106,27 +123,29 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
       <header
         className={`ease-fluid sticky top-0 z-40 w-full border-b transition-all duration-700 ${
           light
-            ? "border-transparent bg-gradient-to-b from-black/45 to-transparent"
+            ? /*
+                위에서 아래로 옅어지는 scrim 만 남긴다. 완전 투명으로 두면
+                히어로 상단이 밝은 컷일 때 로고와 햄버거가 묻힌다.
+                md: 부터는 평소의 와인 배너로 되돌린다.
+              */
+              "border-transparent bg-gradient-to-b from-black/45 to-transparent md:border-subtle/70 md:bg-base/85 md:bg-none md:shadow-soft md:backdrop-blur-xl"
             : "border-subtle/70 bg-base/85 shadow-soft backdrop-blur-xl"
         }`}
       >
         <div className="relative flex h-14 w-full items-center justify-between px-5 md:h-18 md:px-10">
           {/*
-            히어로 위에서는 로고를 숨긴다.
+            로고는 히어로 위에서도 그대로 둔다.
 
-            히어로 하단에 같은 워드마크가 화면 폭만큼 깔려 있다. 그 위에 1/8 크기의
-            같은 글자를 또 얹으면 브랜드가 두 번 말해지는 게 아니라 **작은 쪽이 군더더기가 된다.**
-            (좌측 LF 모노그램은 남긴다 — 글자가 아니라 다른 형태의 표기라 겹치지 않는다)
-
-            display:none 이 아니라 투명이다. 링크는 DOM 에 남아야 하고,
-            키보드로 초점이 오면 다시 보여야 한다 — 안 보이는 초점은 접근성 위반이다.
+            전에는 숨겼는데 그건 무대형 히어로(거대한 워드마크가 화면 한가운데)
+            전용 규칙이었다. 지금 분할형은 워드마크가 구간 맨 아래라 겹치지 않고,
+            상단이 비면 헤더가 있는지조차 알기 어렵다.
           */}
           <Link
             href="/"
-            className={`ease-fluid transition-all duration-700 ${
+            className={`ease-fluid transition-colors duration-700 ${
               light
-                ? "pointer-events-none text-primary opacity-0 focus-visible:pointer-events-auto focus-visible:opacity-100"
-                : "text-accent-deep hover:text-accent opacity-100"
+                ? "text-primary hover:text-accent md:text-accent-deep"
+                : "text-accent-deep hover:text-accent"
             }`}
             aria-label="LEONE FERITO 홈"
           >
@@ -155,7 +174,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
                     href={item.href}
                     className={`text-2xs tracking-label ease-fluid transition-colors duration-700 ${
                       light
-                        ? "text-primary/80 hover:text-primary"
+                        ? "text-primary/80 hover:text-primary md:text-secondary"
                         : "text-secondary hover:text-accent"
                     }`}
                   >
@@ -166,18 +185,25 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
             </ul>
           </nav>
 
-          <div className="flex items-center gap-5">
-            <Link
-              href="/cart"
-              // min-h-11: 높이가 20px 이라 터치 표적 기준(24px)에 미달이었다 (WCAG 2.5.8)
-              className={`text-2xs tracking-label ease-fluid hidden min-h-11 items-center transition-colors duration-700 sm:inline-flex ${
-                light
-                  ? "text-primary hover:text-white"
-                  : "text-accent-deep hover:text-accent"
-              }`}
-            >
-              CART <span className="tabular-nums">(0)</span>
-            </Link>
+          <div className="flex items-center gap-4">
+            {/*
+              min-h-11 · px-1: 표적 기준 24×24 를 채운다 (WCAG 2.5.8).
+              높이는 원래 20px 이었고, 폭은 "MY" 가 글자만으로 23px 이라 1px 모자랐다.
+              여백만큼 gap 을 줄여(-mx-1 대신 gap-4) 보이는 간격은 그대로 둔다.
+            */}
+            {ACCOUNT_NAV.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`text-2xs tracking-label ease-fluid hidden min-h-11 min-w-11 items-center justify-center whitespace-nowrap px-1 transition-colors duration-700 sm:inline-flex ${
+                  light
+                    ? "text-primary hover:text-white md:text-accent-deep"
+                    : "text-accent-deep hover:text-accent"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
 
             {/* 햄버거 — 두 줄이 회전·이동하며 X 로 합쳐진다. 그냥 사라지면 값싸 보인다. */}
             <button
@@ -190,12 +216,12 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
             >
               <span
                 className={`ease-fluid absolute left-1/2 top-1/2 block h-px w-5 -translate-x-1/2 transition-all duration-500 ${
-                  light ? "bg-primary" : "bg-accent-deep"
+                  light ? "bg-primary md:bg-accent-deep" : "bg-accent-deep"
                 } ${open ? "rotate-45" : "-translate-y-1"}`}
               />
               <span
                 className={`ease-fluid absolute left-1/2 top-1/2 block h-px w-5 -translate-x-1/2 transition-all duration-500 ${
-                  light ? "bg-primary" : "bg-accent-deep"
+                  light ? "bg-primary md:bg-accent-deep" : "bg-accent-deep"
                 } ${open ? "-rotate-45" : "translate-y-1"}`}
               />
             </button>
@@ -214,7 +240,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
           className="flex h-full flex-col justify-center px-8"
         >
           <ul className="flex flex-col gap-6">
-            {[...NAV, { href: "/cart", label: "CART (0)" }].map((item, i) => (
+            {[...NAV, ...ACCOUNT_NAV].map((item, i) => (
               <li
                 key={item.href}
                 className="ease-soft transition-all duration-700"

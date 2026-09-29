@@ -26,6 +26,14 @@ export const LIMITS = {
   shortBody: 500,
   /** 대체 텍스트. 한 문장이면 충분하다. */
   alt: 120,
+  /**
+   * 사이즈 차트 대체 텍스트.
+   *
+   * 일반 사진보다 길게 잡는다. 표를 이미지로 만든 이상 이 문장이 **스크린리더에게는
+   * 유일한 정보원**이라, "사이즈 차트" 한 마디로는 아무것도 전달되지 않는다.
+   * 최소한 어떤 항목을 어느 사이즈 범위로 싣고 있는지는 적어야 한다.
+   */
+  sizeChartAlt: 300,
   slug: 80,
 } as const;
 
@@ -155,6 +163,14 @@ export interface ProductDraft {
   leadTimeDays: number | null;
   images: { mediaId: string; kind: string; alt: string }[];
   skus: { size: string; orderable: boolean }[];
+  /**
+   * 상세 사이즈 차트 이미지.
+   *
+   * 상품 사진(images)과 따로 두는 이유: 갤러리에 섞이면 안 된다.
+   * 손님이 사진을 넘기다가 표가 나오면 상품 컷으로 오해한다. 놓이는 자리가 다르다.
+   */
+  sizeChartMediaId: string | null;
+  sizeChartAlt: string;
 }
 
 /**
