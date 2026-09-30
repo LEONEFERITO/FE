@@ -35,6 +35,8 @@ export const LIMITS = {
    */
   sizeChartAlt: 300,
   slug: 80,
+  /** 사이즈 이름 (95 · 100 · S · M). 서버 Sku.size 와 같은 값. */
+  size: 20,
   /** 인스타그램 게시물 주소. 실제로는 60자 안팎. */
   instagramUrl: 300,
 } as const;

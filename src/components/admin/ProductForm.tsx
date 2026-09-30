@@ -11,6 +11,12 @@ import {
 } from "@/components/admin/ImageField";
 import { ProductPreview } from "@/components/admin/ProductPreview";
 import {
+  DEFAULT_SIZES,
+  SizeListField,
+  validateSizes,
+  type SizeRow,
+} from "@/components/admin/SizeListField";
+import {
   LIMITS,
   INSTAGRAM_URL_RE,
   AdminApiError,
@@ -125,6 +131,15 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
   );
   const [sizeChartAlt, setSizeChartAlt] = useState(initial?.sizeChartAlt ?? "");
   const [instagramUrl, setInstagramUrl] = useState(initial?.instagramUrl ?? "");
+  /*
+   * 사이즈. 새 상품은 브랜드 기본 전개(95~110)로 시작한다 — 빈 목록에서 넷을 치는 것보다
+   * 넷에서 하나 지우는 편이 빠르고, 빠뜨릴 일이 없다. 수정이면 서버 값 그대로.
+   */
+  const [sizes, setSizes] = useState<SizeRow[]>(() =>
+    initial
+      ? initial.skus.map((s) => ({ size: s.size, orderable: s.orderable }))
+      : DEFAULT_SIZES,
+  );
 
   const [submitted, setSubmitted] = useState(false);
   const [pending, setPending] = useState(false);
@@ -171,6 +186,10 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
       e.instagramUrl = "인스타그램 게시물 주소(https://www.instagram.com/…)를 붙여 넣어 주세요.";
     }
 
+    if (Object.keys(validateSizes(sizes)).length > 0) {
+      e.sizes = "사이즈 목록을 확인해 주세요.";
+    }
+
     if (priceKrw && !/^\d+$/.test(priceKrw)) e.priceKrw = "숫자만 입력해 주세요.";
     if (leadTimeDays) {
       if (!/^\d+$/.test(leadTimeDays)) {
@@ -204,12 +223,21 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
       modelWeightKg: initial?.modelWeightKg ?? null,
       modelSize: initial?.modelSize ?? "",
       displayOrder: initial?.displayOrder,
-      skus: (initial?.skus ?? []).map((s) => ({
-        size: s.size,
-        orderable: s.orderable,
-        sortOrder: s.sortOrder,
-        measurements: s.measurements,
-      })),
+      /*
+       * 사이즈는 폼의 목록이 진실이다. 실측값은 폼에 칸이 없으므로, 수정이면 **같은 이름의**
+       * 사이즈에 붙어 있던 실측을 그대로 실어 보낸다 — 이름을 바꾸면 그 실측은 사라진다.
+       * 상세 사이즈는 차트 이미지로 가기로 했으니 지금은 이 정도면 된다.
+       */
+      skus: sizes.map((s, i) => {
+        const name = s.size.trim();
+        const before = initial?.skus.find((k) => k.size === name);
+        return {
+          size: name,
+          orderable: s.orderable,
+          sortOrder: i,
+          measurements: before?.measurements ?? [],
+        };
+      }),
 
       images: IMAGE_SLOTS.flatMap((slot, i) => {
         const v = images[slot.key];
@@ -459,6 +487,26 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
               />
             ))}
           </div>
+        </fieldset>
+
+        {/* ── 사이즈 ────────────────────────────────────── */}
+        <fieldset className="border-subtle flex flex-col gap-6 border-t pt-7">
+          <legend className="text-primary text-sm font-medium">사이즈</legend>
+          <p className="text-muted text-2xs -mt-4 leading-relaxed">
+            손님이 고르는 순서 그대로입니다. &lsquo;제작 가능&rsquo;을 끄면 그 사이즈는
+            취소선으로 보이고 고를 수 없습니다 — 재고가 아니라 만들 수 있는지의 문제입니다.
+          </p>
+          {submitted && errors.sizes && (
+            <p className="text-error text-2xs -mt-3 flex gap-1.5 leading-relaxed" role="alert">
+              <Warning size={13} weight="light" aria-hidden="true" className="mt-px shrink-0" />
+              <span>{errors.sizes}</span>
+            </p>
+          )}
+          <SizeListField
+            value={sizes}
+            onChange={setSizes}
+            errors={submitted ? validateSizes(sizes) : {}}
+          />
         </fieldset>
 
         {/* ── 상세 사이즈 차트 ──────────────────────────── */}
