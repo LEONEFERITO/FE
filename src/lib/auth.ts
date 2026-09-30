@@ -281,7 +281,49 @@ export function checkPassword(password: string, email: string): string | null {
  * 소셜 쪽 이메일은 검증됐다는 보장이 없어서, 남의 계정을 가져가는 경로가 된다.
  * 반드시 기존 계정 비밀번호로 한 번 더 확인시킨 뒤 연결한다.
  */
-export const SOCIAL_PROVIDERS = [
-  { id: "kakao", label: "카카오로 계속하기" },
-  { id: "naver", label: "네이버로 계속하기" },
-] as const;
+// ── 간편 로그인 (카카오 · 네이버) ────────────────────────────
+//
+// 흐름이 전부 브라우저 리다이렉트라 fetch 가 아니라 <a href> 다:
+//   버튼 → {API}/oauth2/authorization/kakao → 카카오 로그인 → {API}/login/oauth2/code/kakao
+//   → 서버가 세션을 만들고 → {FRONT}/mypage 로 돌려보낸다 (실패하면 /login?social=<코드>)
+// 어떤 제공자가 켜져 있는지는 서버가 안다(키가 있는 것만). 화면은 그 목록만 그린다.
+
+export const SOCIAL_PROVIDER_LABEL: Record<string, string> = {
+  kakao: "카카오로 계속하기",
+  naver: "네이버로 계속하기",
+};
+
+/** 켜진 제공자의 id 목록. 서버 미연결이면 빈 목록 — 버튼 대신 "준비 중" 이 보인다. */
+export async function fetchSocialProviders(): Promise<string[]> {
+  if (!AUTH_CONNECTED) return [];
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/social`, { credentials: "include" });
+    if (!res.ok) {
+      await res.text().catch(() => undefined);
+      return [];
+    }
+    const body: { providers?: string[] } = await res.json();
+    return body.providers ?? [];
+  } catch {
+    return [];
+  }
+}
+
+/** 간편 로그인 시작 주소. Spring Security 의 기본 경로다. */
+export function socialStartUrl(providerId: string): string {
+  return `${API_BASE}/oauth2/authorization/${encodeURIComponent(providerId)}`;
+}
+
+/**
+ * 서버가 /login?social=<코드> 로 돌려보낼 때의 문구.
+ * 코드는 서버(SocialLoginService · SocialLoginHandlers)가 정한 것만 온다. 모르는 코드는 failed 로.
+ */
+export const SOCIAL_ERROR_MESSAGE: Record<string, string> = {
+  email_required:
+    "이메일 제공에 동의해야 가입할 수 있습니다. 다시 시도하실 때 이메일 항목에 동의해 주세요.",
+  email_in_use: "이미 이메일로 가입된 주소입니다. 이메일과 비밀번호로 로그인해 주세요.",
+  withdrawn: "탈퇴한 계정입니다.",
+  access_denied: "로그인을 취소하셨습니다.",
+  provider_error: "제공자에서 정보를 받지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  failed: "간편 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+};

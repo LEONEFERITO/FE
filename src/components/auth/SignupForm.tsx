@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 
 import { Field } from "@/components/ui/Field";
+import { SocialButtons } from "@/components/auth/SocialButtons";
 import {
   AuthError,
   PASSWORD_MIN_LENGTH,
@@ -339,6 +340,8 @@ export function SignupForm() {
           />
         )}
       </button>
+
+      <SocialButtons mode="signup" />
 
       <p className="text-secondary mt-2 text-center text-2xs">
         이미 회원이신가요?{" "}

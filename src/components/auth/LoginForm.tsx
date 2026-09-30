@@ -11,7 +11,8 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
 import { Field } from "@/components/ui/Field";
-import { AuthError, SOCIAL_PROVIDERS, signIn } from "@/lib/auth";
+import { SocialButtons } from "@/components/auth/SocialButtons";
+import { AuthError, signIn } from "@/lib/auth";
 
 /**
  * 로그인 폼.
@@ -220,29 +221,7 @@ export function LoginForm() {
         )}
       </button>
 
-      {/*
-        간편 로그인.
-        TODO(고객확인) C-2 — 카카오·네이버 앱 등록은 고객사 명의로 해야 한다.
-        지금은 자리만 잡아두고 비활성으로 둔다. 눌러도 아무 일이 없는 버튼보다
-        "준비 중" 이라고 말하는 쪽이 낫다.
-      */}
-      <div className="border-subtle mt-2 flex items-center gap-4 border-t pt-7">
-        <span className="text-muted text-2xs">간편 로그인</span>
-        <span className="text-muted/70 text-2xs">준비 중</span>
-      </div>
-
-      <div className="grid gap-2.5 sm:grid-cols-2">
-        {SOCIAL_PROVIDERS.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            disabled
-            className="border-subtle text-muted flex min-h-12 items-center justify-center rounded-full border text-2xs disabled:cursor-not-allowed"
-          >
-            {p.label}
-          </button>
-        ))}
-      </div>
+      <SocialButtons mode="login" />
 
       <p className="text-secondary mt-2 text-center text-2xs">
         아직 회원이 아니신가요?{" "}
