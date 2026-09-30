@@ -36,7 +36,7 @@ import {
  * 서버가 거부하면 그쪽 문구를 그대로 보여준다.
  *
  * ── 이용약관 ────────────────────────────────────────────
- * TODO(고객확인) 약관·개인정보처리방침 문안이 아직 없다. 링크만 자리를 잡아두고
+ * 약관은 초안이 있다(data/terms.ts, 고객 검토 전). TODO(고객확인) 개인정보처리방침 문안은 아직 없다.
  * 동의 체크는 **필수**로 둔다. 문안 없이 동의를 받으면 동의 자체가 무효다.
  */
 
@@ -291,7 +291,7 @@ export function SignupForm() {
             className="accent-accent mt-0.5 h-4 w-4 shrink-0"
           />
           <span>
-            {/* TODO(고객확인) 약관·개인정보처리방침 문안 필요 */}
+            {/* TODO(고객확인) 약관 확정 · 개인정보처리방침 문안 필요 */}
             <Link
               href="/terms"
               className="text-accent underline underline-offset-4"
