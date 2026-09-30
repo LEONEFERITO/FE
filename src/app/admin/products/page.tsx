@@ -22,7 +22,7 @@ export default function AdminProductsPage() {
     <>
       <Header />
 
-      <main id="main" className="flex-1">
+      <main id="main" className="on-cream flex-1">
         <div className="mx-auto max-w-[1320px] px-5 py-14 md:px-15 md:py-20">
           <Eyebrow>ADMIN</Eyebrow>
           <h1 className="font-display text-primary leading-display tracking-display mt-3 text-3xl md:text-4xl">

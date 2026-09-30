@@ -149,7 +149,7 @@ export function HeroSplit({ products }: { products: Product[] }) {
           <h1 className="font-display text-primary leading-display tracking-display mt-3 line-clamp-2 min-h-[2.4em] text-2xl md:mt-4 md:text-4xl lg:text-hero">
             {name}
           </h1>
-          <p className="text-secondary mt-2 text-base tabular-nums md:mt-4 md:text-xl">
+          <p className="text-secondary mt-2 text-(length:--fs-base) tabular-nums md:mt-4 md:text-xl">
             {product.priceKrw !== null ? (
               <>{KRW.format(product.priceKrw)}원</>
             ) : (

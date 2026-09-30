@@ -57,8 +57,12 @@ export function CategoryGrid() {
   const orphan = figures.length % 2 === 1 ? figures.length - 1 : -1;
 
   return (
+    /*
+      와인 면. 앞뒤 구간(제품 · 라인 비교)이 크림이라 여기서 다시 어두워진다 —
+      사진(착장 컷)이 서는 곳이고, 크림이 연속되면 리듬이 죽는다. 히어로와 같은 무대색.
+    */
     <section
-      className="bg-band"
+      className="bg-stage"
       aria-labelledby="category-heading"
     >
       <div className="mx-auto max-w-[1320px] px-5 py-24 md:px-15 md:py-32">

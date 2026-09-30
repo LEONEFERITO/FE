@@ -12,6 +12,7 @@ import {
 import { ProductPreview } from "@/components/admin/ProductPreview";
 import {
   LIMITS,
+  INSTAGRAM_URL_RE,
   AdminApiError,
   createProduct,
   updateProduct,
@@ -123,6 +124,7 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
       : null,
   );
   const [sizeChartAlt, setSizeChartAlt] = useState(initial?.sizeChartAlt ?? "");
+  const [instagramUrl, setInstagramUrl] = useState(initial?.instagramUrl ?? "");
 
   const [submitted, setSubmitted] = useState(false);
   const [pending, setPending] = useState(false);
@@ -163,6 +165,10 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
     }
     if (countGraphemes(sizeChartAlt) > LIMITS.sizeChartAlt) {
       e.sizeChartAlt = `${LIMITS.sizeChartAlt}자를 넘었습니다.`;
+    }
+
+    if (instagramUrl.trim() && !INSTAGRAM_URL_RE.test(instagramUrl.trim())) {
+      e.instagramUrl = "인스타그램 게시물 주소(https://www.instagram.com/…)를 붙여 넣어 주세요.";
     }
 
     if (priceKrw && !/^\d+$/.test(priceKrw)) e.priceKrw = "숫자만 입력해 주세요.";
@@ -227,6 +233,7 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
       }),
       sizeChartMediaId: sizeChart?.mediaId ?? null,
       sizeChartAlt: sizeChartAlt.trim(),
+      instagramUrl: instagramUrl.trim(),
     };
   }
 
@@ -481,6 +488,21 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
             placeholder="95~110 사이즈의 어깨·가슴·소매·총장 실측표"
             hint="화면을 읽어 주는 기기에는 이 문장이 사이즈 정보의 전부입니다. 어떤 항목을 어느 사이즈 범위로 싣고 있는지 적어 주세요."
             error={submitted ? errors.sizeChartAlt : undefined}
+          />
+        </fieldset>
+
+        {/* ── 인스타그램 ────────────────────────────────── */}
+        <fieldset className="border-subtle flex flex-col gap-6 border-t pt-7">
+          <legend className="text-primary text-sm font-medium">인스타그램</legend>
+
+          <CountedField
+            label="게시물 주소"
+            value={instagramUrl}
+            onChange={setInstagramUrl}
+            max={LIMITS.instagramUrl}
+            placeholder="https://www.instagram.com/p/…"
+            hint="이 상품이 나온 게시물이 있을 때만 넣습니다. 비워 두면 상세 페이지에 버튼이 나오지 않습니다."
+            error={submitted ? errors.instagramUrl : undefined}
           />
         </fieldset>
 

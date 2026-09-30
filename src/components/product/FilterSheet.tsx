@@ -120,7 +120,7 @@ export function FilterSheet({
           </div>
 
           <div className="flex items-center justify-between px-5 pb-1 pt-3">
-            <h2 className="text-primary text-base font-medium">거르기</h2>
+            <h2 className="text-primary text-(length:--fs-base) font-medium">거르기</h2>
             <div className="flex items-center gap-1">
               <button
                 type="button"

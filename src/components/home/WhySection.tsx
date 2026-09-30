@@ -104,7 +104,7 @@ export function WhySection() {
           </Reveal>
 
           <Reveal delay={180}>
-            <p className="text-secondary mt-6 text-base">
+            <p className="text-secondary mt-6 text-(length:--fs-base)">
               어깨·가슴·허벅지는 끼는데 허리는 남는 옷을 입어 오셨다면, 문제는
               체형이 아니라 패턴입니다. 모든 상품에 사이즈별 상세 실측과 모델
               착용 정보를 공개합니다.

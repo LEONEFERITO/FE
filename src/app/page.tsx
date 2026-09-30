@@ -60,17 +60,24 @@ export default function Home() {
           <Hero />
         )}
 
-        <WhySection />
-
-        <FeaturedProducts products={FEATURED} />
+        {/*
+          면 순서 (와인 + 크림 시안, 2026-09-29):
+            히어로 와인 → WHY·제품 크림 → 카테고리 와인 → 비교·사이즈·교환 크림 → 푸터 딥
+          와인이 연속으로 두 번 오지 않는다. 두 면이 번갈아야 리듬이 생긴다.
+          크림 구간은 토큰만 뒤집는다 — 안의 컴포넌트는 그대로다 (globals.css .on-cream).
+        */}
+        <div className="on-cream">
+          <WhySection />
+          <FeaturedProducts products={FEATURED} />
+        </div>
 
         <CategoryGrid />
 
-        <FitCompare />
-
-        <SizeFinder />
-
-        <ExchangeNotice />
+        <div className="on-cream">
+          <FitCompare />
+          <SizeFinder />
+          <ExchangeNotice />
+        </div>
       </main>
 
       <Footer />

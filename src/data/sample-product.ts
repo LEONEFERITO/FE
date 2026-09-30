@@ -33,6 +33,8 @@ export const SAMPLE_PRODUCT: Product = {
 
   // 차트 이미지는 관리자가 올린다. 아직 없다.
   sizeChart: null,
+  // 인스타그램 게시물이 있는 상품만 채운다. 없으면 상세에서 버튼을 숨긴다.
+  instagramUrl: null,
   measurements: {
     // 항목 목록 자체가 카테고리별 데이터다 (자켓과 팬츠가 다르다).
     fields: [

@@ -123,6 +123,12 @@ for (const vp of VIEWPORTS) {
         const url = r.url();
         // 정적 내보내기는 Link 프리페치용 RSC 파일을 찾다가 404 를 낸다. 화면과 무관하다.
         if (url.includes("_rsc=") || url.endsWith(".txt")) return;
+        /*
+         * QA 브라우저는 로그인하지 않는다. 그래서 "누구세요"(/api/auth/me)와 관리자 API 의
+         * 401 은 실패가 아니라 정답이다 — 화면은 그 답을 받아 "로그인이 필요합니다" 를 그린다.
+         * 다른 4xx/5xx 는 그대로 잡는다.
+         */
+        if (r.status() === 401 && (url.includes("/api/auth/me") || url.includes("/api/admin/"))) return;
         badRequests.push(`${r.status()} ${url.replace(BASE, "")}`);
       }
     });

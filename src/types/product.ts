@@ -164,6 +164,11 @@ export interface Product {
   measurements: MeasurementTable;
   /** 상세 사이즈 차트 이미지. 없으면 그 자리를 비운다. */
   sizeChart: SizeChartImage | null;
+  /**
+   * 이 상품의 인스타그램 게시물. 없는 상품이 있다 — null 이면 버튼을 숨긴다.
+   * 서버가 https://(www.)instagram.com/ 으로 시작하는 주소만 받는다.
+   */
+  instagramUrl: string | null;
   model: ModelInfo;
   notice: ProductNotice;
 }

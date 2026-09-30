@@ -1,14 +1,11 @@
 "use client";
 
-import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
-import Link from "next/link";
+import { ArrowDown, ArrowUpRight, InstagramLogo } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { pendingLabel } from "@/lib/pending";
 
 import { LineSummary } from "@/components/product/LineBadge";
-import { SizeChart } from "@/components/product/SizeChart";
-import { ModelInfo } from "@/components/product/ModelInfo";
 import { SizeSelector } from "@/components/product/SizeSelector";
 import { CATEGORY_LABEL } from "@/types/product";
 import type { Product } from "@/types/product";
@@ -16,14 +13,15 @@ import type { Product } from "@/types/product";
 /**
  * 구매 패널.
  *
- * 요소 순서가 이 사이트의 주장이다:
- *   상품명 → 가격 → **핏 → 사이즈 → 실측표 → 모델 정보** → 구매 버튼
+ * 순서 (고객 요청, 2026-09-30):
+ *   상품명 → 가격 → 핏 → [색상] → 사이즈 → 인스타그램 → 구매 버튼
  *
- * 일반 쇼핑몰은 가격 다음에 바로 구매 버튼이 온다. 여기서는 그 사이에
- * "내 몸에 맞는가" 를 판단할 재료를 전부 넣는다. 운동으로 체형이 달라진 고객이 기성복에서 실패하는
- * 이유가 정보 부족이고, 그 실패는 전부 사이즈 교환 CS 로 돌아온다.
+ * 색상은 자리만 정해졌다 — 색상별 사진·가격·사이즈 구조를 고객에게 확인 중이다.
+ * TODO(고객확인) 색상 옵션 구조가 정해지면 사이즈 위에 넣는다.
  *
- * 선택한 사이즈를 실측표 강조와 연결하려고 client 컴포넌트로 묶었다.
+ * 상세 사이즈 차트와 모델 정보는 아래 "상세 사이즈" 구간으로 내려갔다(같은 요청).
+ * 그래서 사이즈를 고르는 자리에 **거기로 내려가는 링크**를 둔다 — 차트를 안 보고
+ * 고르게 되면 그 실패가 사이즈 교환 CS 로 돌아온다.
  */
 
 function formatKrw(value: number | null): string | null {
@@ -57,7 +55,7 @@ export function PurchasePanel({ product }: { product: Product }) {
         {listPrice && (
           /* 정가 취소선은 버건디로. 서브 컬러가 실제로 일하는 몇 안 되는 자리다 —
              세일이라는 사실이 한눈에 읽혀야 하고, 면적은 아주 좁다. */
-          <p className="text-accent text-base tabular-nums line-through">
+          <p className="text-accent text-(length:--fs-base) tabular-nums line-through">
             {listPrice}
           </p>
         )}
@@ -69,15 +67,16 @@ export function PurchasePanel({ product }: { product: Product }) {
 
       <div className="flex items-baseline justify-between">
         <h2 className="text-primary text-sm font-medium">사이즈</h2>
-        <Link
-          href="/#size-finder-heading"
+        {/* 같은 페이지 안의 이동이라 <a> 로 둔다. 화살표도 아래를 가리킨다. */}
+        <a
+          href="#size-detail"
           className="text-accent hover:text-accent ease-fluid group inline-flex min-h-11 items-center gap-1.5 text-xs transition-colors duration-500"
         >
-          사이즈 가이드
-          <span className="ease-fluid transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-            <ArrowUpRight size={11} weight="light" aria-hidden="true" />
+          상세 사이즈 보기
+          <span className="ease-fluid transition-transform duration-500 group-hover:translate-y-0.5">
+            <ArrowDown size={11} weight="light" aria-hidden="true" />
           </span>
-        </Link>
+        </a>
       </div>
 
       <SizeSelector
@@ -86,19 +85,26 @@ export function PurchasePanel({ product }: { product: Product }) {
         onChange={setSelectedSize}
       />
 
+      {product.instagramUrl && (
+        /*
+          바깥 사이트로 나가므로 새 창이다. 그 사실을 글로도 알린다 —
+          화면을 못 보는 사람에게는 창이 바뀐 걸 알 방법이 없다.
+          noopener: 열린 창이 이 페이지를 조작하지 못하게.
+        */
+        <a
+          href={product.instagramUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="border-interactive text-secondary hover:border-accent hover:text-primary ease-fluid group mt-1 inline-flex min-h-11 w-fit items-center gap-2 rounded-full border px-5 text-xs transition-colors duration-300"
+        >
+          <InstagramLogo size={15} weight="light" aria-hidden="true" />
+          인스타그램에서 보기
+          <ArrowUpRight size={11} weight="light" aria-hidden="true" />
+          <span className="sr-only">(새 창)</span>
+        </a>
+      )}
+
       <hr className="border-subtle my-2" />
-
-      {/*
-        상세 사이즈는 고객이 만든 차트 이미지로 보여준다(2026-09-29 결정).
-        선택한 사이즈를 강조하던 기능은 이미지라 할 수 없다 — 그 대가는 SizeChart 주석 참고.
-      */}
-      <SizeChart
-        chart={product.sizeChart}
-        basis={product.measurements.basis}
-        tolerance={product.measurements.tolerance}
-      />
-
-      <ModelInfo model={product.model} />
 
       {/*
         주 버튼 — 포인트 컬러(고동색) 채움. 베이지 배경 대비 9.64:1 이라

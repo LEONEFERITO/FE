@@ -65,13 +65,18 @@ export function ProductCard({ product }: { product: Product }) {
                 className="ease-fluid absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
               />
             ) : (
-              <span className="text-2xs tracking-label absolute inset-0 flex items-center justify-center text-primary/60">
+              /*
+                버건디 면 위 글자는 크림으로 **고정**한다. 이 면은 UI 가 아니라 사진(촬영 배경)이라
+                크림 구간(.on-cream) 안에서도 어두운 채로 남는데, 토큰(text-primary)을 쓰면
+                거기서 딥 와인 글자가 되어 1.9:1 로 사라진다.
+              */
+              <span className="text-2xs tracking-label absolute inset-0 flex items-center justify-center text-[#F7F1EA]/60">
                 촬영본 준비 중
               </span>
             )}
 
             {allSoldOut && (
-              <span className="text-2xs tracking-label absolute left-3 top-3 rounded-full bg-primary px-3 py-1 text-[#2E2925] shadow-soft">
+              <span className="text-2xs tracking-label absolute left-3 top-3 rounded-full bg-[#F7F1EA] px-3 py-1 text-[#2E2925] shadow-soft">
                 SOLD OUT
               </span>
             )}

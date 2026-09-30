@@ -24,7 +24,7 @@ export default function Page() {
   return (
     <>
       <Header />
-      <main id="main" className="flex-1">
+      <main id="main" className="on-cream flex-1">
         <ComingSoon
           eyebrow="LEGAL"
           title="이용약관"

@@ -35,9 +35,14 @@ interface Props {
   /** 측정 기준·허용 오차. 이미지 안에 있어도 글자로 한 번 더 남긴다 — 아래 주석 참고. */
   basis: string | null;
   tolerance: string | null;
+  /**
+   * 바깥에 이미 제목이 있으면 그 id. 주면 자체 제목(h2)을 그리지 않는다 —
+   * 같은 "상세 사이즈" 제목이 두 번 읽히지 않게.
+   */
+  headingId?: string;
 }
 
-export function SizeChart({ chart, basis, tolerance }: Props) {
+export function SizeChart({ chart, basis, tolerance, headingId }: Props) {
   const [zoomed, setZoomed] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -55,12 +60,16 @@ export function SizeChart({ chart, basis, tolerance }: Props) {
   return (
     <section
       className="flex min-w-0 flex-col gap-3.5"
-      aria-labelledby="size-chart-heading"
+      aria-labelledby={headingId ?? "size-chart-heading"}
     >
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 id="size-chart-heading" className="text-primary text-sm font-medium">
-          상세 사이즈
-        </h2>
+      <div
+        className={`flex items-baseline gap-3 ${headingId ? "justify-end" : "justify-between"}`}
+      >
+        {!headingId && (
+          <h2 id="size-chart-heading" className="text-primary text-sm font-medium">
+            상세 사이즈
+          </h2>
+        )}
         {chart && (
           <button
             type="button"

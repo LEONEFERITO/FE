@@ -214,7 +214,7 @@ export function SizeFinder() {
                       (match ? (
                         <p className="bg-accent-tint text-accent-deep rounded-xl px-5 py-4 text-sm">
                           권장 사이즈{" "}
-                          <strong className="text-base tabular-nums">
+                          <strong className="text-(length:--fs-base) tabular-nums">
                             {match.size}
                           </strong>
                         </p>

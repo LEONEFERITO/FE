@@ -22,7 +22,7 @@ export default function Page() {
   return (
     <>
       <Header />
-      <main id="main" className="flex-1">
+      <main id="main" className="on-cream flex-1">
         <ComingSoon
           eyebrow="ACCOUNT"
           title="비밀번호 찾기"

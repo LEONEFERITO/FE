@@ -207,14 +207,37 @@ export async function signOut(): Promise<void> {
  * 헤더가 이 값으로 로그인/로그아웃 표시를 가르는데, 매번 예외를 잡게 하면
  * 호출하는 쪽마다 try 가 생긴다.
  */
-export async function fetchCurrentUser(): Promise<CurrentUser | null> {
-  if (!AUTH_CONNECTED) return null;
+export function fetchCurrentUser(): Promise<CurrentUser | null> {
+  if (!AUTH_CONNECTED) return Promise.resolve(null);
+  /*
+   * 같은 순간의 호출은 요청 하나로 합친다. 헤더(로그인 표시)와 본문(마이페이지)이
+   * 마운트되며 동시에 물어보는데, 답은 같다. 두 번 보내면 낭비이고,
+   * 헤드리스 브라우저는 똑같은 요청 둘 중 하나를 영영 안 끝난 것으로 보기도 한다(QA 가 멈췄다).
+   */
+  if (!currentUserInFlight) {
+    currentUserInFlight = requestCurrentUser().finally(() => {
+      currentUserInFlight = null;
+    });
+  }
+  return currentUserInFlight;
+}
+
+let currentUserInFlight: Promise<CurrentUser | null> | null = null;
+
+async function requestCurrentUser(): Promise<CurrentUser | null> {
   try {
     const res = await fetch(`${API_BASE}/api/auth/me`, {
       credentials: "include",
     });
-    if (res.status === 401) return null;
-    if (!res.ok) return null;
+    if (!res.ok) {
+      /*
+       * 401 이라도 본문은 읽어서 버린다. 안 읽으면 브라우저가 그 응답을 "아직 받는 중" 으로
+       * 붙들고 있어서, 화면은 멀쩡한데 페이지 로딩이 끝나지 않은 것으로 잡힌다
+       * (QA 의 networkidle 대기가 여기서 30초를 넘겨 죽었다).
+       */
+      await res.text().catch(() => undefined);
+      return null;
+    }
     return (await res.json()) as CurrentUser;
   } catch {
     return null;

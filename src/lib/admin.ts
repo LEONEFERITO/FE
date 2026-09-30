@@ -35,7 +35,16 @@ export const LIMITS = {
    */
   sizeChartAlt: 300,
   slug: 80,
+  /** 인스타그램 게시물 주소. 실제로는 60자 안팎. */
+  instagramUrl: 300,
 } as const;
+
+/**
+ * 인스타그램 주소 규칙. 서버(`AdminProductRequests.Save.instagramUrl`)와 **같은 식**이다.
+ * 손님이 누르는 링크라 instagram.com 만 받는다 — 특히 `javascript:` 가 href 에 들어가면
+ * 누르는 순간 스크립트가 실행된다. 진짜 방어는 서버이고, 여기는 저장 전에 알려주는 용도다.
+ */
+export const INSTAGRAM_URL_RE = /^https:\/\/(www\.)?instagram\.com\/[A-Za-z0-9._~/?=&%+-]*$/;
 
 /**
  * 이미지 한 장 최대 크기.
@@ -178,6 +187,8 @@ export interface ProductDraft {
    */
   sizeChartMediaId: string | null;
   sizeChartAlt: string;
+  /** 인스타그램 게시물. 빈 칸이면 null 로 나간다(blankToNull) — 상세에서 버튼이 숨는다. */
+  instagramUrl: string;
 }
 
 /**
@@ -315,6 +326,7 @@ export interface AdminProductEdit {
   sizeChartMediaId: string | null;
   sizeChartUrl: string | null;
   sizeChartAlt: string | null;
+  instagramUrl: string | null;
   images: { mediaId: string; url: string; kind: string; alt: string; sortOrder: number }[];
   skus: {
     size: string;

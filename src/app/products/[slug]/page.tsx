@@ -4,9 +4,11 @@ import { notFound } from "next/navigation";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Reveal } from "@/components/motion/Reveal";
+import { ModelInfo } from "@/components/product/ModelInfo";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductNoticeTable } from "@/components/product/ProductNoticeTable";
 import { PurchasePanel } from "@/components/product/PurchasePanel";
+import { SizeChart } from "@/components/product/SizeChart";
 import { PRODUCTS, findProduct } from "@/data/products";
 import { LINE_LABEL } from "@/types/product";
 
@@ -60,11 +62,20 @@ export default async function ProductDetailPage({
   const product = findProduct(slug);
   if (!product) notFound();
 
+  const detailImages = product.images.slice(1);
+
   return (
     <>
       <Header />
 
       <main id="main" className="flex-1">
+        {/*
+          면 순서 (색 시안 · 상세): 사는 곳은 크림, 보는 곳은 와인.
+          가격 · 사이즈 · 버튼이 있는 구매 판은 가장 또렷해야 해서 크림.
+          아래 "제품 상세" 사진 구간은 와인 — 버건디 배경 원본 사진과 한 공기가 된다.
+          그 아래 상세 사이즈 · 고시는 다시 크림(읽는 곳).
+        */}
+        <div className="on-cream">
         <div className="mx-auto max-w-[1320px] px-5 py-12 md:px-15 md:py-20">
           {/*
             모바일은 세로로 쌓고, 데스크톱은 이미지 : 정보 = 대략 7 : 5.
@@ -79,17 +90,18 @@ export default async function ProductDetailPage({
                이 래퍼가 못 줄어들면 소용이 없다 — 페이지가 통째로 가로 스크롤을 탄다)
             */}
             <Reveal className="min-w-0">
-              <ProductGallery images={product.images} />
+              <ProductGallery image={product.images[0] ?? null} name={product.name} />
             </Reveal>
             <Reveal delay={140} className="min-w-0">
               <PurchasePanel product={product} />
             </Reveal>
           </div>
         </div>
+        </div>
 
-        {/* 상세 설명 — 한국 커머스 관례상 긴 이미지 시퀀스가 온다 */}
+        {/* 상세 설명 — 한국 커머스 관례상 긴 이미지 시퀀스가 온다. 와인 면(위 주석). */}
         <section
-          className="border-subtle border-t"
+          className="bg-stage"
           aria-labelledby="detail-heading"
         >
           <div className="mx-auto max-w-[1320px] px-5 py-24 text-center md:px-15 md:py-32">
@@ -105,26 +117,88 @@ export default async function ProductDetailPage({
               </h2>
             </Reveal>
 
-            <Reveal delay={180}>
-              {/* 사진 자리다. 실제 촬영본 배경이 버건디라 그 톤을 미리 보여준다 */}
-              <div className="border-subtle bg-band/50 shadow-soft mx-auto mt-12 max-w-[900px] rounded-[2rem] border p-2">
-                <div
-                  className="flex aspect-[9/7] items-center justify-center rounded-[calc(2rem-0.5rem)]"
-                  style={{
-                    background:
-                      "linear-gradient(155deg, #4E0C17 0%, #7B1526 55%, #2A0A11 100%)",
-                  }}
-                >
-                  <p className="px-6 text-center text-sm text-white/55">
-                    상세 컷 · 원단 클로즈업 · 착용 컷 준비 중
-                  </p>
-                </div>
+            {/*
+              대표 사진(첫 장)을 뺀 나머지 — 착용컷 · 디테일컷 — 가 여기 세로로 이어진다.
+              위 구매 판에는 사진을 한 장만 두기로 했으므로(고객 요청) 나머지는 전부 이 자리다.
+            */}
+            {detailImages.length > 0 ? (
+              <div className="mx-auto mt-12 flex max-w-[900px] flex-col gap-6">
+                {detailImages.map((src, i) => (
+                  <Reveal key={src} delay={i === 0 ? 180 : 0}>
+                    <div className="border-subtle bg-band/50 shadow-soft rounded-[2rem] border p-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={src}
+                        alt={`${product.name ?? "제품"} 상세 사진 ${i + 1}`}
+                        loading="lazy"
+                        className="w-full rounded-[calc(2rem-0.5rem)]"
+                      />
+                    </div>
+                  </Reveal>
+                ))}
               </div>
-            </Reveal>
+            ) : (
+              <Reveal delay={180}>
+                {/* 사진 자리다. 실제 촬영본 배경이 버건디라 그 톤을 미리 보여준다 */}
+                <div className="border-subtle bg-band/50 shadow-soft mx-auto mt-12 max-w-[900px] rounded-[2rem] border p-2">
+                  <div
+                    className="flex aspect-[9/7] items-center justify-center rounded-[calc(2rem-0.5rem)]"
+                    style={{
+                      background:
+                        "linear-gradient(155deg, #4E0C17 0%, #7B1526 55%, #2A0A11 100%)",
+                    }}
+                  >
+                    <p className="px-6 text-center text-sm text-white/55">
+                      상세 컷 · 원단 클로즈업 · 착용 컷 준비 중
+                    </p>
+                  </div>
+                </div>
+              </Reveal>
+            )}
+          </div>
+        </section>
+
+        {/*
+          상세 사이즈 — 고객 요청으로 구매 판에서 이 자리로 내려왔다(2026-09-30).
+          구매 판의 "상세 사이즈 보기" 가 여기로 온다. scroll-mt 는 고정 헤더 높이만큼
+          띄우는 값이다 — 없으면 제목이 헤더 밑에 가려진 채로 멈춘다.
+          모델 정보도 함께 왔다. 둘 다 "내 몸에 맞는가" 를 판단하는 재료다.
+        */}
+        <div className="on-cream">
+        <section
+          id="size-detail"
+          className="scroll-mt-24"
+          aria-labelledby="size-detail-heading"
+        >
+          <div className="mx-auto max-w-[1320px] px-5 py-24 md:px-15 md:py-32">
+            <div className="text-center">
+              <Reveal>
+                <p className="text-muted text-2xs tracking-label">SIZE</p>
+              </Reveal>
+              <Reveal delay={100}>
+                <h2
+                  id="size-detail-heading"
+                  className="font-display text-primary mt-3 text-3xl leading-display tracking-display md:text-4xl"
+                >
+                  상세 사이즈
+                </h2>
+              </Reveal>
+            </div>
+
+            <div className="mx-auto mt-12 flex max-w-[900px] min-w-0 flex-col gap-6">
+              <SizeChart
+                chart={product.sizeChart}
+                basis={product.measurements.basis}
+                tolerance={product.measurements.tolerance}
+                headingId="size-detail-heading"
+              />
+              <ModelInfo model={product.model} />
+            </div>
           </div>
         </section>
 
         <ProductNoticeTable notice={product.notice} />
+        </div>
       </main>
 
       <Footer />

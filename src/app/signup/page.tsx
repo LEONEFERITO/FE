@@ -26,7 +26,7 @@ export default function SignupPage() {
     <>
       <Header />
 
-      <main id="main" className="flex-1">
+      <main id="main" className="on-cream flex-1">
         <div className="grid min-h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-72px)] md:grid-cols-2">
           {/* 왼쪽 — 촬영 원본. 모바일에서는 숨긴다(폼이 첫 화면에 들어와야 한다) */}
           <div className="bg-velvet relative hidden overflow-hidden md:block">

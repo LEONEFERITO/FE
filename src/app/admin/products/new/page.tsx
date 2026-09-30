@@ -29,7 +29,7 @@ export default function AdminNewProductPage() {
     <>
       <Header />
 
-      <main id="main" className="flex-1">
+      <main id="main" className="on-cream flex-1">
         <div className="mx-auto max-w-[1320px] px-5 py-14 md:px-15 md:py-20">
           <Link
             href="/admin/products"
