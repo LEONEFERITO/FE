@@ -28,16 +28,18 @@ export interface BusinessInfo {
   hosting: string | null;
 }
 
-// TODO(고객확인) F-1 사업자 정보 — 사업자등록증 · 통신판매업 신고증 사본으로 받는다.
+// 2026-10-01 고객 전달값. 사업자등록번호만 표기 형식(000-00-00000)으로 끊었고 나머지는 받은 그대로다.
+// TODO(고객확인) 개인정보 보호책임자 · 주소를 사업자등록증과 대조(시·도 표기 포함 여부)
 export const BUSINESS: BusinessInfo = {
-  companyName: null,
-  representative: null,
-  registrationNumber: null,
-  mailOrderNumber: null,
-  address: null,
-  phone: null,
-  email: null,
+  companyName: "레오네페리토 (LEONEFERITO)",
+  representative: "조강현",
+  registrationNumber: "881-15-02245",
+  mailOrderNumber: "2024-수원영통-0059",
+  address: "수원시 영통구 매영로 425번길 1 1층 더맨리",
+  phone: "010-2434-7794 · 010-9291-0518",
+  email: "sport0308@naver.com",
   privacyOfficer: null,
+  // 서버를 정한 뒤 채운다 (FE 는 Vercel, API 는 미정).
   hosting: null,
 };
 

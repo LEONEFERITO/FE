@@ -44,6 +44,10 @@ const PAGES = [
   // QA 브라우저는 로그인하지 않았으므로 "로그인이 필요합니다" 상태를 검사하게 된다.
   { path: "/admin/products/", name: "관리자 상품 목록" },
   { path: "/admin/products/edit/", name: "관리자 상품 수정(id 없음)" },
+  { path: "/admin/members/", name: "관리자 회원 목록" },
+  { path: "/admin/members/detail/", name: "관리자 회원 상세(id 없음)" },
+  { path: "/find/", name: "비밀번호 찾기" },
+  { path: "/reset/", name: "새 비밀번호(링크 없음)" },
 ];
 
 /*

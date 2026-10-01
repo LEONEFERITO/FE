@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { AUTH_CONNECTED, fetchCurrentUser, signOut, type CurrentUser } from "@/lib/auth";
+import { AccountSettings } from "@/components/account/AccountSettings";
+import {
+  AUTH_CONNECTED,
+  fetchCurrentUser,
+  isAdmin,
+  signOut,
+  type CurrentUser,
+} from "@/lib/auth";
 import { pendingLabel } from "@/lib/pending";
 
 /**
@@ -20,7 +27,7 @@ import { pendingLabel } from "@/lib/pending";
 type State =
   | { kind: "offline" }
   | { kind: "loading" }
-  | { kind: "guest" }
+  | { kind: "guest"; withdrawn?: boolean }
   | { kind: "member"; user: CurrentUser };
 
 export function MypagePanel() {
@@ -32,7 +39,11 @@ export function MypagePanel() {
     if (!AUTH_CONNECTED) return;
     let alive = true;
     fetchCurrentUser()
-      .then((user) => alive && setState(user ? { kind: "member", user } : { kind: "guest" }))
+      .then(
+        (user) =>
+          alive &&
+          setState(user ? { kind: "member", user } : { kind: "guest" }),
+      )
       .catch(() => alive && setState({ kind: "guest" }));
     return () => {
       alive = false;
@@ -63,11 +74,35 @@ export function MypagePanel() {
     );
   }
 
+  if (state.kind === "guest" && state.withdrawn) {
+    return (
+      <div
+        role="status"
+        className="border-subtle bg-surface rounded-2xl border p-7 md:p-9"
+      >
+        <h2 className="font-display text-primary text-xl">
+          탈퇴가 완료되었습니다
+        </h2>
+        <p className="text-secondary mt-2 text-sm leading-relaxed">
+          그동안 이용해 주셔서 감사합니다. 회원 정보는 모두 지웠습니다.
+        </p>
+        <Link
+          href="/"
+          className="text-accent hover:text-accent-hover mt-4 inline-flex min-h-11 items-center text-sm underline underline-offset-4"
+        >
+          메인으로
+        </Link>
+      </div>
+    );
+  }
+
   if (state.kind === "guest") {
     return (
       <div className="border-subtle bg-surface flex flex-col items-start gap-4 rounded-2xl border p-7 md:flex-row md:items-center md:justify-between md:p-9">
         <div>
-          <h2 className="font-display text-primary text-xl">로그인이 필요합니다</h2>
+          <h2 className="font-display text-primary text-xl">
+            로그인이 필요합니다
+          </h2>
           <p className="text-secondary mt-2 text-sm leading-relaxed">
             주문 내역과 사이즈 기록은 로그인 후 보실 수 있습니다.
           </p>
@@ -92,9 +127,21 @@ export function MypagePanel() {
 
   const { user } = state;
   const summary = [
-    { label: "등급", value: pendingLabel("규칙"), note: "등급 수 · 승급 기준 · 혜택이 정해지면 표시됩니다." },
-    { label: "사용 가능 포인트", value: pendingLabel("규칙"), note: "적립률 · 사용 단위 · 유효기간이 정해지면 표시됩니다." },
-    { label: "누적 구매금액", value: "0원", note: "주문이 쌓이면 자동으로 계산됩니다." },
+    {
+      label: "등급",
+      value: pendingLabel("규칙"),
+      note: "등급 수 · 승급 기준 · 혜택이 정해지면 표시됩니다.",
+    },
+    {
+      label: "사용 가능 포인트",
+      value: pendingLabel("규칙"),
+      note: "적립률 · 사용 단위 · 유효기간이 정해지면 표시됩니다.",
+    },
+    {
+      label: "누적 구매금액",
+      value: "0원",
+      note: "주문이 쌓이면 자동으로 계산됩니다.",
+    },
   ];
 
   return (
@@ -104,21 +151,46 @@ export function MypagePanel() {
           <p className="font-display text-primary text-2xl">{user.name} 님</p>
           <p className="text-muted mt-1 text-xs">{user.email}</p>
         </div>
-        <button
-          type="button"
-          onClick={handleSignOut}
-          className="text-muted hover:text-accent ease-fluid min-h-11 text-xs underline underline-offset-4 transition-colors duration-300"
-        >
-          로그아웃
-        </button>
+        <div className="flex flex-wrap items-center gap-5">
+          {isAdmin(user) && (
+            <>
+              <Link
+                href="/admin/products"
+                className="text-accent hover:text-accent-hover ease-fluid inline-flex min-h-11 items-center text-xs underline underline-offset-4 transition-colors duration-300"
+              >
+                상품 관리
+              </Link>
+              <Link
+                href="/admin/members"
+                className="text-accent hover:text-accent-hover ease-fluid inline-flex min-h-11 items-center text-xs underline underline-offset-4 transition-colors duration-300"
+              >
+                회원 관리
+              </Link>
+            </>
+          )}
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="text-muted hover:text-accent ease-fluid min-h-11 text-xs underline underline-offset-4 transition-colors duration-300"
+          >
+            로그아웃
+          </button>
+        </div>
       </div>
 
       <dl className="grid gap-4 md:grid-cols-3">
         {summary.map((s) => (
-          <div key={s.label} className="border-subtle bg-surface rounded-2xl border p-6">
+          <div
+            key={s.label}
+            className="border-subtle bg-surface rounded-2xl border p-6"
+          >
             <dt className="text-muted text-2xs">{s.label}</dt>
-            <dd className="font-display text-primary mt-2 text-xl">{s.value}</dd>
-            <dd className="text-secondary mt-2 text-xs leading-relaxed">{s.note}</dd>
+            <dd className="font-display text-primary mt-2 text-xl">
+              {s.value}
+            </dd>
+            <dd className="text-secondary mt-2 text-xs leading-relaxed">
+              {s.note}
+            </dd>
           </div>
         ))}
       </dl>
@@ -131,10 +203,17 @@ export function MypagePanel() {
           주문 내역
         </h2>
         <p className="text-secondary mt-3 text-sm leading-relaxed">
-          아직 주문이 없습니다. 주문 기능이 열리면 결제 완료 → 제작 중 → 발송 → 배송 완료
-          순서로 여기에 쌓입니다.
+          아직 주문이 없습니다. 주문 기능이 열리면 결제 완료 → 제작 중 → 발송 →
+          배송 완료 순서로 여기에 쌓입니다.
         </p>
       </section>
+
+      <AccountSettings
+        onNameChanged={(name) =>
+          setState({ kind: "member", user: { ...user, name } })
+        }
+        onWithdrawn={() => setState({ kind: "guest", withdrawn: true })}
+      />
     </div>
   );
 }

@@ -51,9 +51,15 @@ export interface CurrentUser {
 export type AuthFailure =
   | "invalid-credentials"
   | "locked"
+  | "suspended"
   | "rate-limited"
   | "email-taken"
   | "weak-password"
+  | "wrong-password"
+  | "invalid-token"
+  | "no-password"
+  | "admin-cannot-withdraw"
+  | "unauthenticated"
   | "not-connected"
   | "network"
   | "unknown";
@@ -86,9 +92,16 @@ export const AUTH_MESSAGE: Record<AuthFailure, string> = {
   // 이메일이 없는 경우와 비밀번호가 틀린 경우가 **같은 문구**여야 한다
   "invalid-credentials": "이메일 또는 비밀번호가 올바르지 않습니다.",
   locked: "여러 번 실패해 잠시 잠겼습니다. 잠시 후 다시 시도해 주세요.",
+  // 비밀번호가 맞았을 때만 서버가 이 답을 준다. 틀린 비밀번호로는 정지 여부를 알 수 없다.
+  suspended: "이용이 정지된 계정입니다. 고객센터로 문의해 주세요.",
   "rate-limited": "시도가 너무 잦습니다. 잠시 후 다시 시도해 주세요.",
   "email-taken": "이미 가입된 이메일입니다.",
   "weak-password": "비밀번호를 다시 확인해 주세요.",
+  "wrong-password": "현재 비밀번호가 올바르지 않습니다.",
+  "invalid-token": "링크가 만료되었거나 이미 사용되었습니다. 비밀번호 찾기를 다시 해 주세요.",
+  "no-password": "간편가입 계정은 비밀번호가 없습니다. 카카오·네이버로 로그인해 주세요.",
+  "admin-cannot-withdraw": "관리자 계정은 탈퇴할 수 없습니다. 먼저 관리자 권한을 해제해야 합니다.",
+  unauthenticated: "로그인이 풀렸습니다. 다시 로그인해 주세요.",
   "not-connected":
     "로그인 서버가 아직 연결되지 않았습니다. 화면 확인용 단계입니다.",
   network: "연결에 실패했습니다. 네트워크를 확인해 주세요.",
@@ -139,9 +152,13 @@ async function readError(res: Response): Promise<ErrorBody> {
 }
 
 async function post(path: string, body: unknown): Promise<Response> {
+  return send("POST", path, body);
+}
+
+async function send(method: "POST" | "PATCH", path: string, body: unknown): Promise<Response> {
   try {
     return await fetch(`${API_BASE}${path}`, {
-      method: "POST",
+      method,
       credentials: "include", // HttpOnly 쿠키를 주고받기 위해 필수
       headers: {
         "Content-Type": "application/json",
@@ -171,6 +188,7 @@ export async function signIn(credentials: Credentials): Promise<CurrentUser> {
 
   const { code } = await readError(res);
   if (code === "ACCOUNT_LOCKED") throw new AuthError("locked");
+  if (code === "ACCOUNT_SUSPENDED") throw new AuthError("suspended");
   if (res.status === 401) throw new AuthError("invalid-credentials");
   if (res.status === 429) throw new AuthError("rate-limited");
   throw new AuthError("unknown");
@@ -249,7 +267,7 @@ async function requestCurrentUser(): Promise<CurrentUser | null> {
  *
  * ⚠️ **서버가 진짜 기준이다.** 여기 있는 건 서버까지 다녀오기 전에 바로 알려주기 위한
  * 것일 뿐, 이걸 통과했다고 가입이 되는 게 아니다. 서버 규칙이 바뀌면 여기도 같이 고친다.
- * (BE: AuthService.validatePassword)
+ * (BE: PasswordPolicy — 가입 · 비밀번호 변경 · 재설정이 같은 규칙을 쓴다)
  */
 export const PASSWORD_MIN_LENGTH = 10;
 
@@ -323,7 +341,106 @@ export const SOCIAL_ERROR_MESSAGE: Record<string, string> = {
     "이메일 제공에 동의해야 가입할 수 있습니다. 다시 시도하실 때 이메일 항목에 동의해 주세요.",
   email_in_use: "이미 이메일로 가입된 주소입니다. 이메일과 비밀번호로 로그인해 주세요.",
   withdrawn: "탈퇴한 계정입니다.",
+  suspended: "이용이 정지된 계정입니다. 고객센터로 문의해 주세요.",
   access_denied: "로그인을 취소하셨습니다.",
   provider_error: "제공자에서 정보를 받지 못했습니다. 잠시 후 다시 시도해 주세요.",
   failed: "간편 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.",
 };
+
+// ── 내 정보 (마이페이지) ─────────────────────────────────────
+//
+// 대상은 언제나 로그인한 본인이다. 서버 경로에 회원 id 가 없다 (BE MeController).
+
+export type MemberProvider = "LOCAL" | "KAKAO" | "NAVER";
+
+export const PROVIDER_LABEL: Record<MemberProvider, string> = {
+  LOCAL: "이메일",
+  KAKAO: "카카오",
+  NAVER: "네이버",
+};
+
+export interface Profile {
+  email: string;
+  name: string;
+  phone: string | null;
+  provider: MemberProvider;
+  /** 간편가입 회원은 false — 비밀번호 변경 칸을 그리지 않는다. */
+  hasPassword: boolean;
+  createdAt: string;
+}
+
+/** 서버 오류 코드 → 화면이 구분하는 실패. 모르는 코드는 unknown. */
+async function failure(res: Response): Promise<never> {
+  const { code, message } = await readError(res);
+  if (res.status === 401) throw new AuthError("unauthenticated");
+  if (code === "WEAK_PASSWORD") throw new AuthError("weak-password", message);
+  if (code === "WRONG_PASSWORD") throw new AuthError("wrong-password");
+  if (code === "ACCOUNT_LOCKED") throw new AuthError("locked");
+  if (code === "INVALID_RESET_TOKEN") throw new AuthError("invalid-token");
+  if (code === "NO_PASSWORD") throw new AuthError("no-password");
+  if (code === "ADMIN_CANNOT_WITHDRAW") throw new AuthError("admin-cannot-withdraw");
+  throw new AuthError("unknown");
+}
+
+function requireConnected() {
+  if (!AUTH_CONNECTED) throw new AuthError("not-connected");
+}
+
+export async function fetchProfile(): Promise<Profile> {
+  requireConnected();
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/api/me/profile`, { credentials: "include" });
+  } catch {
+    throw new AuthError("network");
+  }
+  if (!res.ok) return failure(res);
+  return (await res.json()) as Profile;
+}
+
+export async function updateProfile(input: { name: string; phone: string | null }): Promise<Profile> {
+  requireConnected();
+  const res = await send("PATCH", "/api/me/profile", input);
+  if (!res.ok) return failure(res);
+  return (await res.json()) as Profile;
+}
+
+/** 성공하면 다른 기기의 로그인은 끊기고 지금 기기는 그대로다. */
+export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  requireConnected();
+  const res = await post("/api/me/password", { currentPassword, newPassword });
+  if (!res.ok) return failure(res);
+}
+
+/** 탈퇴. 간편가입 회원은 password 없이 부른다. 성공하면 이 브라우저도 로그아웃 상태다. */
+export async function withdraw(password: string | null): Promise<void> {
+  requireConnected();
+  const res = await post("/api/me/withdraw", { password });
+  if (!res.ok) return failure(res);
+}
+
+// ── 비밀번호 찾기 ────────────────────────────────────────────
+//
+// 요청은 가입 여부와 상관없이 **항상 성공**으로 답한다(서버 202). 화면도 한 가지만 말한다 —
+// "메일을 보냈습니다". 다르게 말하면 이 화면이 가입 여부 조회기가 된다.
+
+export async function requestPasswordReset(email: string): Promise<void> {
+  requireConnected();
+  const res = await post("/api/auth/password-reset/request", { email });
+  if (!res.ok) return failure(res);
+}
+
+export async function confirmPasswordReset(token: string, newPassword: string): Promise<void> {
+  requireConnected();
+  const res = await post("/api/auth/password-reset/confirm", { token, newPassword });
+  if (!res.ok) return failure(res);
+}
+
+/** 관리자 화면으로 가는 길을 보여줄지. 권한 판단은 서버가 한다 — 이건 링크 표시용이다. */
+export function isAdmin(user: CurrentUser): boolean {
+  return user.roles.includes("ROLE_ADMIN");
+}
+
+export function isSuperAdmin(user: CurrentUser): boolean {
+  return user.roles.includes("ROLE_SUPER_ADMIN");
+}

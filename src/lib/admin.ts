@@ -361,3 +361,125 @@ export function listProducts(): Promise<AdminProductRow[]> {
 export function getProduct(id: string): Promise<AdminProductEdit> {
   return getJson(`/api/admin/products/${encodeURIComponent(id)}`);
 }
+
+// ── 회원 관리 ────────────────────────────────────────────────
+//
+// 권한: ADMIN 은 검색 · 상세 · 잠금 해제 · 정지. 관리자 지정은 SUPER_ADMIN 만 (서버가 막는다).
+// 서버 문구를 그대로 보여준다 — "자기 자신에게는 할 수 없습니다" 같은 규칙은 서버만 안다.
+
+export type MemberRole = "MEMBER" | "ADMIN" | "SUPER_ADMIN";
+export type MemberStatus = "ACTIVE" | "SUSPENDED" | "WITHDRAWN";
+export type MemberProvider = "LOCAL" | "KAKAO" | "NAVER";
+
+export const ROLE_LABEL: Record<MemberRole, string> = {
+  MEMBER: "회원",
+  ADMIN: "관리자",
+  SUPER_ADMIN: "최고 관리자",
+};
+
+export const MEMBER_STATUS_LABEL: Record<MemberStatus, string> = {
+  ACTIVE: "정상",
+  SUSPENDED: "이용 정지",
+  WITHDRAWN: "탈퇴",
+};
+
+export const PROVIDER_LABEL: Record<MemberProvider, string> = {
+  LOCAL: "이메일",
+  KAKAO: "카카오",
+  NAVER: "네이버",
+};
+
+export const ACTION_LABEL: Record<string, string> = {
+  VIEWED: "상세 열람",
+  ROLE_CHANGED: "권한 변경",
+  SUSPENDED: "이용 정지",
+  REACTIVATED: "정지 해제",
+  UNLOCKED: "로그인 잠금 해제",
+  CREATED_BY_COMMAND: "서버 명령으로 생성",
+};
+
+/** 정지 사유 글자 수. 서버 `AdminMemberController.Suspend` 와 같은 값. */
+export const SUSPEND_REASON_MAX = 200;
+
+export interface AdminMemberRow {
+  id: string;
+  email: string;
+  name: string;
+  /** 목록에서는 가려져 온다 (010-****-5678). 전체 번호는 상세에서만. */
+  phone: string | null;
+  provider: MemberProvider;
+  role: MemberRole;
+  status: MemberStatus;
+  locked: boolean;
+  createdAt: string;
+  lastLoginAt: string | null;
+}
+
+export interface AdminMemberPage {
+  items: AdminMemberRow[];
+  page: number;
+  totalPages: number;
+  totalElements: number;
+}
+
+export interface AdminMemberDetail {
+  member: AdminMemberRow;
+  failedLoginAttempts: number;
+  lockedUntil: string | null;
+  withdrawnAt: string | null;
+  logs: { action: string; detail: string | null; actor: string; createdAt: string }[];
+}
+
+export function listMembers(query: {
+  q: string;
+  status: MemberStatus | null;
+  page: number;
+}): Promise<AdminMemberPage> {
+  const params = new URLSearchParams({ q: query.q, page: String(query.page) });
+  if (query.status) params.set("status", query.status);
+  return getJson(`/api/admin/members?${params}`);
+}
+
+/** 상세. 열어 본 것 자체가 서버에 기록된다 (개인정보 접속 기록). */
+export function getMember(id: string): Promise<AdminMemberDetail> {
+  return getJson(`/api/admin/members/${encodeURIComponent(id)}`);
+}
+
+async function memberAction(
+  id: string,
+  action: string,
+  method: "POST" | "PUT",
+  body?: unknown,
+): Promise<void> {
+  if (!ADMIN_CONNECTED) {
+    throw new AdminApiError("NOT_CONNECTED", "서버가 아직 연결되지 않았습니다.");
+  }
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/api/admin/members/${encodeURIComponent(id)}/${action}`, {
+      method,
+      credentials: "include",
+      headers: { "Content-Type": "application/json", ...(await csrfHeader()) },
+      body: JSON.stringify(body ?? {}),
+    });
+  } catch {
+    throw new AdminApiError("NETWORK", "서버에 연결하지 못했습니다.");
+  }
+  if (!res.ok) return fail(res);
+}
+
+export function unlockMember(id: string): Promise<void> {
+  return memberAction(id, "unlock", "POST");
+}
+
+export function suspendMember(id: string, reason: string): Promise<void> {
+  return memberAction(id, "suspend", "POST", { reason });
+}
+
+export function reactivateMember(id: string): Promise<void> {
+  return memberAction(id, "reactivate", "POST");
+}
+
+export function changeMemberRole(id: string, role: "MEMBER" | "ADMIN"): Promise<void> {
+  return memberAction(id, "role", "PUT", { role });
+}
