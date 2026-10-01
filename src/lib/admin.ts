@@ -60,7 +60,7 @@ export const INSTAGRAM_URL_RE = /^https:\/\/(www\.)?instagram\.com\/[A-Za-z0-9._
 export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
 /** 받아주는 형식. 서버는 매직바이트로 다시 확인하므로 여기 값은 편의일 뿐이다. */
-export const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+export const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif", "image/bmp"] as const;
 
 export function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes}B`;
@@ -87,7 +87,9 @@ export function checkImageFile(file: File): string | null {
    * 실수로 PDF 를 고른 경우를 바로 알려줄 수 있다. 위장 파일은 서버가 잡는다.
    */
   if (file.type && !ACCEPTED_IMAGE_TYPES.includes(file.type as never)) {
-    return "JPG · PNG · WebP 이미지만 올릴 수 있습니다.";
+    return /hei[cf]/i.test(file.type)
+      ? "HEIC(아이폰) 사진은 손님 화면에 보이지 않습니다. JPG 로 바꿔 올려 주세요."
+      : "JPG · PNG · WebP · GIF · AVIF · BMP 이미지만 올릴 수 있습니다.";
   }
   return null;
 }

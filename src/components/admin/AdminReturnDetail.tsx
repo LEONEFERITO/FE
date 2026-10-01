@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 
 import { COURIERS } from "@/components/admin/AdminOrderDetail";
 import { ErrorNotice } from "@/components/admin/AdminProductList";
+import { PhotoThumb } from "@/components/shop/PhotoThumb";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import {
   RETURN_REASON_LABEL,
@@ -177,10 +178,7 @@ export function AdminReturnDetail() {
               <ul className="mt-3 flex flex-wrap gap-3" aria-label="손님이 붙인 사진">
                 {r.photoUrls.map((u, k) => (
                   <li key={u}>
-                    <a href={u} target="_blank" rel="noopener noreferrer" aria-label={`사진 ${k + 1} 원본 보기`}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={u} alt="" className="border-subtle h-24 w-24 rounded-lg border object-cover" />
-                    </a>
+                    <PhotoThumb url={u} label={`사진 ${k + 1} 원본 보기`} size="h-24 w-24" />
                   </li>
                 ))}
               </ul>

@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { lastDay } from "@/components/shop/OrderDetailView";
+import { PhotoThumb } from "@/components/shop/PhotoThumb";
 import { loginUrl } from "@/lib/auth";
 import { pendingLabel } from "@/lib/pending";
 import {
+  RETURN_PHOTO_ACCEPT,
   RETURN_PHOTO_MAX,
   RETURN_REASON_LABEL,
   SELLER_FAULT,
@@ -328,14 +330,14 @@ export function ReturnRequestForm() {
         <p className="text-muted text-2xs leading-relaxed">
           {reason && SELLER_FAULT.includes(reason)
             ? "불량 · 오배송은 사진이 있으면 바로 확인할 수 있습니다. 문제가 보이는 부분과 상품 라벨을 찍어 주세요."
-            : "착용한 모습이나 맞지 않는 부분을 찍어 주시면 사이즈를 함께 봐 드립니다."}
+            : "착용한 모습이나 맞지 않는 부분을 찍어 주시면 사이즈를 함께 봐 드립니다."}{" "}
+          JPG · PNG · HEIC(아이폰) 등 사진 파일, 한 장 10MB 까지.
         </p>
         {photos.length > 0 && (
           <ul className="flex flex-wrap gap-3">
             {photos.map((p) => (
               <li key={p.id} className="relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.url} alt="첨부한 사진" className="border-subtle h-20 w-20 rounded-lg border object-cover" />
+                <PhotoThumb url={p.url} label="첨부한 사진 크게 보기" size="h-20 w-20" />
                 <button type="button" aria-label="이 사진 빼기" onClick={() => setPhotos((prev) => prev.filter((x) => x.id !== p.id))}
                   className="bg-surface border-subtle text-secondary hover:text-error absolute -top-3 -right-3 inline-flex h-11 w-11 items-center justify-center rounded-full border">
                   <X size={13} weight="bold" aria-hidden="true" />
@@ -348,7 +350,7 @@ export function ReturnRequestForm() {
           <label className={`border-interactive text-primary hover:border-accent ease-fluid inline-flex min-h-11 w-fit items-center gap-2 rounded-full border px-5 text-sm transition-colors duration-300 ${uploading ? "cursor-wait opacity-60" : "cursor-pointer"}`}>
             <Camera size={15} weight="light" aria-hidden="true" />
             {uploading ? "올리는 중" : "사진 고르기"}
-            <input type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={uploading} className="sr-only"
+            <input type="file" accept={RETURN_PHOTO_ACCEPT} multiple disabled={uploading} className="sr-only"
               onChange={(e) => {
                 addPhotos(e.target.files);
                 e.target.value = "";

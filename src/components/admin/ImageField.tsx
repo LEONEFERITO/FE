@@ -143,7 +143,7 @@ export function ImageField({
           )}
         </label>
         <span className="text-muted text-2xs whitespace-nowrap">
-          JPG · PNG · WebP · 최대 {formatBytes(MAX_IMAGE_BYTES)}
+          JPG · PNG · WebP · GIF · AVIF · BMP · 최대 {formatBytes(MAX_IMAGE_BYTES)}
         </span>
       </div>
 

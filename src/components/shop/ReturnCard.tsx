@@ -3,6 +3,8 @@
 import { Check, Warning } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 
+import { PhotoThumb } from "@/components/shop/PhotoThumb";
+
 import {
   RETURN_REASON_LABEL,
   RETURN_STATUS_LABEL,
@@ -113,10 +115,7 @@ export function ReturnCard({ r, onChanged }: { r: ReturnView; onChanged: (next: 
             <dt className="text-muted w-14 shrink-0">사진</dt>
             <dd className="flex flex-wrap gap-2">
               {r.photoUrls.map((u, k) => (
-                <a key={u} href={u} target="_blank" rel="noopener noreferrer" aria-label={`첨부 사진 ${k + 1} 크게 보기`}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={u} alt="" className="border-subtle h-14 w-14 rounded-md border object-cover" />
-                </a>
+                <PhotoThumb key={u} url={u} label={`첨부 사진 ${k + 1} 크게 보기`} size="h-14 w-14" />
               ))}
             </dd>
           </div>

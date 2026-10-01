@@ -337,6 +337,16 @@ export interface ReturnInput {
 export const RETURN_PHOTO_MAX = 5;
 
 /**
+ * 교환·반품 사진으로 고를 수 있는 파일 (서버 ImageFormat.EVIDENCE 와 같다).
+ * HEIC 는 확장자도 함께 적는다 — 윈도우 크롬은 HEIC 의 형식 이름을 몰라서 형식만 적으면 목록에서 숨긴다.
+ */
+export const RETURN_PHOTO_ACCEPT =
+  "image/jpeg,image/png,image/webp,image/gif,image/avif,image/bmp,image/heic,image/heif,.heic,.heif";
+
+/** 이 주소가 브라우저가 못 그릴 수 있는 HEIC 인가 (서버가 확장자 .heic 로 저장한다) */
+export const isHeic = (url: string) => /\.hei[cf]$/i.test(url);
+
+/**
  * 교환·반품 사진 한 장 올리기. 신청하기 전에 올리고, 받은 id 를 신청에 함께 보낸다.
  * 형식 · 크기 검사는 서버가 한다(상품 사진과 같은 검사) — 실패하면 서버 문구를 그대로 보인다.
  */
