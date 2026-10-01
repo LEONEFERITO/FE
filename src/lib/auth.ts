@@ -440,6 +440,24 @@ export async function confirmPasswordReset(token: string, newPassword: string): 
   if (!res.ok) return failure(res);
 }
 
+/**
+ * 로그인 뒤 돌아갈 주소. **우리 사이트 안의 경로만** 받는다.
+ *
+ * 쿼리의 next= 를 그대로 믿고 이동하면 "로그인하면 피싱 사이트로 튕기는" 오픈 리다이렉트가 된다.
+ * "/" 로 시작하되 "//"(다른 호스트) · "/\"(브라우저가 // 로 읽는다) · 제어 문자는 거절한다. 아니면 메인으로.
+ */
+export function safeNext(raw: string | null): string {
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//") || raw.startsWith("/\\")) return "/";
+  if (/[\u0000-\u001f\\]/.test(raw)) return "/";
+  return raw;
+}
+
+/** 로그인 화면 주소. 다녀와서 지금 화면으로 돌아오게 한다. */
+export function loginUrl(): string {
+  const here = window.location.pathname + window.location.search;
+  return `/login/?next=${encodeURIComponent(here)}`;
+}
+
 /** 관리자 화면으로 가는 길을 보여줄지. 권한 판단은 서버가 한다 — 이건 링크 표시용이다. */
 export function isAdmin(user: CurrentUser): boolean {
   return user.roles.includes("ROLE_ADMIN");

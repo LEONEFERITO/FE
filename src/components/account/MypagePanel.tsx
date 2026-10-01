@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { AccountSettings } from "@/components/account/AccountSettings";
+import { MyOrders } from "@/components/shop/MyOrders";
 import {
   AUTH_CONNECTED,
   fetchCurrentUser,
@@ -195,18 +196,7 @@ export function MypagePanel() {
         ))}
       </dl>
 
-      <section
-        className="border-subtle bg-surface rounded-2xl border p-6 md:p-8"
-        aria-labelledby="orders-heading"
-      >
-        <h2 id="orders-heading" className="text-primary text-sm font-medium">
-          주문 내역
-        </h2>
-        <p className="text-secondary mt-3 text-sm leading-relaxed">
-          아직 주문이 없습니다. 주문 기능이 열리면 결제 완료 → 제작 중 → 발송 →
-          배송 완료 순서로 여기에 쌓입니다.
-        </p>
-      </section>
+      <MyOrders />
 
       <AccountSettings
         onNameChanged={(name) =>

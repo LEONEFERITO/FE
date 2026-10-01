@@ -12,7 +12,7 @@ import { useRef, useState } from "react";
 
 import { Field } from "@/components/ui/Field";
 import { SocialButtons } from "@/components/auth/SocialButtons";
-import { AuthError, signIn } from "@/lib/auth";
+import { AuthError, safeNext, signIn } from "@/lib/auth";
 
 /**
  * 로그인 폼.
@@ -87,12 +87,10 @@ export function LoginForm() {
     try {
       await signIn({ email: email.trim(), password, remember });
       /*
-        성공하면 원래 가려던 곳으로 보낸다.
-        TODO: 돌아갈 주소는 **서버가 준 값이나 우리 경로 목록에서만** 고른다.
-        쿼리스트링의 next= 를 그대로 믿고 이동하면 외부 사이트로 튕기는
-        오픈 리다이렉트가 된다 — 피싱에 그대로 쓰인다.
+        성공하면 원래 가려던 곳으로 보낸다 (장바구니 담기 · 주문서에서 로그인하러 온 경우).
+        next= 는 우리 사이트 안의 경로만 받는다 — safeNext 주석 참고(오픈 리다이렉트 방지).
       */
-      router.push("/");
+      router.push(safeNext(new URLSearchParams(window.location.search).get("next")));
     } catch (err) {
       /*
         displayMessage 를 쓴다. 대부분은 정해진 문구지만, 서버만 아는 이유

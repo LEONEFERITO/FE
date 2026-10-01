@@ -1,7 +1,11 @@
 "use client";
 
 import { ArrowDown, ArrowUpRight, InstagramLogo } from "@phosphor-icons/react/dist/ssr";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { loginUrl } from "@/lib/auth";
+import { SHOP_CONNECTED, ShopError, addToCart } from "@/lib/shop";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { pendingLabel } from "@/lib/pending";
 
@@ -34,6 +38,40 @@ export function PurchasePanel({ product }: { product: Product }) {
   const [selectedSize, setSelectedSize] = useState<string | null>(
     product.skus.find((s) => s.orderable)?.size ?? null,
   );
+  const router = useRouter();
+  const [pending, setPending] = useState<"cart" | "buy" | null>(null);
+  const [notice, setNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
+
+  /*
+    담기 · 바로 구매. 회원만 주문한다(D1) — 로그인이 필요하면 로그인 화면으로 보냈다가
+    이 상품으로 다시 돌아오게 한다. 바로 구매는 담은 그 한 줄만 주문서로 가져간다.
+  */
+  async function put(mode: "cart" | "buy") {
+    if (!selectedSize) return;
+    if (!SHOP_CONNECTED) {
+      setNotice({ tone: "error", text: "화면 확인 단계입니다. 주문 서버가 아직 연결되지 않았습니다." });
+      return;
+    }
+    setPending(mode);
+    setNotice(null);
+    try {
+      const cart = await addToCart(product.slug, selectedSize, 1);
+      if (mode === "buy") {
+        const line = cart.items.find((l) => l.slug === product.slug && l.size === selectedSize);
+        router.push(line ? `/checkout/?items=${encodeURIComponent(line.id)}` : "/cart/");
+        return;
+      }
+      setNotice({ tone: "ok", text: `${selectedSize} 사이즈를 장바구니에 담았습니다.` });
+    } catch (e) {
+      if (e instanceof ShopError && e.needsLogin) {
+        window.location.href = loginUrl();
+        return;
+      }
+      setNotice({ tone: "error", text: e instanceof ShopError ? e.message : "담지 못했습니다." });
+    } finally {
+      setPending(null);
+    }
+  }
 
   const price = formatKrw(product.priceKrw);
   const listPrice = formatKrw(product.listPriceKrw);
@@ -137,10 +175,11 @@ export function PurchasePanel({ product }: { product: Product }) {
       <div className="mt-3 flex flex-col gap-2.5">
         <button
           type="button"
-          disabled={!selectedSize}
+          disabled={!selectedSize || pending !== null}
+          onClick={() => put("cart")}
           className="group bg-accent hover:bg-accent-hover text-on-accent shadow-button hover:shadow-button-hover tracking-button ease-fluid flex items-center justify-between gap-4 rounded-full py-4 pl-7 pr-2 text-[15px] transition-all duration-500 hover:-translate-y-px active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none disabled:hover:translate-y-0"
         >
-          <span className="flex-1 text-center">장바구니 담기</span>
+          <span className="flex-1 text-center">{pending === "cart" ? "담는 중" : "장바구니 담기"}</span>
           <span className="bg-on-accent/12 ease-fluid flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-transform duration-500 group-hover:-translate-y-px group-hover:translate-x-1 group-hover:scale-105">
             <ArrowUpRight size={11} weight="light" aria-hidden="true" />
           </span>
@@ -148,11 +187,28 @@ export function PurchasePanel({ product }: { product: Product }) {
 
         <button
           type="button"
-          disabled={!selectedSize}
+          disabled={!selectedSize || pending !== null}
+          onClick={() => put("buy")}
           className="border-strong hover:border-accent hover:text-accent hover:shadow-soft text-primary tracking-button ease-fluid rounded-full border py-4 text-[15px] transition-all duration-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
         >
-          바로 구매
+          {pending === "buy" ? "주문서로 가는 중" : "바로 구매"}
         </button>
+
+        {notice && (
+          <p
+            role={notice.tone === "error" ? "alert" : "status"}
+            className={`text-2xs flex flex-wrap items-center gap-x-3 gap-y-1 leading-relaxed ${
+              notice.tone === "ok" ? "text-success" : "text-error"
+            }`}
+          >
+            <span>{notice.text}</span>
+            {notice.tone === "ok" && (
+              <Link href="/cart/" className="text-accent inline-flex min-h-11 items-center underline underline-offset-4">
+                장바구니 보기
+              </Link>
+            )}
+          </p>
+        )}
       </div>
 
       {/*

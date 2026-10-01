@@ -32,7 +32,7 @@ const PAGES = [
   // 상세는 아래에서 목록 페이지의 첫 상품으로 정한다 — 상품이 서버(관리자)에서 오므로 이름을 고정할 수 없다.
   { path: "/login/", name: "로그인" },
   { path: "/signup/", name: "회원가입" },
-  { path: "/cart/", name: "장바구니(준비 중)" },
+  { path: "/cart/", name: "장바구니" },
   { path: "/terms/", name: "이용약관" },
   // 고객이 요구한 메뉴들. 헤더에서 이 주소를 가리키므로 전부 검사한다.
   { path: "/brand/", name: "브랜드" },
@@ -46,6 +46,13 @@ const PAGES = [
   { path: "/admin/products/edit/", name: "관리자 상품 수정(id 없음)" },
   { path: "/admin/members/", name: "관리자 회원 목록" },
   { path: "/admin/members/detail/", name: "관리자 회원 상세(id 없음)" },
+  { path: "/checkout/", name: "주문서(상품 없음)" },
+  { path: "/order/success/", name: "결제 완료(결제 정보 없음)" },
+  { path: "/order/fail/", name: "결제 미완료" },
+  { path: "/mypage/order/", name: "주문 상세(번호 없음)" },
+  { path: "/admin/orders/", name: "관리자 주문 목록" },
+  { path: "/admin/orders/detail/", name: "관리자 주문 상세(번호 없음)" },
+  { path: "/privacy/", name: "개인정보처리방침" },
   { path: "/find/", name: "비밀번호 찾기" },
   { path: "/reset/", name: "새 비밀번호(링크 없음)" },
 ];
@@ -152,7 +159,12 @@ for (const vp of VIEWPORTS) {
          * 401 은 실패가 아니라 정답이다 — 화면은 그 답을 받아 "로그인이 필요합니다" 를 그린다.
          * 다른 4xx/5xx 는 그대로 잡는다.
          */
-        if (r.status() === 401 && (url.includes("/api/auth/me") || url.includes("/api/admin/"))) return;
+        // QA 브라우저는 로그인하지 않았다. 회원 전용 API 의 401 은 정상 응답이다(화면은 "로그인하세요" 를 그린다).
+        if (
+          r.status() === 401 &&
+          ["/api/auth/me", "/api/admin/", "/api/cart", "/api/orders", "/api/me/"].some((p) => url.includes(p))
+        )
+          return;
         badRequests.push(`${r.status()} ${url.replace(BASE, "")}`);
       }
     });
