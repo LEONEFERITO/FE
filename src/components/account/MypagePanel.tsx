@@ -154,20 +154,13 @@ export function MypagePanel() {
         </div>
         <div className="flex flex-wrap items-center gap-5">
           {isAdmin(user) && (
-            <>
-              <Link
-                href="/admin/products"
-                className="text-accent hover:text-accent-hover ease-fluid inline-flex min-h-11 items-center text-xs underline underline-offset-4 transition-colors duration-300"
-              >
-                상품 관리
-              </Link>
-              <Link
-                href="/admin/members"
-                className="text-accent hover:text-accent-hover ease-fluid inline-flex min-h-11 items-center text-xs underline underline-offset-4 transition-colors duration-300"
-              >
-                회원 관리
-              </Link>
-            </>
+            // 관리자 로그인은 따로 없다 — 같은 로그인, 권한은 서버가 가른다. 입구는 여기와 /admin/ 하나.
+            <Link
+              href="/admin/"
+              className="text-accent hover:text-accent-hover ease-fluid inline-flex min-h-11 items-center text-xs underline underline-offset-4 transition-colors duration-300"
+            >
+              관리자 화면
+            </Link>
           )}
           <button
             type="button"
