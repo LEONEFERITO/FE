@@ -30,7 +30,13 @@ export function Footer() {
         </p>
 
         <div className="border-subtle mt-14 border-t pt-6">
-          <nav aria-label="약관 및 정책" className="flex flex-wrap gap-x-7">
+          <nav aria-label="안내 · 약관 및 정책" className="flex flex-wrap gap-x-7">
+            <Link
+              href="/notice/"
+              className="text-secondary hover:text-primary ease-fluid inline-flex min-h-11 items-center text-xs transition-colors duration-300"
+            >
+              공지사항
+            </Link>
             <Link
               href="/terms"
               className="text-secondary hover:text-primary ease-fluid inline-flex min-h-11 items-center text-xs transition-colors duration-300"

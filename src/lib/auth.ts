@@ -49,6 +49,8 @@ export interface CurrentUser {
   email: string;
   name: string;
   roles: string[];
+  /** 임시 비밀번호 관리자 — 바꾸기 전에는 관리자 API 가 막힌다(서버). 화면은 변경 화면으로 보낸다. */
+  mustChangePassword?: boolean;
 }
 
 /** 화면이 구분해서 처리해야 하는 실패만 종류를 나눈다. 나머지는 전부 unknown. */
@@ -195,6 +197,24 @@ export async function signIn(credentials: Credentials): Promise<CurrentUser> {
   if (code === "ACCOUNT_SUSPENDED") throw new AuthError("suspended");
   if (res.status === 401) throw new AuthError("invalid-credentials");
   if (res.status === 429) throw new AuthError("rate-limited");
+  throw new AuthError("unknown");
+}
+
+/**
+ * 관리자 로그인 (/admin/login). 아이디 또는 이메일. 관리자가 아닌 계정은 서버가 일반 실패와
+ * 같은 답을 준다 — 화면 문구도 같다("아이디 또는 비밀번호").
+ */
+export async function adminSignIn(loginId: string, password: string): Promise<CurrentUser> {
+  if (!AUTH_CONNECTED) {
+    await new Promise((r) => setTimeout(r, 400));
+    throw new AuthError("not-connected");
+  }
+  const res = await post("/api/auth/admin-login", { loginId, password });
+  if (res.ok) return (await res.json()) as CurrentUser;
+  const { code } = await readError(res);
+  if (code === "ACCOUNT_LOCKED") throw new AuthError("locked");
+  if (code === "ACCOUNT_SUSPENDED") throw new AuthError("suspended");
+  if (res.status === 401) throw new AuthError("invalid-credentials");
   throw new AuthError("unknown");
 }
 

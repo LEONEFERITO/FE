@@ -309,6 +309,8 @@ export interface AdminProductRow {
   mainImageUrl: string | null;
   missingForPublish: string[];
   updatedAt: string;
+  /** 진열 순서 (메인 구성) — 작을수록 앞 */
+  displayOrder: number;
 }
 
 /** 수정 화면. 서버의 저장 요청과 같은 모양 + 읽기 전용 값. */

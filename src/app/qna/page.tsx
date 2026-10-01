@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { CaretDown, ChatCircle } from "@phosphor-icons/react/dist/ssr";
+import { ChatCircle } from "@phosphor-icons/react/dist/ssr";
 
+import { FaqList } from "@/components/content/FaqList";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Reveal } from "@/components/motion/Reveal";
@@ -13,7 +14,9 @@ import { LINE_LABEL } from "@/types/product";
 /**
  * QnA (요구사항 3).
  *
- * 자주 묻는 질문 + 카카오톡 채널로 바로 묻는 길. 채널 ID 가 아직 없어서
+ * 자주 묻는 질문 + 카카오톡 채널로 바로 묻는 길.
+ * 질문은 관리자 FAQ 관리에서 고친다. 하나도 등록하지 않았으면 아래 기본 질문(FAQ)이 나간다(FaqList).
+ * 채널 ID 가 아직 없어서
  * 버튼 자리만 잡아 둔다 (BRAND_BRIEF.md 4장).
  *
  * ── 아코디언은 <details> 다 ─────────────────────────────
@@ -107,22 +110,7 @@ export default function QnaPage() {
         <div className="on-cream">
           <div className="mx-auto grid max-w-[1320px] gap-8 px-5 py-12 md:grid-cols-[minmax(0,1fr)_minmax(0,360px)] md:gap-10 md:px-15 md:py-16">
             <Reveal className="min-w-0">
-              <div className="border-subtle bg-surface divide-subtle divide-y rounded-2xl border px-5 md:px-7">
-                {FAQ.map((item, i) => (
-                  <details key={item.q} open={i === 0} className="group py-1">
-                    <summary className="text-primary flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 text-sm font-medium [&::-webkit-details-marker]:hidden">
-                      <span>{item.q}</span>
-                      <CaretDown
-                        size={14}
-                        weight="light"
-                        aria-hidden="true"
-                        className="text-accent ease-fluid shrink-0 transition-transform duration-300 group-open:rotate-180"
-                      />
-                    </summary>
-                    <p className="text-secondary pb-5 text-sm leading-relaxed">{item.a}</p>
-                  </details>
-                ))}
-              </div>
+              <FaqList fallback={FAQ} />
             </Reveal>
 
             <div className="flex min-w-0 flex-col gap-4">

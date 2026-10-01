@@ -58,6 +58,13 @@ const PAGES = [
   { path: "/mypage/return/", name: "교환·반품 신청(번호 없음)" },
   { path: "/admin/returns/", name: "관리자 교환·반품 목록" },
   { path: "/admin/returns/detail/", name: "관리자 교환·반품 상세(번호 없음)" },
+  { path: "/notice/", name: "공지사항" },
+  { path: "/notice/view/", name: "공지 하나(번호 없음)" },
+  { path: "/admin/login/", name: "관리자 로그인" },
+  // 아래 관리자 화면은 로그인 전이라 관리자 로그인으로 옮겨 간다 — 옮겨 간 화면을 검사한다
+  { path: "/admin/", name: "관리자 대시보드 → 로그인" },
+  { path: "/admin/stats/", name: "관리자 통계 → 로그인" },
+  { path: "/admin/notices/edit/", name: "관리자 공지 쓰기 → 로그인" },
   // 없는 주소 — 404 응답이 정답이다(not-found 화면)
   { path: "/no-such-page/", name: "404", expectStatus: 404 },
 ];
@@ -177,6 +184,9 @@ for (const vp of VIEWPORTS) {
 
     await page.setViewport({ width: vp.width, height: vp.height, deviceScaleFactor: 1 });
     await page.goto(BASE + target.path, { waitUntil: "networkidle0" });
+    // 관리자 화면은 로그인 확인 뒤 브라우저에서 옮겨 간다(AdminGate). 옮겨 간 뒤를 검사한다.
+    await new Promise((r) => setTimeout(r, 500));
+    await page.waitForNetworkIdle({ idleTime: 400, timeout: 10000 }).catch(() => {});
 
     // 스크롤 연출은 이 환경에서 발화하지 않는다. 검사 대상을 보이게 만들어 둔다.
     await page.evaluate(() => {

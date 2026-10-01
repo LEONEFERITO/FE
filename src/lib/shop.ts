@@ -75,6 +75,9 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   throw new ShopError(code, message, res.status);
 }
 
+/** 다른 화면(관리자 콘솔 · 공지)도 같은 규칙(쿠키 · CSRF · 서버 문구)으로 부른다. */
+export const apiRequest = request;
+
 // ── 장바구니 ────────────────────────────────────────────────
 
 export interface CartLine {
