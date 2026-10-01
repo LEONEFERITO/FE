@@ -8,6 +8,8 @@ import { ErrorNotice } from "@/components/admin/AdminProductList";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import {
   ORDER_STATUS_LABEL,
+  RETURN_STATUS_LABEL,
+  RETURN_TYPE_LABEL,
   SHOP_CONNECTED,
   ShopError,
   adminCancelOrder,
@@ -29,13 +31,12 @@ import {
  *   발송      → [배송 완료]
  * 발송은 택배사 · 송장번호를 받는다(손님 주문 상세에 그대로 보인다).
  * 취소는 사유를 받고 한 번 더 묻는다 — 토스 환불이 바로 나간다.
- *
- * TODO 반품·교환 접수와 처리 (다음 단계).
+ * 배송 뒤의 일(교환·반품)은 손님 신청으로 시작한다 — 여기서는 신청 내역을 보이고 처리 화면으로 보낸다.
  */
 
 type State = { kind: "loading" } | { kind: "error"; code: string; message: string } | { kind: "ready"; d: Detail };
 
-const COURIERS = ["CJ대한통운", "한진택배", "롯데택배", "우체국택배", "로젠택배"];
+export const COURIERS = ["CJ대한통운", "한진택배", "롯데택배", "우체국택배", "로젠택배"];
 
 export function AdminOrderDetail() {
   const no = useSyncExternalStore<string | null | undefined>(
@@ -129,7 +130,7 @@ export function AdminOrderDetail() {
     );
   }
 
-  const { order: o, paymentKey, agreedAt, events } = state.d;
+  const { order: o, paymentKey, agreedAt, events, returns } = state.d;
   const outline =
     "border-interactive text-primary hover:border-accent ease-fluid inline-flex min-h-12 items-center justify-center rounded-full border px-6 text-sm transition-colors duration-300 disabled:opacity-60";
   const primary =
@@ -189,6 +190,25 @@ export function AdminOrderDetail() {
               <p className="text-muted mt-1 text-2xs break-all">토스 결제 키: {paymentKey}</p>
             )}
           </section>
+
+          {returns.length > 0 && (
+            <section className="border-subtle bg-surface rounded-2xl border p-6 text-sm" aria-labelledby="ret-h">
+              <h2 id="ret-h" className="text-primary font-medium">교환 · 반품</h2>
+              <ul className="divide-subtle mt-3 divide-y">
+                {returns.map((r) => (
+                  <li key={r.id}>
+                    <Link href={`/admin/returns/detail/?id=${encodeURIComponent(r.id)}`}
+                      className="hover:text-accent flex min-h-11 items-center justify-between gap-4 py-2">
+                      <span className="text-primary">
+                        {RETURN_TYPE_LABEL[r.type]} · {RETURN_STATUS_LABEL[r.status]}
+                      </span>
+                      <span className="text-muted text-2xs tabular-nums">{when(r.createdAt)}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           <section aria-labelledby="ev-h">
             <h2 id="ev-h" className="text-primary text-sm font-medium">처리 기록</h2>
@@ -266,7 +286,9 @@ export function AdminOrderDetail() {
 
           {!canShip && o.status !== "SHIPPED" && (
             <p className="text-muted text-2xs leading-relaxed">
-              {o.status === "CANCELLED" ? "취소된 주문입니다." : "처리할 일이 없습니다. 반품·교환은 다음 단계에서 붙습니다."}
+              {o.status === "CANCELLED"
+                ? "취소된 주문입니다."
+                : "처리할 일이 없습니다. 교환 · 반품은 손님이 신청하면 교환 · 반품 메뉴에 올라옵니다."}
             </p>
           )}
 

@@ -52,8 +52,10 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
     q: "사이즈가 안 맞으면 교환되나요?",
     a: (
       <>
-        사이즈가 맞지 않으면 교환해 드립니다. 교환 가능 기간과 배송비 부담은 정책이 확정되는
-        대로 안내합니다. <span className="text-muted">{pendingLabel("교환 조건")}</span>
+        사이즈가 맞지 않으면 교환해 드립니다. 배송을 받은 뒤{" "}
+        <Link href="/mypage/" className="text-accent underline underline-offset-4">마이페이지</Link> › 주문
+        상세에서 신청하면 진행 상황을 그 화면에서 볼 수 있습니다. 배송비 부담은 정책이 확정되는 대로
+        안내합니다. <span className="text-muted">{pendingLabel("교환 조건")}</span>
       </>
     ),
   },

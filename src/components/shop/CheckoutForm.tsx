@@ -1,12 +1,13 @@
 "use client";
 
-import { LockSimple, Warning } from "@phosphor-icons/react/dist/ssr";
+import { LockSimple, MagnifyingGlass, Warning } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { Notice } from "@/components/shop/CartView";
 import { Field } from "@/components/ui/Field";
 import { fetchProfile, loginUrl } from "@/lib/auth";
+import { searchAddress } from "@/lib/postcode";
 import {
   SHOP_CONNECTED,
   ShopError,
@@ -37,7 +38,7 @@ import {
  * 토스 클라이언트 키가 없거나(빌드), 서버가 준비되지 않았으면(시크릿 키 · 배송비 정책) 버튼을 닫고
  * "결제 준비 중" 이라고 말한다. 눌렀다가 실패하는 것보다 낫다.
  *
- * TODO 주소 검색(우편번호 서비스). 지금은 직접 입력한다.
+ * 주소는 카카오 우편번호 검색으로 채운다(lib/postcode.ts). 검색이 막혀도 직접 입력할 수 있다.
  */
 
 type Load =
@@ -60,6 +61,20 @@ export function CheckoutForm() {
   const [zipCode, setZipCode] = useState("");
   const [address1, setAddress1] = useState("");
   const [address2, setAddress2] = useState("");
+  const [addressSearchError, setAddressSearchError] = useState<string | null>(null);
+
+  async function findAddress() {
+    setAddressSearchError(null);
+    try {
+      const picked = await searchAddress();
+      if (!picked) return;
+      setZipCode(picked.zipCode);
+      setAddress1(picked.address1);
+      document.querySelector<HTMLInputElement>('input[name="address2"]')?.focus();
+    } catch {
+      setAddressSearchError("주소 검색을 열지 못했습니다. 우편번호와 주소를 직접 입력해 주세요.");
+    }
+  }
   const [memo, setMemo] = useState("");
   const [agree, setAgree] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -207,6 +222,14 @@ export function CheckoutForm() {
             <Field label="연락처" name="recipient-phone" type="tel" inputMode="tel" autoComplete="tel"
               value={phone} onChange={(e) => setPhone(e.target.value)} error={show("phone")}
               placeholder="010-1234-5678" />
+          </div>
+          <div className="flex flex-col gap-2">
+            <button type="button" onClick={findAddress}
+              className="border-interactive text-primary hover:border-accent ease-fluid inline-flex min-h-11 w-fit items-center gap-2 rounded-full border px-5 text-sm transition-colors duration-300">
+              <MagnifyingGlass size={15} weight="light" aria-hidden="true" />
+              주소 검색
+            </button>
+            {addressSearchError && <p className="text-muted text-2xs">{addressSearchError}</p>}
           </div>
           <div className="grid gap-5 md:grid-cols-[160px_minmax(0,1fr)]">
             <Field label="우편번호" name="zip" inputMode="numeric" autoComplete="postal-code" value={zipCode}

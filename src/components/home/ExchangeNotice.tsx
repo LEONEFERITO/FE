@@ -36,7 +36,7 @@ const CORE: Item = {
   title: "교환 · 반품",
   body: null, // TODO(고객확인) 신청 기간 · 왕복 배송비 부담 · 불가 조건
   todo: "신청 기간과 배송비 부담 기준을 확인 중입니다",
-  href: "/support",
+  href: "/qna/",
   linkLabel: "교환 · 반품 안내",
 };
 
@@ -52,7 +52,7 @@ const SIDE: Item[] = [
     title: "사이즈 상담",
     body: "치수를 알려주시면 어느 사이즈가 맞을지 함께 봐 드립니다. 받아보고 교환하는 것보다 빠릅니다.",
     todo: "",
-    href: "/support",
+    href: "/qna/",
     linkLabel: "문의하기",
   },
 ];

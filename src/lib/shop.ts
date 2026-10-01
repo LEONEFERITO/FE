@@ -163,6 +163,8 @@ export interface OrderDetail {
   totalAmountKrw: number;
   refundedAmountKrw: number;
   items: {
+    /** 교환·반품 신청에서 어느 줄인지 가리킨다 */
+    id: string;
     slug: string;
     name: string;
     imageUrl: string | null;
@@ -185,6 +187,14 @@ export interface OrderDetail {
   events: { status: OrderStatus; note: string | null; at: string }[];
   /** 지금 손님이 직접 취소할 수 있는가 (결제 완료 · 제작 전) */
   cancellable: boolean;
+  /** 이 주문의 교환·반품 신청 (최신순) */
+  returns: ReturnView[];
+  /** 지금 교환·반품을 신청할 수 있는가 (배송 완료 · 기간 안 · 진행 중인 신청 없음) */
+  returnable: boolean;
+  /** 단순 변심·사이즈 신청 마감 (그 시각 전까지). 배송 완료 전이면 null */
+  changeOfMindDeadline: string | null;
+  /** 불량·오배송 신청 마감 */
+  sellerFaultDeadline: string | null;
 }
 
 export interface CreateOrderInput {
@@ -258,6 +268,126 @@ export async function openPaymentWindow(order: CreatedOrder, phone: string): Pro
   });
 }
 
+// ── 교환 · 반품 ────────────────────────────────────────────
+
+export type ReturnType = "EXCHANGE" | "RETURN";
+export type ReturnReason = "SIZE" | "CHANGE_OF_MIND" | "DEFECT" | "WRONG_ITEM" | "OTHER";
+export type ReturnStatus = "REQUESTED" | "APPROVED" | "COLLECTED" | "COMPLETED" | "REJECTED" | "WITHDRAWN";
+
+export const RETURN_TYPE_LABEL: Record<ReturnType, string> = { EXCHANGE: "교환", RETURN: "반품" };
+
+export const RETURN_REASON_LABEL: Record<ReturnReason, string> = {
+  SIZE: "사이즈가 맞지 않음",
+  CHANGE_OF_MIND: "단순 변심",
+  DEFECT: "상품 불량 · 파손",
+  WRONG_ITEM: "다른 상품이 옴 (오배송)",
+  OTHER: "기타",
+};
+
+/** 판매자 책임 사유 — 신청 기간이 더 길다 (서버 ReturnReason.sellerFault 와 같다). */
+export const SELLER_FAULT: ReturnReason[] = ["DEFECT", "WRONG_ITEM"];
+
+export const RETURN_STATUS_LABEL: Record<ReturnStatus, string> = {
+  REQUESTED: "신청",
+  APPROVED: "승인 · 회수 대기",
+  COLLECTED: "회수 완료",
+  COMPLETED: "완료",
+  REJECTED: "거절",
+  WITHDRAWN: "철회",
+};
+
+/** 진행 단계 — 손님 화면의 단계 표시 순서. 거절·철회는 따로 표시한다. */
+export const RETURN_STEPS: ReturnStatus[] = ["REQUESTED", "APPROVED", "COLLECTED", "COMPLETED"];
+
+export interface ReturnView {
+  id: string;
+  orderNumber: string;
+  type: ReturnType;
+  reason: ReturnReason;
+  detail: string | null;
+  status: ReturnStatus;
+  /** 관리자 안내 (회수 방법 · 일정) */
+  adminNote: string | null;
+  rejectReason: string | null;
+  refundAmountKrw: number;
+  reshipCourier: string | null;
+  reshipTrackingNumber: string | null;
+  createdAt: string;
+  items: { orderItemId: string; name: string; imageUrl: string | null; size: string; unitPriceKrw: number; quantity: number; exchangeSize: string | null }[];
+  events: { status: ReturnStatus; note: string | null; at: string }[];
+  /** 지금 손님이 철회할 수 있는가 (승인 전) */
+  withdrawable: boolean;
+}
+
+export interface ReturnInput {
+  type: ReturnType;
+  reason: ReturnReason;
+  detail: string | null;
+  items: { orderItemId: string; quantity: number; exchangeSize: string | null }[];
+}
+
+export const requestReturn = (orderNumber: string, input: ReturnInput) =>
+  request<ReturnView>("POST", `/api/orders/${encodeURIComponent(orderNumber)}/returns`, input);
+export const withdrawReturn = (id: string) =>
+  request<ReturnView>("POST", `/api/returns/${encodeURIComponent(id)}/withdraw`);
+
+/** 교환받을 사이즈 — 지금 주문할 수 있는 사이즈만. 공개 상품 API 에서 읽는다. */
+export async function orderableSizes(slug: string): Promise<string[]> {
+  const p = await request<{ skus: { size: string; orderable: boolean }[] }>(
+    "GET",
+    `/api/products/${encodeURIComponent(slug)}`,
+  );
+  return p.skus.filter((s) => s.orderable).map((s) => s.size);
+}
+
+export interface AdminReturnRow {
+  id: string;
+  orderNumber: string;
+  orderName: string;
+  recipientName: string;
+  type: ReturnType;
+  reason: ReturnReason;
+  status: ReturnStatus;
+  itemCount: number;
+  createdAt: string;
+}
+
+export interface AdminReturnPage {
+  items: AdminReturnRow[];
+  page: number;
+  totalPages: number;
+  totalElements: number;
+}
+
+export interface AdminReturnDetail {
+  request: ReturnView;
+  orderName: string;
+  orderTotalKrw: number;
+  /** 이 주문에서 아직 돌려주지 않은 금액 — 환불액 상한 */
+  refundableKrw: number;
+  recipient: Recipient;
+  events: { from: ReturnStatus | null; to: ReturnStatus; note: string | null; byAdmin: boolean; at: string }[];
+}
+
+/** open = 처리할 것만 (신청 · 승인 · 회수) */
+export function adminReturns(q: { status: ReturnStatus | null; open: boolean; page: number }) {
+  const params = new URLSearchParams({ page: String(q.page), open: String(q.open) });
+  if (q.status) params.set("status", q.status);
+  return request<AdminReturnPage>("GET", `/api/admin/returns?${params}`);
+}
+export const adminReturn = (id: string) =>
+  request<AdminReturnDetail>("GET", `/api/admin/returns/${encodeURIComponent(id)}`);
+export const adminApproveReturn = (id: string, note: string) =>
+  request<void>("POST", `/api/admin/returns/${encodeURIComponent(id)}/approve`, { note });
+export const adminCollectReturn = (id: string) =>
+  request<void>("POST", `/api/admin/returns/${encodeURIComponent(id)}/collected`, {});
+export const adminRejectReturn = (id: string, reason: string) =>
+  request<void>("POST", `/api/admin/returns/${encodeURIComponent(id)}/reject`, { reason });
+export const adminRefundReturn = (id: string, refundAmountKrw: number) =>
+  request<void>("POST", `/api/admin/returns/${encodeURIComponent(id)}/refund`, { refundAmountKrw });
+export const adminReshipReturn = (id: string, courier: string, trackingNumber: string) =>
+  request<void>("POST", `/api/admin/returns/${encodeURIComponent(id)}/reship`, { courier, trackingNumber });
+
 // ── 관리자 주문 ─────────────────────────────────────────────
 
 export interface AdminOrderRow {
@@ -283,6 +413,7 @@ export interface AdminOrderDetail {
   paymentKey: string | null;
   agreedAt: string;
   events: { from: OrderStatus | null; to: OrderStatus; note: string | null; byAdmin: boolean; at: string }[];
+  returns: ReturnView[];
 }
 
 export function adminOrders(q: { q: string; status: OrderStatus | null; page: number }) {

@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowLeft, Check, Warning } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft, ArrowsClockwise, Check, Warning } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
+import { ReturnCard } from "@/components/shop/ReturnCard";
 import { loginUrl } from "@/lib/auth";
 import {
   ORDER_STATUS_LABEL,
@@ -23,6 +24,7 @@ import {
  * 진행 단계를 맨 위에 둔다 — 주문 상세를 여는 이유는 대개 "지금 어디까지 왔나" 다.
  * 발송되면 택배사 · 송장번호가 그 바로 아래에 나온다.
  * 취소는 결제 직후(제작 전)에만 버튼이 있고, 한 번 더 묻는다.
+ * 배송이 끝나면 교환·반품 구간이 열린다 — 신청 버튼과 마감일, 신청 내역(진행 단계 · 관리자 안내).
  */
 
 type State = { kind: "loading" } | { kind: "error"; message: string } | { kind: "ready"; order: OrderDetail };
@@ -99,7 +101,17 @@ export function OrderDetailView() {
     );
   }
 
+  async function reload() {
+    if (!no) return;
+    try {
+      setState({ kind: "ready", order: await myOrder(no) });
+    } catch {
+      // 새로고침하면 다시 읽는다 — 방금 바뀐 신청은 카드가 이미 보여 준다
+    }
+  }
+
   const o = state.order;
+  const delivered = o.status === "DELIVERED";
   const cancelled = o.status === "CANCELLED";
   const reached = new Set(o.events.map((e) => e.status));
   const stepAt = (s: string) => o.events.find((e) => e.status === s)?.at ?? null;
@@ -196,6 +208,37 @@ export function OrderDetailView() {
         {o.recipient.memo && <p className="text-muted text-2xs mt-1">{o.recipient.memo}</p>}
       </section>
 
+      {(delivered || o.returns.length > 0) && (
+        <section aria-labelledby="ret-h" className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <h3 id="ret-h" className="text-primary text-sm font-medium">
+              교환 · 반품
+            </h3>
+            {o.returnable && (
+              <Link
+                href={`/mypage/return/?no=${encodeURIComponent(o.orderNumber)}`}
+                className="bg-accent text-on-accent hover:bg-accent-hover ease-fluid inline-flex min-h-11 items-center gap-2 rounded-full px-5 text-sm transition-colors duration-300"
+              >
+                <ArrowsClockwise size={15} weight="light" aria-hidden="true" />
+                교환 · 반품 신청
+              </Link>
+            )}
+          </div>
+          {delivered && (o.changeOfMindDeadline || o.sellerFaultDeadline) && (
+            <p className="text-muted text-2xs leading-relaxed">
+              {o.changeOfMindDeadline && <>사이즈 · 단순 변심 {lastDay(o.changeOfMindDeadline)}까지</>}
+              {o.sellerFaultDeadline && <> · 불량 · 오배송 {lastDay(o.sellerFaultDeadline)}까지</>}
+              {!o.returnable && o.returns.every((r) => r.status !== "REQUESTED" && r.status !== "APPROVED" && r.status !== "COLLECTED") && (
+                <> · 신청 기간이 지났습니다. 문제가 있다면 QnA 의 카카오톡 채널로 알려 주세요.</>
+              )}
+            </p>
+          )}
+          {o.returns.map((r) => (
+            <ReturnCard key={r.id} r={r} onChanged={reload} />
+          ))}
+        </section>
+      )}
+
       {o.cancellable && (
         <div className="flex flex-col gap-3">
           {confirming ? (
@@ -227,4 +270,9 @@ export function OrderDetailView() {
       )}
     </div>
   );
+}
+
+/** 서버 마감은 "그 시각 전까지" 다 — 화면에는 마지막 날을 보인다. */
+export function lastDay(deadline: string): string {
+  return shortDate(new Date(Date.parse(deadline) - 1).toISOString());
 }

@@ -1,11 +1,12 @@
 import Link from "next/link";
 
 /**
- * 관리자 화면 사이 이동. 주문 · 상품 · 회원 — 매일 여는 순서대로.
+ * 관리자 화면 사이 이동. 주문 · 교환/반품 · 상품 · 회원 — 매일 여는 순서대로.
  * 지금 있는 곳은 aria-current 로 알린다.
  */
 const ITEMS = [
   { key: "orders", href: "/admin/orders", label: "주문" },
+  { key: "returns", href: "/admin/returns", label: "교환 · 반품" },
   { key: "products", href: "/admin/products", label: "상품" },
   { key: "members", href: "/admin/members", label: "회원" },
 ] as const;

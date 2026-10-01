@@ -14,8 +14,7 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
  * ADMIN 권한을 요구</b>하므로, 권한 없는 사람은 화면만 보고 아무것도 못 한다.
  * 화면을 숨기는 것으로 보안을 삼지 않는다 — 그건 주소만 알면 뚫린다.
  *
- * TODO: 권한 없는 사람이 빈 화면 앞에서 헤매지 않게, 진입 시 /api/auth/me 를 확인해
- * 안내를 띄운다. 보안이 아니라 안내 목적이다.
+ * 권한 없는 사람에게는 들어오는 순간 안내가 뜬다(app/admin/layout.tsx · AdminGate). 보안이 아니라 안내다.
  */
 
 export const metadata: Metadata = {

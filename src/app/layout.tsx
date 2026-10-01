@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans_KR, Playfair_Display, Spectral } from "next/font/google";
 import "./globals.css";
+import { SITE_URL } from "@/lib/site";
 
 /**
  * 폰트 — 영문 세리프 / 국문 고딕 (고객 지시 2026-09-28)
@@ -62,9 +63,9 @@ export const metadata: Metadata = {
   description:
     "운동으로 달라진 체형을 위한 남성 기성복. 핏과 실측을 모두 공개합니다.",
 
-  // TODO(고객확인) G-1: 도메인 확정 시 지정. 없으면 og:image 가 상대경로로 나가
-  // 카톡·인스타가 이미지를 읽지 못한다.
-  // metadataBase: new URL("https://TODO"),
+  // 도메인(NEXT_PUBLIC_SITE_URL · lib/site.ts)이 있으면 지정한다. 없으면 og:image 가 상대경로로 나가
+  // 카톡·인스타가 이미지를 읽지 못한다 — TODO(고객확인) G-1 도메인.
+  ...(SITE_URL ? { metadataBase: new URL(SITE_URL) } : {}),
 
   /*
     검색 노출 차단 — **오픈 전까지 유지한다.**
