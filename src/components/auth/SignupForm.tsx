@@ -35,9 +35,9 @@ import {
  * 다만 **서버가 진짜 기준이다.** 여기 검사는 서버까지 다녀오기 전에 알려주기 위한 것이고,
  * 서버가 거부하면 그쪽 문구를 그대로 보여준다.
  *
- * ── 이용약관 ────────────────────────────────────────────
- * 약관은 초안이 있다(data/terms.ts, 고객 검토 전). TODO(고객확인) 개인정보처리방침 문안은 아직 없다.
- * 동의 체크는 **필수**로 둔다. 문안 없이 동의를 받으면 동의 자체가 무효다.
+ * ── 이용약관 · 만 14세 ───────────────────────────────────
+ * 둘 다 필수 체크다. 서버도 같은 값을 다시 확인하고 동의 시각·약관 판을 남긴다(V12).
+ * 개인정보는 동의 체크가 아니라 고지다 — 아래 폼 주석 참고.
  */
 
 interface Errors {
@@ -46,7 +46,8 @@ interface Errors {
   confirm?: string;
   name?: string;
   phone?: string;
-  agree?: string;
+  agreeTerms?: string;
+  over14?: string;
 }
 
 function validate(v: {
@@ -55,7 +56,8 @@ function validate(v: {
   confirm: string;
   name: string;
   phone: string;
-  agree: boolean;
+  agreeTerms: boolean;
+  over14: boolean;
 }): Errors {
   const errors: Errors = {};
 
@@ -88,8 +90,11 @@ function validate(v: {
     errors.phone = "숫자와 하이픈만 입력해 주세요.";
   }
 
-  if (!v.agree) {
-    errors.agree = "약관에 동의해 주세요.";
+  if (!v.agreeTerms) {
+    errors.agreeTerms = "이용약관에 동의해 주세요.";
+  }
+  if (!v.over14) {
+    errors.over14 = "만 14세 이상만 가입할 수 있습니다.";
   }
 
   return errors;
@@ -101,7 +106,8 @@ export function SignupForm() {
   const [confirm, setConfirm] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [agree, setAgree] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [over14, setOver14] = useState(false);
   const [visible, setVisible] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [pending, setPending] = useState(false);
@@ -111,7 +117,7 @@ export function SignupForm() {
   const summaryRef = useRef<HTMLDivElement>(null);
   const doneRef = useRef<HTMLDivElement>(null);
 
-  const values = { email, password, confirm, name, phone, agree };
+  const values = { email, password, confirm, name, phone, agreeTerms, over14 };
   const errors = submitted ? validate(values) : {};
   const hasFieldError = Object.keys(errors).length > 0;
 
@@ -133,6 +139,8 @@ export function SignupForm() {
         password,
         name: name.trim(),
         phone: phone.trim() || undefined,
+        agreeTerms,
+        over14,
       });
       setDone(true);
       // 성공도 초점을 옮겨 알린다. 화면이 바뀐 걸 눈으로만 알리면 안 된다.
@@ -277,52 +285,35 @@ export function SignupForm() {
       />
 
       {/*
-        약관 동의. 체크박스와 오류를 손으로 묶는다 — Field 는 input 한 칸을 위한 것이라
-        여기에 맞지 않는다. aria-describedby·aria-invalid 는 같은 규칙으로 맞춘다.
+        약관 동의 · 만 14세 확인 — 따로 받는다. 한 칸에 묶으면 무엇에 동의했는지 흐려진다.
+        개인정보는 "동의" 칸이 없다: 가입·주문에 꼭 필요한 정보는 계약 이행을 위한 처리라
+        동의가 아니라 **고지** 대상이다(개인정보 보호법 제15조 제1항 제4호, 2023 개정).
+        필수 동의를 따로 받으면 오히려 "동의하지 않으면 가입 불가" 를 강요하는 모양이 된다.
+        체크박스와 오류는 손으로 묶는다 — Field 는 input 한 칸을 위한 것이라 맞지 않는다.
       */}
-      <div className="flex flex-col gap-2">
-        <label className="text-secondary text-2xs flex min-h-11 cursor-pointer items-start gap-2.5 leading-relaxed">
-          <input
-            type="checkbox"
-            checked={agree}
-            onChange={(e) => setAgree(e.target.checked)}
-            aria-invalid={errors.agree ? true : undefined}
-            aria-describedby={errors.agree ? "agree-error" : undefined}
-            className="accent-accent mt-0.5 h-4 w-4 shrink-0"
-          />
-          <span>
-            {/* TODO(고객확인) 약관 확정 · 개인정보처리방침 문안 필요 */}
-            <Link
-              href="/terms"
-              className="text-accent underline underline-offset-4"
-            >
-              이용약관
-            </Link>
-            과{" "}
-            <Link
-              href="/privacy"
-              className="text-accent underline underline-offset-4"
-            >
-              개인정보처리방침
-            </Link>
-            에 동의합니다. (필수)
-          </span>
-        </label>
+      <div className="flex flex-col gap-1">
+        <ConsentBox
+          id="agree-terms"
+          checked={agreeTerms}
+          onChange={setAgreeTerms}
+          error={errors.agreeTerms}
+        >
+          <Link href="/terms" className="text-accent underline underline-offset-4">
+            이용약관
+          </Link>
+          에 동의합니다. (필수)
+        </ConsentBox>
+        <ConsentBox id="over-14" checked={over14} onChange={setOver14} error={errors.over14}>
+          만 14세 이상입니다. (필수)
+        </ConsentBox>
 
-        {errors.agree && (
-          <p
-            id="agree-error"
-            className="text-error text-2xs flex gap-1.5 leading-relaxed"
-          >
-            <Warning
-              size={13}
-              weight="light"
-              aria-hidden="true"
-              className="mt-px shrink-0"
-            />
-            <span>{errors.agree}</span>
-          </p>
-        )}
+        <p className="text-muted text-2xs mt-2 leading-relaxed">
+          가입·주문에 필요한 이름 · 이메일 · 연락처 · 배송지는{" "}
+          <Link href="/privacy" className="text-accent underline underline-offset-4">
+            개인정보처리방침
+          </Link>
+          에 따라 처리되며, 탈퇴하면 바로 지웁니다(법령상 보관할 주문 기록 제외).
+        </p>
       </div>
 
       <button
@@ -353,5 +344,41 @@ export function SignupForm() {
         </Link>
       </p>
     </form>
+  );
+}
+
+function ConsentBox({
+  id,
+  checked,
+  onChange,
+  error,
+  children,
+}: {
+  id: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label className="text-secondary text-2xs flex min-h-11 cursor-pointer items-start gap-2.5 leading-relaxed">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${id}-error` : undefined}
+          className="accent-accent mt-0.5 h-4 w-4 shrink-0"
+        />
+        <span>{children}</span>
+      </label>
+      {error && (
+        <p id={`${id}-error`} className="text-error text-2xs flex gap-1.5 leading-relaxed">
+          <Warning size={13} weight="light" aria-hidden="true" className="mt-px shrink-0" />
+          <span>{error}</span>
+        </p>
+      )}
+    </div>
   );
 }

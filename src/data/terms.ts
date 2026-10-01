@@ -32,6 +32,10 @@ export interface Article {
 export interface LegalDocument {
   /** 시행일. null 이면 "확인 중" 으로 보인다. 예) "2026년 10월 12일" */
   effectiveDate: string | null;
+  /** 번호 매김. 약관은 "제1조", 방침처럼 조문이 아닌 문서는 "1." (기본 article) */
+  numbering?: "article" | "section";
+  /** 부칙 문장의 주어. 기본 "이 약관". */
+  subject?: string;
   articles: Article[];
 }
 

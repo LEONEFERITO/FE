@@ -34,6 +34,9 @@ function ClauseBody({ clause }: { clause: Clause }) {
 }
 
 export function LegalDocument({ doc }: { doc: LegalDoc }) {
+  const label = (i: number, title: string) =>
+    doc.numbering === "section" ? `${i + 1}. ${title}` : `제${i + 1}조 (${title})`;
+
   return (
     <div className="mx-auto max-w-[800px] px-5 py-12 md:px-15 md:py-16">
       <details className="border-subtle bg-surface group rounded-2xl border px-5 md:px-7">
@@ -53,7 +56,7 @@ export function LegalDocument({ doc }: { doc: LegalDoc }) {
                 href={`#article-${i + 1}`}
                 className="text-secondary hover:text-accent ease-fluid flex min-h-10 items-center text-xs transition-colors duration-300"
               >
-                제{i + 1}조 {article.title}
+                {label(i, article.title)}
               </a>
             </li>
           ))}
@@ -73,7 +76,7 @@ export function LegalDocument({ doc }: { doc: LegalDoc }) {
                 id={`article-${i + 1}`}
                 className="text-primary text-(length:--fs-base) font-medium"
               >
-                제{i + 1}조 ({article.title})
+                {label(i, article.title)}
               </h2>
               <div className="text-secondary mt-3 flex flex-col gap-2.5 text-sm leading-relaxed">
                 {article.clauses.map((clause, j) =>
@@ -101,7 +104,7 @@ export function LegalDocument({ doc }: { doc: LegalDoc }) {
           </h2>
           <p className="text-secondary mt-3 text-sm leading-relaxed">
             {doc.effectiveDate ? (
-              `이 약관은 ${doc.effectiveDate}부터 시행합니다.`
+              `${doc.subject ?? "이 약관"}은 ${doc.effectiveDate}부터 시행합니다.`
             ) : (
               <span className="text-muted">{pendingLabel("시행일")}</span>
             )}

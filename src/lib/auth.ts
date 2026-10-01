@@ -38,6 +38,10 @@ export interface SignupInput {
   password: string;
   name: string;
   phone?: string;
+  /** 이용약관 동의. 서버가 다시 확인한다 — false 면 거절된다. */
+  agreeTerms: boolean;
+  /** 만 14세 이상 확인. 미만은 법정대리인 동의가 필요해 받지 않는다. */
+  over14: boolean;
 }
 
 /** 로그인한 회원. 서버가 주는 최소 정보만 담는다. */

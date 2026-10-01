@@ -1,6 +1,7 @@
 "use client";
 
 import { Warning } from "@phosphor-icons/react/dist/ssr";
+import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
 import {
@@ -72,6 +73,25 @@ export function SocialButtons({ mode }: { mode: "login" | "signup" }) {
         <p role="alert" className="text-error text-2xs flex gap-1.5 leading-relaxed">
           <Warning size={13} weight="light" aria-hidden="true" className="mt-px shrink-0" />
           <span>{error}</span>
+        </p>
+      )}
+
+      {providers !== null && providers.length > 0 && (
+        /*
+          간편 로그인은 처음이면 곧 가입이다 — 가입 화면의 체크를 거치지 않는다.
+          그래서 누르기 **전에** 무엇에 동의하는 것인지 버튼 위에서 말한다.
+          서버는 이 고지를 보고 진행한 것으로 동의를 기록한다(SOCIAL_NOTICE, BE V12).
+        */
+        <p className="text-muted text-2xs leading-relaxed">
+          처음이시면 이 버튼으로 바로 가입됩니다. 계속하시면{" "}
+          <Link href="/terms" className="text-accent underline underline-offset-4">
+            이용약관
+          </Link>
+          에 동의하고 만 14세 이상임을 확인하신 것으로 봅니다. 회원 정보는{" "}
+          <Link href="/privacy" className="text-accent underline underline-offset-4">
+            개인정보처리방침
+          </Link>
+          에 따라 처리됩니다.
         </p>
       )}
 
