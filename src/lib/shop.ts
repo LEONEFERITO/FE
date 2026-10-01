@@ -320,6 +320,8 @@ export interface ReturnView {
   events: { status: ReturnStatus; note: string | null; at: string }[];
   /** 지금 손님이 철회할 수 있는가 (승인 전) */
   withdrawable: boolean;
+  /** 손님이 붙인 사진 주소 */
+  photoUrls: string[];
 }
 
 export interface ReturnInput {
@@ -327,6 +329,44 @@ export interface ReturnInput {
   reason: ReturnReason;
   detail: string | null;
   items: { orderItemId: string; quantity: number; exchangeSize: string | null }[];
+  /** 먼저 올린 사진(uploadReturnPhoto)의 id */
+  photoIds: string[];
+}
+
+/** 한 신청에 붙일 수 있는 사진 장수 (서버 ReturnPhotoService.MAX_PER_REQUEST 와 같다) */
+export const RETURN_PHOTO_MAX = 5;
+
+/**
+ * 교환·반품 사진 한 장 올리기. 신청하기 전에 올리고, 받은 id 를 신청에 함께 보낸다.
+ * 형식 · 크기 검사는 서버가 한다(상품 사진과 같은 검사) — 실패하면 서버 문구를 그대로 보인다.
+ */
+export async function uploadReturnPhoto(file: File): Promise<{ id: string; url: string }> {
+  if (!SHOP_CONNECTED) throw new ShopError("NOT_CONNECTED", "주문 서버가 아직 연결되지 않았습니다.");
+  const form = new FormData();
+  form.append("file", file);
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/api/returns/photos`, {
+      method: "POST",
+      credentials: "include",
+      headers: await csrfHeader(),
+      body: form,
+    });
+  } catch {
+    throw new ShopError("NETWORK", "사진을 올리지 못했습니다. 네트워크를 확인해 주세요.");
+  }
+  if (res.ok) return (await res.json()) as { id: string; url: string };
+  let message = "사진을 올리지 못했습니다.";
+  let code = "UNKNOWN";
+  try {
+    const err = await res.json();
+    code = err.code ?? code;
+    if (err.message) message = err.message;
+  } catch {
+    // 본문이 없을 수 있다
+  }
+  if (res.status === 401) message = "로그인이 필요합니다.";
+  throw new ShopError(code, message, res.status);
 }
 
 export const requestReturn = (orderNumber: string, input: ReturnInput) =>

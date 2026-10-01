@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Warning } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft, Camera, Warning, X } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
@@ -8,12 +8,14 @@ import { lastDay } from "@/components/shop/OrderDetailView";
 import { loginUrl } from "@/lib/auth";
 import { pendingLabel } from "@/lib/pending";
 import {
+  RETURN_PHOTO_MAX,
   RETURN_REASON_LABEL,
   SELLER_FAULT,
   ShopError,
   myOrder,
   orderableSizes,
   requestReturn,
+  uploadReturnPhoto,
   type OrderDetail,
   type ReturnReason,
   type ReturnType,
@@ -56,6 +58,29 @@ export function ReturnRequestForm() {
   const [error, setError] = useState<string | null>(null);
   const [now] = useState(() => Date.now());
   const requested = useRef(new Set<string>());
+  const [photos, setPhotos] = useState<{ id: string; url: string }[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+
+  /** 고르는 즉시 한 장씩 올린다 — 신청 버튼을 누를 때 한꺼번에 올리면 한 장 실패로 신청 전체가 막힌다. */
+  async function addPhotos(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setPhotoError(null);
+    const room = RETURN_PHOTO_MAX - photos.length;
+    const picked = Array.from(files).slice(0, Math.max(room, 0));
+    if (files.length > room) setPhotoError(`사진은 ${RETURN_PHOTO_MAX}장까지 붙일 수 있습니다.`);
+    setUploading(true);
+    for (const file of picked) {
+      try {
+        const up = await uploadReturnPhoto(file);
+        setPhotos((prev) => [...prev, up]);
+      } catch (e) {
+        setPhotoError(e instanceof ShopError ? e.message : "사진을 올리지 못했습니다.");
+        break;
+      }
+    }
+    setUploading(false);
+  }
 
   useEffect(() => {
     if (!no) return;
@@ -159,6 +184,7 @@ export function ReturnRequestForm() {
     if (!reason) return setError("사유를 골라 주세요.");
     if (chosen.length === 0) return setError("교환·반품할 상품을 골라 주세요.");
     if (type === "EXCHANGE" && chosen.some((i) => !picks[i.id].size)) return setError("교환받을 사이즈를 골라 주세요.");
+    if (uploading) return setError("사진을 올리는 중입니다. 잠시만 기다려 주세요.");
     setBusy(true);
     try {
       await requestReturn(o.orderNumber, {
@@ -170,6 +196,7 @@ export function ReturnRequestForm() {
           quantity: picks[i.id].quantity,
           exchangeSize: type === "EXCHANGE" ? picks[i.id].size : null,
         })),
+        photoIds: photos.map((p) => p.id),
       });
       window.location.href = `/mypage/order/?no=${encodeURIComponent(o.orderNumber)}`;
     } catch (err) {
@@ -292,6 +319,43 @@ export function ReturnRequestForm() {
           placeholder={reason && SELLER_FAULT.includes(reason) ? "어느 부분이 어떻게 문제인지 적어 주세요" : "어디가 어떻게 맞지 않는지 적어 주시면 사이즈를 함께 봐 드립니다"}
           className="border-interactive focus-visible:border-accent text-primary placeholder:text-muted/70 rounded-xl border bg-transparent px-4 py-3 text-sm" />
         <p className="text-muted text-2xs">{detail.length} / 1000</p>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <p className="text-primary text-sm font-medium">
+          사진 <span className="text-muted text-2xs font-normal">(선택 · {RETURN_PHOTO_MAX}장까지)</span>
+        </p>
+        <p className="text-muted text-2xs leading-relaxed">
+          {reason && SELLER_FAULT.includes(reason)
+            ? "불량 · 오배송은 사진이 있으면 바로 확인할 수 있습니다. 문제가 보이는 부분과 상품 라벨을 찍어 주세요."
+            : "착용한 모습이나 맞지 않는 부분을 찍어 주시면 사이즈를 함께 봐 드립니다."}
+        </p>
+        {photos.length > 0 && (
+          <ul className="flex flex-wrap gap-3">
+            {photos.map((p) => (
+              <li key={p.id} className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.url} alt="첨부한 사진" className="border-subtle h-20 w-20 rounded-lg border object-cover" />
+                <button type="button" aria-label="이 사진 빼기" onClick={() => setPhotos((prev) => prev.filter((x) => x.id !== p.id))}
+                  className="bg-surface border-subtle text-secondary hover:text-error absolute -top-3 -right-3 inline-flex h-11 w-11 items-center justify-center rounded-full border">
+                  <X size={13} weight="bold" aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {photos.length < RETURN_PHOTO_MAX && (
+          <label className={`border-interactive text-primary hover:border-accent ease-fluid inline-flex min-h-11 w-fit items-center gap-2 rounded-full border px-5 text-sm transition-colors duration-300 ${uploading ? "cursor-wait opacity-60" : "cursor-pointer"}`}>
+            <Camera size={15} weight="light" aria-hidden="true" />
+            {uploading ? "올리는 중" : "사진 고르기"}
+            <input type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={uploading} className="sr-only"
+              onChange={(e) => {
+                addPhotos(e.target.files);
+                e.target.value = "";
+              }} />
+          </label>
+        )}
+        {photoError && <p role="alert" className="text-error text-2xs">{photoError}</p>}
       </div>
 
       <div className="border-subtle bg-band/60 rounded-xl border px-5 py-4">

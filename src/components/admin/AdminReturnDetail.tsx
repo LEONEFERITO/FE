@@ -173,6 +173,18 @@ export function AdminReturnDetail() {
               {SELLER_FAULT.includes(r.reason) && <span className="text-error"> · 판매자 책임 (배송비 저희 부담)</span>}
             </p>
             {r.detail && <p className="text-secondary mt-2 whitespace-pre-line">{r.detail}</p>}
+            {r.photoUrls.length > 0 && (
+              <ul className="mt-3 flex flex-wrap gap-3" aria-label="손님이 붙인 사진">
+                {r.photoUrls.map((u, k) => (
+                  <li key={u}>
+                    <a href={u} target="_blank" rel="noopener noreferrer" aria-label={`사진 ${k + 1} 원본 보기`}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={u} alt="" className="border-subtle h-24 w-24 rounded-lg border object-cover" />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
             <ul className="divide-subtle border-subtle mt-4 divide-y border-t">
               {r.items.map((i) => (
                 <li key={i.orderItemId} className="flex justify-between gap-4 py-3">

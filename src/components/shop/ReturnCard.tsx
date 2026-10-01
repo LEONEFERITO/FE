@@ -108,6 +108,19 @@ export function ReturnCard({ r, onChanged }: { r: ReturnView; onChanged: (next: 
           </dd>
         </div>
         {r.detail && <div className="flex gap-3"><dt className="text-muted w-14 shrink-0">내용</dt><dd className="text-secondary whitespace-pre-line">{r.detail}</dd></div>}
+        {r.photoUrls.length > 0 && (
+          <div className="flex gap-3">
+            <dt className="text-muted w-14 shrink-0">사진</dt>
+            <dd className="flex flex-wrap gap-2">
+              {r.photoUrls.map((u, k) => (
+                <a key={u} href={u} target="_blank" rel="noopener noreferrer" aria-label={`첨부 사진 ${k + 1} 크게 보기`}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={u} alt="" className="border-subtle h-14 w-14 rounded-md border object-cover" />
+                </a>
+              ))}
+            </dd>
+          </div>
+        )}
       </dl>
 
       {r.withdrawable && (confirming ? (
