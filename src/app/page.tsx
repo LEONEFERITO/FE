@@ -8,7 +8,7 @@ import { WhySection } from "@/components/home/WhySection";
 import { SizeFinder } from "@/components/home/SizeFinder";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
-import { PRODUCTS } from "@/data/products";
+import { getCatalog } from "@/lib/catalog";
 
 /**
  * 메인.
@@ -38,12 +38,13 @@ import { PRODUCTS } from "@/data/products";
  * 넘겨짚어 쓰지 않는다 — 브랜드 문구는 검색 결과와 공유 미리보기에 그대로 박혀 나간다.
  */
 
-/** 메인에 노출할 제품. 촬영본이 있는 것만 — 빈 카드가 섞이면 준비 안 된 가게로 보인다. */
-const FEATURED = PRODUCTS.filter((p) => p.images.length > 0).slice(0, 4);
 
 const HERO_VARIANT: "split" | "stage" = "split";
 
-export default function Home() {
+export default async function Home() {
+  /** 메인에 노출할 제품. 촬영본이 있는 것만 — 빈 카드가 섞이면 준비 안 된 가게로 보인다. */
+  const FEATURED = (await getCatalog()).filter((p) => p.images.length > 0).slice(0, 4);
+
   return (
     <>
       {/*

@@ -66,15 +66,20 @@ function draft(
     line,
     priceKrw: null, // TODO(고객확인) B-2 가격
     listPriceKrw: null,
-    images: [image],
+    summary: null,
+    description: null,
+    intent: null,
+    features: null,
+    leadTimeDays: null, // TODO(고객확인) 제작 기간
+    images: [{ url: image, alt: "버건디 배경 앞에 선 모델의 착용 사진" }],
     cutout,
-    // 품절(stock 0)은 숨기지 않고 비활성으로 노출한다 — 숨기면 "내 사이즈가 원래 없는
+    // 주문 불가(orderable: false)는 숨기지 않고 비활성으로 노출한다 — 숨기면 "내 사이즈가 원래 없는
     // 브랜드" 로 보이고, 보여주면 "이번에 품절" 로 읽힌다.
     skus: SIZES.map((size) => ({
       id: `${slug}-${size}`,
       size,
       color: null,
-      stock: soldOut.includes(size) ? 0 : 5,
+      orderable: !soldOut.includes(size),
     })),
     measurements: EMPTY_MEASUREMENTS(TOP_FIELDS),
     // 차트 이미지는 관리자가 올린다. 아직 없다.

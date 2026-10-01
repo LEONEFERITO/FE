@@ -9,18 +9,23 @@ import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductNoticeTable } from "@/components/product/ProductNoticeTable";
 import { PurchasePanel } from "@/components/product/PurchasePanel";
 import { SizeChart } from "@/components/product/SizeChart";
-import { PRODUCTS, findProduct } from "@/data/products";
-import { LINE_LABEL } from "@/types/product";
+import { getCatalog, getCatalogProduct } from "@/lib/catalog";
+import { LINE_LABEL, type Product } from "@/types/product";
 
 /**
  * 상품 상세.
  *
  * 정적 내보내기(output: "export")라 동적 경로는 빌드 시점에 목록이 필요하다.
- * BE 상품 API(Phase 2)가 생기면 generateStaticParams 에서 목록을 받아온다.
+ * 목록은 서버(BE)의 공개 상품이다 — lib/catalog.ts.
  */
 
-export function generateStaticParams() {
-  return PRODUCTS.map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  const products = await getCatalog();
+  /*
+    공개 상품이 하나도 없어도 빌드는 돼야 한다 (오픈 직전, 관리자가 전부 내린 경우).
+    정적 내보내기는 빈 목록을 받아 주지 않아서 자리표시 하나를 만든다 — 그 주소는 404 다.
+  */
+  return products.length > 0 ? products.map((p) => ({ slug: p.slug })) : [{ slug: "none" }];
 }
 
 /**
@@ -35,7 +40,7 @@ export async function generateMetadata({
   params,
 }: PageProps<"/products/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const product = findProduct(slug);
+  const product = await getCatalogProduct(slug);
   if (!product) return {};
 
   const name = product.name ?? "제품 준비 중";
@@ -43,14 +48,16 @@ export async function generateMetadata({
 
   return {
     title: name,
-    description: `${fit.ko} 핏 · ${fit.description} 사이즈별 상세 실측과 모델 착용 정보를 함께 제공합니다.`,
+    description:
+      product.summary ??
+      `${fit.ko} 핏 · ${fit.description} 사이즈별 상세 실측과 모델 착용 정보를 함께 제공합니다.`,
     openGraph: {
       title: `${name} | LEONE FERITO`,
       description: `${fit.ko} 핏 · 사이즈별 상세 실측 제공`,
       type: "website",
       // TODO(고객확인) 제품 촬영본이 오면 대표 이미지를 지정한다.
       // metadataBase(layout.tsx)가 없으면 상대경로로 나가 카톡이 못 읽는다.
-      images: product.images.length > 0 ? [product.images[0]] : undefined,
+      images: product.images.length > 0 ? [product.images[0].url] : undefined,
     },
   };
 }
@@ -59,7 +66,7 @@ export default async function ProductDetailPage({
   params,
 }: PageProps<"/products/[slug]">) {
   const { slug } = await params;
-  const product = findProduct(slug);
+  const product = await getCatalogProduct(slug);
   if (!product) notFound();
 
   const detailImages = product.images.slice(1);
@@ -90,12 +97,14 @@ export default async function ProductDetailPage({
                이 래퍼가 못 줄어들면 소용이 없다 — 페이지가 통째로 가로 스크롤을 탄다)
             */}
             <Reveal className="min-w-0">
-              <ProductGallery image={product.images[0] ?? null} name={product.name} />
+              <ProductGallery photo={product.images[0] ?? null} name={product.name} />
             </Reveal>
             <Reveal delay={140} className="min-w-0">
               <PurchasePanel product={product} />
             </Reveal>
           </div>
+
+          <ProductStory product={product} />
         </div>
         </div>
 
@@ -123,13 +132,13 @@ export default async function ProductDetailPage({
             */}
             {detailImages.length > 0 ? (
               <div className="mx-auto mt-12 flex max-w-[900px] flex-col gap-6">
-                {detailImages.map((src, i) => (
-                  <Reveal key={src} delay={i === 0 ? 180 : 0}>
+                {detailImages.map((photo, i) => (
+                  <Reveal key={photo.url} delay={i === 0 ? 180 : 0}>
                     <div className="border-subtle bg-band/50 shadow-soft rounded-[2rem] border p-2">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={src}
-                        alt={`${product.name ?? "제품"} 상세 사진 ${i + 1}`}
+                        src={photo.url}
+                        alt={photo.alt || `${product.name ?? "제품"} 상세 사진 ${i + 1}`}
                         loading="lazy"
                         className="w-full rounded-[calc(2rem-0.5rem)]"
                       />
@@ -203,5 +212,40 @@ export default async function ProductDetailPage({
 
       <Footer />
     </>
+  );
+}
+
+/**
+ * 제품 이야기 — 설명 · 디자인 의도 · 특징. 관리자가 적은 글이다.
+ *
+ * 셋 다 비어 있으면 구간을 그리지 않는다. 빈 제목만 남으면 "준비 안 된 가게" 로 보인다.
+ * 문단은 빈 줄로 나눈다 — 관리자 화면의 여러 줄 입력이 그대로 문단이 된다.
+ */
+function ProductStory({ product }: { product: Product }) {
+  const blocks = [
+    { key: "description", title: "제품 설명", text: product.description },
+    { key: "intent", title: "디자인 의도", text: product.intent },
+    { key: "features", title: "특징", text: product.features },
+  ].filter((b): b is { key: string; title: string; text: string } => !!b.text?.trim());
+
+  if (blocks.length === 0) return null;
+
+  return (
+    <section aria-label="제품 설명" className="border-subtle mt-16 grid gap-10 border-t pt-12 md:grid-cols-3 md:gap-12">
+      {blocks.map((b) => (
+        <div key={b.key} className="min-w-0">
+          <h2 className="text-primary text-sm font-medium">{b.title}</h2>
+          <div className="text-secondary mt-3 flex flex-col gap-3 text-sm leading-relaxed">
+            {b.text
+              .split(/\n\s*\n/)
+              .map((para, i) => (
+                <p key={i} className="whitespace-pre-line">
+                  {para.trim()}
+                </p>
+              ))}
+          </div>
+        </div>
+      ))}
+    </section>
   );
 }

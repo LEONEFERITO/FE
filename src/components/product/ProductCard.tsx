@@ -25,7 +25,8 @@ const KRW = new Intl.NumberFormat("ko-KR");
 function range(product: Product, key: string): string | null {
   const values = product.measurements.rows
     .map((r) => r.values[key])
-    .filter((v): v is number => v !== null);
+    // 그 부위를 재지 않은 상품(예: 셔츠에 허벅지)은 키 자체가 없다 — undefined 도 거른다.
+    .filter((v): v is number => typeof v === "number");
   if (values.length === 0) return null;
   const min = Math.min(...values);
   const max = Math.max(...values);
@@ -34,8 +35,8 @@ function range(product: Product, key: string): string | null {
 
 export function ProductCard({ product }: { product: Product }) {
   const name = product.name ?? "제품명 확인 중";
-  const image = product.images[0];
-  const inStock = product.skus.filter((s) => s.stock > 0).length;
+  const image = product.images[0]?.url;
+  const inStock = product.skus.filter((s) => s.orderable).length;
   const allSoldOut = inStock === 0;
 
   const shoulder = range(product, "shoulder");
@@ -119,7 +120,7 @@ export function ProductCard({ product }: { product: Product }) {
           <li
             key={sku.id}
             className={`text-2xs rounded border px-2 py-0.5 tabular-nums ${
-              sku.stock > 0
+              sku.orderable
                 ? "border-subtle text-secondary"
                 : "border-subtle/60 text-muted line-through"
             }`}

@@ -18,17 +18,22 @@ export const SAMPLE_PRODUCT: Product = {
   line: "FERITO",
   priceKrw: null, // TODO(고객확인)
   listPriceKrw: null, // TODO(고객확인)
+  summary: null,
+  description: null,
+  intent: null,
+  features: null,
+  leadTimeDays: null, // TODO(고객확인) 제작 기간
   images: [], // TODO(고객확인) 제품 촬영본
   cutout: null,
 
   // TODO(고객확인) B-3: 사이즈 체계(95/100/105 인지 S/M/L 인지)가 확정되면 교체.
-  // 품절(stock 0)은 숨기지 않고 비활성으로 노출한다 — 숨기면 "내 사이즈가 원래 없는
+  // 주문 불가(orderable: false)는 숨기지 않고 비활성으로 노출한다 — 숨기면 "내 사이즈가 원래 없는
   // 브랜드" 로 보이고, 보여주면 "이번에 품절" 로 읽힌다.
   skus: [
-    { id: "sku-95", size: "95", color: null, stock: 4 },
-    { id: "sku-100", size: "100", color: null, stock: 7 },
-    { id: "sku-105", size: "105", color: null, stock: 2 },
-    { id: "sku-110", size: "110", color: null, stock: 0 },
+    { id: "sku-95", size: "95", color: null, orderable: true },
+    { id: "sku-100", size: "100", color: null, orderable: true },
+    { id: "sku-105", size: "105", color: null, orderable: true },
+    { id: "sku-110", size: "110", color: null, orderable: false },
   ],
 
   // 차트 이미지는 관리자가 올린다. 아직 없다.

@@ -39,6 +39,8 @@ export const LIMITS = {
   size: 20,
   /** 인스타그램 게시물 주소. 실제로는 60자 안팎. */
   instagramUrl: 300,
+  /** 상품정보제공고시 한 줄 (색상 · 제조자 · 제조국 · 제조연월). 서버 NOTICE_MAX. */
+  notice: 100,
 } as const;
 
 /**
@@ -168,6 +170,11 @@ export interface ProductDraft {
   features: string;
   fabric: string;
   care: string;
+  /** 상품정보제공고시 (서버 V11). 소재 = fabric, 세탁 = care. */
+  color: string;
+  manufacturer: string;
+  countryOfOrigin: string;
+  manufacturedOn: string;
   modelHeightCm: number | null;
   modelWeightKg: number | null;
   modelSize: string;
@@ -284,6 +291,7 @@ export const MISSING_LABEL: Record<string, string> = {
   priceKrw: "판매가",
   leadTimeDays: "제작 기간",
   mainImage: "대표 이미지",
+  notice: "상품정보제공고시",
 };
 
 export function missingLabel(key: string): string {
@@ -320,6 +328,10 @@ export interface AdminProductEdit {
   features: string | null;
   fabric: string | null;
   care: string | null;
+  color: string | null;
+  manufacturer: string | null;
+  countryOfOrigin: string | null;
+  manufacturedOn: string | null;
   modelHeightCm: number | null;
   modelWeightKg: number | null;
   modelSize: string | null;

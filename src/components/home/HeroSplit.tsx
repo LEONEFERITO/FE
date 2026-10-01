@@ -99,9 +99,9 @@ export function HeroSplit({ products }: { products: Product[] }) {
           return (
             <picture key={p.slug}>
               {/* md 이상: 촬영 원본 전체 채움 */}
-              <source media="(min-width: 768px)" srcSet={p.images[0]} />
+              <source media="(min-width: 768px)" srcSet={p.images[0]?.url} />
               <img
-                src={p.cutout ?? p.images[0]}
+                src={p.cutout ?? p.images[0]?.url}
                 alt={active ? `${p.name ?? "제품"} 착용 컷` : ""}
                 aria-hidden={!active}
                 loading={i === 0 ? "eager" : "lazy"}

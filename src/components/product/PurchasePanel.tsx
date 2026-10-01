@@ -30,9 +30,9 @@ function formatKrw(value: number | null): string | null {
 }
 
 export function PurchasePanel({ product }: { product: Product }) {
-  // 기본 선택은 재고가 있는 첫 사이즈. 품절만 있으면 선택하지 않는다.
+  // 기본 선택은 주문 가능한 첫 사이즈. 주문 가능한 사이즈가 없으면 선택하지 않는다.
   const [selectedSize, setSelectedSize] = useState<string | null>(
-    product.skus.find((s) => s.stock > 0)?.size ?? null,
+    product.skus.find((s) => s.orderable)?.size ?? null,
   );
 
   const price = formatKrw(product.priceKrw);
@@ -45,6 +45,10 @@ export function PurchasePanel({ product }: { product: Product }) {
       <h1 className="font-display text-primary text-3xl leading-display tracking-display md:text-4xl">
         {product.name ?? pendingLabel("제품명")}
       </h1>
+
+      {product.summary && (
+        <p className="text-secondary text-sm leading-relaxed">{product.summary}</p>
+      )}
 
       <div className="flex items-baseline gap-3">
         <p
@@ -60,6 +64,20 @@ export function PurchasePanel({ product }: { product: Product }) {
           </p>
         )}
       </div>
+
+      {/*
+        제작 기간 — 주문 후 만드는 옷이라 결제 전에 반드시 보여야 한다(전자상거래법, 약관 제14조).
+        가격 바로 아래에 둔다. 사이즈를 다 고른 뒤에야 "3주 걸립니다" 를 보면 배신감이 든다.
+      */}
+      <p className="text-secondary text-xs">
+        {product.leadTimeDays != null ? (
+          <>
+            주문 후 제작 · <b className="text-primary font-medium">약 {product.leadTimeDays}일</b> 뒤 출고
+          </>
+        ) : (
+          <span className="text-muted">{pendingLabel("제작 기간")}</span>
+        )}
+      </p>
 
       <LineSummary line={product.line} />
 

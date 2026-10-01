@@ -21,7 +21,7 @@ interface SizeSelectorProps {
 }
 
 export function SizeSelector({ skus, value, onChange }: SizeSelectorProps) {
-  const soldOut = skus.filter((s) => s.stock === 0);
+  const soldOut = skus.filter((s) => !s.orderable);
 
   return (
     <div className="flex flex-col gap-3">
@@ -31,7 +31,7 @@ export function SizeSelector({ skus, value, onChange }: SizeSelectorProps) {
         className="grid grid-cols-4 gap-2.5"
       >
         {skus.map((sku) => {
-          const isSoldOut = sku.stock === 0;
+          const isSoldOut = !sku.orderable;
           const isSelected = value === sku.size;
 
           return (
@@ -53,7 +53,7 @@ export function SizeSelector({ skus, value, onChange }: SizeSelectorProps) {
               ].join(" ")}
             >
               {sku.size}
-              {isSoldOut && <span className="sr-only"> 품절</span>}
+              {isSoldOut && <span className="sr-only"> 주문 불가</span>}
             </button>
           );
         })}
@@ -61,7 +61,7 @@ export function SizeSelector({ skus, value, onChange }: SizeSelectorProps) {
 
       {soldOut.length > 0 && (
         <p className="text-soldout text-xs">
-          {soldOut.map((s) => s.size).join(", ")} 사이즈는 품절입니다.
+          {soldOut.map((s) => s.size).join(", ")} 사이즈는 지금 주문할 수 없습니다.
         </p>
       )}
     </div>

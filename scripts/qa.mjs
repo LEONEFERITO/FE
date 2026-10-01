@@ -29,7 +29,7 @@ const EDGE = "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe";
 const PAGES = [
   { path: "/", name: "메인" },
   { path: "/products/", name: "제품 목록" },
-  { path: "/products/brown-shirt/", name: "제품 상세" },
+  // 상세는 아래에서 목록 페이지의 첫 상품으로 정한다 — 상품이 서버(관리자)에서 오므로 이름을 고정할 수 없다.
   { path: "/login/", name: "로그인" },
   { path: "/signup/", name: "회원가입" },
   { path: "/cart/", name: "장바구니(준비 중)" },
@@ -98,6 +98,26 @@ const browser = await puppeteer.launch({
   headless: true,
   args: ["--hide-scrollbars"],
 });
+
+/*
+ * 상품 상세 주소 — 목록 페이지에서 첫 상품 링크를 찾는다. 상품은 관리자가 공개한 것이라
+ * 테스트 데이터에 따라 바뀐다. 상품이 하나도 없으면 상세는 검사하지 못했다고 적는다.
+ */
+{
+  const probe = await browser.newPage();
+  await probe.goto(BASE + "/products/", { waitUntil: "networkidle0" });
+  const detail = await probe.evaluate(() =>
+    [...document.querySelectorAll("main a[href^='/products/']")]
+      .map((a) => a.getAttribute("href"))
+      .find((h) => h && h !== "/products/" && h !== "/products"),
+  );
+  await probe.close();
+  if (detail) {
+    PAGES.splice(2, 0, { path: detail.endsWith("/") ? detail : detail + "/", name: "제품 상세" });
+  } else {
+    console.log("공개 상품이 없어 제품 상세는 검사하지 못했다");
+  }
+}
 
 for (const vp of VIEWPORTS) {
   for (const target of PAGES) {

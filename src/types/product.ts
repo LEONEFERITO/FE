@@ -110,13 +110,23 @@ export interface MeasurementTable {
   tolerance: string | null;
 }
 
-/** 재고 단위. 사이즈 × 컬러 조합마다 하나. 재고는 여기에 붙는다. */
+/**
+ * 사이즈 한 칸.
+ *
+ * 재고 수량이 아니라 **주문 가능 여부**다. 주문 후 제작이라 "몇 개 남음" 이 존재하지 않는다
+ * (BE ProductResponse.Sku). 주문 불가 사이즈도 숨기지 않고 비활성으로 노출한다.
+ */
 export interface Sku {
   id: string;
   size: string;
   color: string | null;
-  /** 0 이면 품절. 품절도 숨기지 않고 비활성으로 노출한다. */
-  stock: number;
+  orderable: boolean;
+}
+
+/** 상품 사진 한 장. 대체 텍스트는 관리자가 적는다 — 사진이 곧 "무엇을 파는가" 다. */
+export interface ProductPhoto {
+  url: string;
+  alt: string;
 }
 
 /** 모델 착용 정보. "이 모델과 내 체형이 비슷한가" 가 사이즈 판단의 마지막 근거다. */
@@ -153,7 +163,21 @@ export interface Product {
   priceKrw: number | null;
   /** 정가(원). 할인 중이 아니면 null. */
   listPriceKrw: number | null;
-  images: string[];
+  /** 카드 아래 한 줄. */
+  summary: string | null;
+  /** 상세 본문. 문단은 빈 줄로 나뉜다. */
+  description: string | null;
+  /** 디자인 의도. */
+  intent: string | null;
+  /** 특징·장점. */
+  features: string | null;
+  /**
+   * 주문 후 제작 기간(일). 결제 전에 반드시 보여야 한다(전자상거래법) —
+   * 공개된 상품은 서버가 값이 있을 때만 공개를 허락한다.
+   */
+  leadTimeDays: number | null;
+  /** 첫 장이 대표 사진이다. 나머지는 착용·디테일 컷 순. */
+  images: ProductPhoto[];
   /**
    * 배경을 뺀 누끼 컷. 없으면 null.
    * 사진(images)과 따로 두는 이유: 쓰이는 자리가 다르다. 카드·상세는 촬영 원본을 쓰고,

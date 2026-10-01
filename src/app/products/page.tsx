@@ -4,7 +4,7 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { ProductList } from "@/components/product/ProductList";
-import { CATEGORIES, PRODUCTS, SIZE_OPTIONS } from "@/data/products";
+import { filterOptions, getCatalog } from "@/lib/catalog";
 
 /**
  * 제품 목록.
@@ -22,7 +22,10 @@ export const metadata: Metadata = {
     "운동으로 달라진 체형을 위한 남성 기성복. 상품마다 핏 종류와 사이즈별 상세 실측을 공개합니다.",
 };
 
-export default function ProductsPage() {
+export default async function ProductsPage() {
+  const products = await getCatalog();
+  const { categories, sizes } = filterOptions(products);
+
   return (
     <>
       <Header />
@@ -53,9 +56,9 @@ export default function ProductsPage() {
         <div className="on-cream flow-root">
           <div className="mx-auto max-w-[1320px] px-5 pb-12 md:px-15 md:pb-20">
             <ProductList
-              products={PRODUCTS}
-              categories={CATEGORIES}
-              sizes={SIZE_OPTIONS}
+              products={products}
+              categories={categories}
+              sizes={sizes}
             />
           </div>
         </div>

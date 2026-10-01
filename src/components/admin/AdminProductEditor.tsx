@@ -183,7 +183,8 @@ function PublishPanel({
 
         {published ? (
           <p className="text-muted text-2xs mt-1.5 leading-relaxed">
-            아래에서 저장하면 공개 화면에 바로 반영됩니다.
+            {/* 손님 화면은 정적 사이트라 서버가 다시 빌드를 요청한다(BE FrontRebuildTrigger). */}
+            아래에서 저장하면 1~2분 뒤 손님 화면에 반영됩니다. 공개·비공개도 같습니다.
           </p>
         ) : missing.length > 0 ? (
           <p className="text-warning text-2xs mt-1.5 flex gap-1.5 leading-relaxed">

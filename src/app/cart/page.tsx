@@ -8,7 +8,7 @@ import { Header } from "@/components/layout/Header";
 import { Reveal } from "@/components/motion/Reveal";
 import { ProductCard } from "@/components/product/ProductCard";
 import { PageBand } from "@/components/ui/PageBand";
-import { PRODUCTS } from "@/data/products";
+import { getCatalog } from "@/lib/catalog";
 
 /**
  * 장바구니.
@@ -26,8 +26,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function CartPage() {
-  const suggested = PRODUCTS.slice(0, 4);
+export default async function CartPage() {
+  const suggested = (await getCatalog()).slice(0, 4);
 
   return (
     <>

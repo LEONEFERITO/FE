@@ -122,6 +122,10 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
   const [leadTimeDays, setLeadTimeDays] = useState(initial?.leadTimeDays?.toString() ?? "");
   const [fabric, setFabric] = useState(initial?.fabric ?? "");
   const [care, setCare] = useState(initial?.care ?? "");
+  const [color, setColor] = useState(initial?.color ?? "");
+  const [manufacturer, setManufacturer] = useState(initial?.manufacturer ?? "");
+  const [countryOfOrigin, setCountryOfOrigin] = useState(initial?.countryOfOrigin ?? "");
+  const [manufacturedOn, setManufacturedOn] = useState(initial?.manufacturedOn ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [images, setImages] = useState<Images>(() => imagesFrom(initial));
   const [sizeChart, setSizeChart] = useState<ImageFieldValue | null>(
@@ -168,6 +172,10 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
       e.summary = `${LIMITS.summary}자를 넘었습니다.`;
     if (countGraphemes(fabric) > LIMITS.shortBody) e.fabric = "너무 깁니다.";
     if (countGraphemes(care) > LIMITS.shortBody) e.care = "너무 깁니다.";
+    if (countGraphemes(color) > LIMITS.notice) e.color = "너무 깁니다.";
+    if (countGraphemes(manufacturer) > LIMITS.notice) e.manufacturer = "너무 깁니다.";
+    if (countGraphemes(countryOfOrigin) > LIMITS.notice) e.countryOfOrigin = "너무 깁니다.";
+    if (countGraphemes(manufacturedOn) > LIMITS.notice) e.manufacturedOn = "너무 깁니다.";
     if (countGraphemes(description) > LIMITS.body) e.description = "너무 깁니다.";
 
     /*
@@ -213,6 +221,10 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
       description: description.trim(),
       fabric: fabric.trim(),
       care: care.trim(),
+      color: color.trim(),
+      manufacturer: manufacturer.trim(),
+      countryOfOrigin: countryOfOrigin.trim(),
+      manufacturedOn: manufacturedOn.trim(),
       leadTimeDays: leadTimeDays ? Number(leadTimeDays) : null,
 
       // ↓ 이 폼에 칸이 없는 값. 수정이면 원래 값을 그대로 돌려보낸다(위 주석 참고).
@@ -568,25 +580,73 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
             hint="상세 페이지 본문입니다."
             error={submitted ? errors.description : undefined}
           />
+        </fieldset>
+
+        {/*
+          ── 상품정보제공고시 ─────────────────────────────
+          판매 전 법적 의무라 여섯 칸이 다 차야 공개된다(서버가 판단). 치수는 사이즈 목록이,
+          품질보증기준과 A/S 연락처는 사업자 정보가 채우므로 여기 없다.
+        */}
+        <fieldset className="border-subtle flex flex-col gap-6 border-t pt-7">
+          <legend className="text-primary text-sm font-medium">상품정보제공고시</legend>
+          <p className="text-muted text-2xs -mt-3 leading-relaxed">
+            여섯 칸이 모두 있어야 공개할 수 있습니다. 상세 페이지 맨 아래 표에 그대로 나갑니다.
+          </p>
+
           <CountedField
-            label="원단 · 혼용률"
+            label="제품 소재 (원단 · 혼용률)"
             value={fabric}
             onChange={setFabric}
             max={LIMITS.shortBody}
             multiline
-            rows={3}
-            placeholder="면 100%"
+            rows={2}
+            placeholder="겉감 울 100% · 안감 큐프라 100%"
             error={submitted ? errors.fabric : undefined}
           />
           <CountedField
-            label="세탁 · 관리"
+            label="세탁방법 및 취급 시 주의사항"
             value={care}
             onChange={setCare}
             max={LIMITS.shortBody}
             multiline
-            rows={3}
+            rows={2}
+            placeholder="드라이클리닝 · 다림질은 천을 덧대 중온으로"
             error={submitted ? errors.care : undefined}
           />
+          <div className="grid gap-6 md:grid-cols-2">
+            <CountedField
+              label="색상"
+              value={color}
+              onChange={setColor}
+              max={LIMITS.notice}
+              placeholder="브라운"
+              error={submitted ? errors.color : undefined}
+            />
+            <CountedField
+              label="제조자 / 수입자"
+              value={manufacturer}
+              onChange={setManufacturer}
+              max={LIMITS.notice}
+              placeholder="레오네페리토"
+              error={submitted ? errors.manufacturer : undefined}
+            />
+            <CountedField
+              label="제조국"
+              value={countryOfOrigin}
+              onChange={setCountryOfOrigin}
+              max={LIMITS.notice}
+              placeholder="대한민국"
+              error={submitted ? errors.countryOfOrigin : undefined}
+            />
+            <CountedField
+              label="제조연월"
+              value={manufacturedOn}
+              onChange={setManufacturedOn}
+              max={LIMITS.notice}
+              placeholder="2026년 9월"
+              error={submitted ? errors.manufacturedOn : undefined}
+            />
+          </div>
         </fieldset>
 
         <button

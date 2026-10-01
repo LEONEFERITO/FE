@@ -179,8 +179,8 @@ export function ProductList({
           */
           const sku = p.skus.find((s) => s.size === f.size);
           if (!sku) return false;
-          if (f.inStockOnly && sku.stock === 0) return false;
-        } else if (f.inStockOnly && p.skus.every((s) => s.stock === 0)) {
+          if (f.inStockOnly && !sku.orderable) return false;
+        } else if (f.inStockOnly && p.skus.every((s) => !s.orderable)) {
           return false;
         }
 

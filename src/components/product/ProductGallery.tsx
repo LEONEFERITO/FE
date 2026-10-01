@@ -1,3 +1,5 @@
+import type { ProductPhoto } from "@/types/product";
+
 /**
  * 상품 대표 사진 — 한 장.
  *
@@ -16,12 +18,13 @@ const PHOTO_PLACEHOLDER =
   "radial-gradient(ellipse at 50% 42%, #7B1526 0%, #4E0C17 55%, #1A0E12 100%)";
 
 export function ProductGallery({
-  image,
+  photo,
   name,
 }: {
-  image: string | null;
+  photo: ProductPhoto | null;
   name: string | null;
 }) {
+  const image = photo?.url ?? null;
   return (
     <div className="border-subtle bg-band/50 shadow-soft min-w-0 rounded-[2rem] border p-2">
       <div
@@ -34,7 +37,8 @@ export function ProductGallery({
           <img
             src={image}
             // 상품 사진은 장식이 아니다. 이 사진이 곧 "무엇을 파는가" 다.
-            alt={name ? `${name} 대표 사진` : "제품 대표 사진"}
+            // 관리자가 적은 대체 텍스트가 먼저다. 없을 때만 이름으로 만든다.
+            alt={photo?.alt || (name ? `${name} 대표 사진` : "제품 대표 사진")}
             className="h-full w-full object-cover"
             loading="eager"
           />
