@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { ReturnCard } from "@/components/shop/ReturnCard";
+import { KAKAO_CHANNEL } from "@/data/business";
 import { loginUrl } from "@/lib/auth";
 import {
   ORDER_STATUS_LABEL,
@@ -229,7 +230,7 @@ export function OrderDetailView() {
               {o.changeOfMindDeadline && <>사이즈 · 단순 변심 {lastDay(o.changeOfMindDeadline)}까지</>}
               {o.sellerFaultDeadline && <> · 불량 · 오배송 {lastDay(o.sellerFaultDeadline)}까지</>}
               {!o.returnable && o.returns.every((r) => r.status !== "REQUESTED" && r.status !== "APPROVED" && r.status !== "COLLECTED") && (
-                <> · 신청 기간이 지났습니다. 문제가 있다면 QnA 의 카카오톡 채널로 알려 주세요.</>
+                <> · 신청 기간이 지났습니다. 문제가 있다면 <a href={KAKAO_CHANNEL.chat} target="_blank" rel="noopener noreferrer" className="text-accent hover:text-accent-hover underline underline-offset-4">카카오톡 채널<span className="sr-only">(새 창)</span></a>로 알려 주세요.</>
               )}
             </p>
           )}

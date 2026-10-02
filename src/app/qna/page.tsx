@@ -8,6 +8,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Reveal } from "@/components/motion/Reveal";
 import { PageBand } from "@/components/ui/PageBand";
+import { KAKAO_CHANNEL } from "@/data/business";
 import { pendingLabel } from "@/lib/pending";
 import { LINE_LABEL } from "@/types/product";
 
@@ -16,14 +17,13 @@ import { LINE_LABEL } from "@/types/product";
  *
  * 자주 묻는 질문 + 카카오톡 채널로 바로 묻는 길.
  * 질문은 관리자 FAQ 관리에서 고친다. 하나도 등록하지 않았으면 아래 기본 질문(FAQ)이 나간다(FaqList).
- * 채널 ID 가 아직 없어서
- * 버튼 자리만 잡아 둔다 (BRAND_BRIEF.md 4장).
+ * 채널은 더맨리 카카오톡 채널이다(data/business.ts KAKAO_CHANNEL) — 버튼은 1:1 채팅을 바로 연다.
  *
  * ── 아코디언은 <details> 다 ─────────────────────────────
  * 열고 닫기·키보드·스크린리더를 브라우저가 해 준다. 손으로 만들면 그중 하나는 빠진다.
  * 첫 항목만 열어 둔다 — 전부 닫혀 있으면 어떻게 여는지부터 찾아야 한다.
  *
- * TODO(고객확인) 제작 기간 · 배송비 · 교환 조건 · 카카오톡 채널 ID · 더맨리 링크.
+ * TODO(고객확인) 제작 기간 · 배송비 · 교환 조건 · 더맨리 링크.
  */
 
 export const metadata: Metadata = {
@@ -118,16 +118,28 @@ export default function QnaPage() {
                 <div className="border-subtle bg-surface flex flex-col gap-4 rounded-2xl border p-6">
                   <h2 className="font-display text-primary text-xl">답을 못 찾으셨나요</h2>
                   <p className="text-secondary text-sm leading-relaxed">
-                    카카오톡 채널로 바로 문의하실 수 있습니다.
+                    카카오톡 채널 <b className="text-primary">{KAKAO_CHANNEL.name}</b>로 바로 문의하실 수
+                    있습니다.
                   </p>
-                  {/*
-                    TODO(고객확인) 카카오톡 채널 ID — 오면 이 자리가 pf.kakao.com 링크가 된다.
-                    링크가 없는 동안은 버튼처럼 보이는 것을 두지 않는다. 눌러서 아무 일도 없으면 고장으로 읽힌다.
-                  */}
-                  <p className="border-subtle bg-band/60 text-muted flex items-center gap-2 rounded-xl border px-4 py-3 text-xs">
-                    <ChatCircle size={15} weight="light" aria-hidden="true" />
-                    카카오톡 채널 연결 준비 중
-                  </p>
+                  {/* 카카오 로그인 버튼(SocialButtons)과 같은 노랑 — 손님이 "카카오로 간다"를 색으로 먼저 읽는다. */}
+                  <a
+                    href={KAKAO_CHANNEL.chat}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ease-fluid inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#FEE500] px-5 text-sm font-medium text-[#191919] transition-colors duration-300 hover:bg-[#F5DC00] active:scale-[0.98]"
+                  >
+                    <ChatCircle size={18} weight="fill" aria-hidden="true" />
+                    카카오톡으로 문의하기
+                    <span className="sr-only">(새 창)</span>
+                  </a>
+                  <a
+                    href={KAKAO_CHANNEL.home}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-secondary hover:text-primary ease-fluid -mt-1 inline-flex min-h-11 items-center justify-center text-xs underline underline-offset-4 transition-colors duration-300"
+                  >
+                    채널 추가하고 소식 받기<span className="sr-only">(새 창)</span>
+                  </a>
                 </div>
               </Reveal>
 

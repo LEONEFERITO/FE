@@ -43,6 +43,16 @@ export const BUSINESS: BusinessInfo = {
   hosting: null,
 };
 
+/**
+ * 손님 문의 창구 — 카카오톡 채널 "더맨리 (THE MANLY)". 2026-10-02 고객 전달.
+ * `chat` 은 채널 1:1 채팅을 바로 연다 — 앱이 있으면 카카오톡, 없으면 웹 화면.
+ */
+export const KAKAO_CHANNEL = {
+  name: "더맨리 (THE MANLY)",
+  home: "https://pf.kakao.com/_ZiAxiX",
+  chat: "https://pf.kakao.com/_ZiAxiX/chat",
+} as const;
+
 /** 푸터에 표시하는 순서. */
 export const BUSINESS_FIELDS: { key: keyof BusinessInfo; label: string }[] = [
   { key: "companyName", label: "상호" },

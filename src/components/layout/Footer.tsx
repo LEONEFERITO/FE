@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { Logo } from "@/components/brand/Logo";
-import { BUSINESS, BUSINESS_FIELDS } from "@/data/business";
+import { BUSINESS, BUSINESS_FIELDS, KAKAO_CHANNEL } from "@/data/business";
 import { pendingLabel } from "@/lib/pending";
 
 /**
@@ -37,6 +37,14 @@ export function Footer() {
             >
               공지사항
             </Link>
+            <a
+              href={KAKAO_CHANNEL.chat}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-secondary hover:text-primary ease-fluid inline-flex min-h-11 items-center text-xs transition-colors duration-300"
+            >
+              카카오톡 문의<span className="sr-only">(새 창)</span>
+            </a>
             <Link
               href="/terms"
               className="text-secondary hover:text-primary ease-fluid inline-flex min-h-11 items-center text-xs transition-colors duration-300"

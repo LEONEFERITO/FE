@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { lastDay } from "@/components/shop/OrderDetailView";
 import { PhotoThumb } from "@/components/shop/PhotoThumb";
+import { KAKAO_CHANNEL } from "@/data/business";
 import { loginUrl } from "@/lib/auth";
 import { pendingLabel } from "@/lib/pending";
 import {
@@ -156,7 +157,7 @@ export function ReturnRequestForm() {
         <div className="border-subtle bg-band/60 mt-6 rounded-2xl border px-6 py-5 text-sm">
           <p className="text-primary">지금은 이 주문에 교환·반품을 신청할 수 없습니다.</p>
           <p className="text-secondary mt-1">
-            배송이 끝난 주문만, 진행 중인 신청이 없을 때 신청할 수 있습니다. 기간이 지났다면 QnA 의 카카오톡 채널로 알려 주세요.
+            배송이 끝난 주문만, 진행 중인 신청이 없을 때 신청할 수 있습니다. 기간이 지났다면 <a href={KAKAO_CHANNEL.chat} target="_blank" rel="noopener noreferrer" className="text-accent hover:text-accent-hover underline underline-offset-4">카카오톡 채널<span className="sr-only">(새 창)</span></a>로 알려 주세요.
           </p>
         </div>
       </>
