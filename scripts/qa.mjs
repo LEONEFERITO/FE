@@ -65,6 +65,7 @@ const PAGES = [
   { path: "/admin/", name: "관리자 대시보드 → 로그인" },
   { path: "/admin/stats/", name: "관리자 통계 → 로그인" },
   { path: "/admin/notices/edit/", name: "관리자 공지 쓰기 → 로그인" },
+  { path: "/admin/display/why/", name: "관리자 WHY 구간 → 로그인" },
   // 없는 주소 — 404 응답이 정답이다(not-found 화면)
   { path: "/no-such-page/", name: "404", expectStatus: 404 },
 ];

@@ -405,6 +405,84 @@ html[data-motion="on"] .hero-pin {
   }
 }
 
+/* ── WHY 핀 구간 ───────────────────────────────────────
+ * 메인 WHY — 화면을 붙잡아 두고 스크롤로 항목을 넘긴다 (components/home/WhyScroll).
+ * 히어로 핀과 같은 규칙: 여유 높이와 sticky 는 JS 가 있을 때만, 움직임을 줄인 사용자에게는 걸지 않는다.
+ * 그때는 항목 전부가 설명과 함께 펼쳐진 한 화면짜리 구간이다.
+ * ──────────────────────────────────────────────────────── */
+.why-pin {
+  position: relative;
+}
+
+html[data-motion="on"] .why-pin {
+  height: calc(var(--why-steps, 4) * 100vh);
+}
+
+html[data-motion="on"] .why-stage {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+}
+
+/* 배경 — 켜진 항목의 사진만. 움직임이 없을 때는 첫 장. */
+.why-bg {
+  opacity: 0;
+  transition: opacity 0.9s var(--ease-soft);
+}
+
+.why-bg[data-active="true"] {
+  opacity: 1;
+}
+
+html:not([data-motion="on"]) .why-bg:first-child {
+  opacity: 1;
+}
+
+/* 설명 — 켜진 항목만 펼친다. height 가 아니라 grid 행으로 접어서 레이아웃 계산이 가볍다. */
+.why-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 0.6s var(--ease-soft),
+    opacity 0.5s var(--ease-soft);
+}
+
+.why-item[data-active="true"] .why-body {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+html:not([data-motion="on"]) .why-body {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-motion="on"] .why-pin {
+    height: auto;
+  }
+
+  html[data-motion="on"] .why-stage {
+    position: static;
+    height: auto;
+  }
+
+  .why-body,
+  .why-bg {
+    transition: none;
+  }
+
+  .why-body {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+
+  .why-bg:first-child {
+    opacity: 1;
+  }
+}
+
 /* ── 히어로 단계 연출 ──────────────────────────────────────
  * 첫 진입에는 인물 둘만 보이고, 스크롤하면 좌측 블록(모노그램·버튼·문구)과
  * 바탕 워드마크가 함께 아래에서 올라온다.

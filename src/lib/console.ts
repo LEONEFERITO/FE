@@ -121,6 +121,30 @@ export const reorderFaqs = (ids: string[]) => request<Faq[]>("PUT", "/api/admin/
 
 export const publicFaqs = () => request<Faq[]>("GET", "/api/faqs");
 
+// ── 메인 WHY 구간 ───────────────────────────────────────────
+
+export interface WhyAdminItem {
+  id: string | null;
+  title: string;
+  body: string;
+  mediaId: string | null;
+  imageUrl: string | null;
+}
+
+export interface WhyAdminView {
+  eyebrow: string;
+  title: string;
+  intro: string;
+  items: WhyAdminItem[];
+}
+
+/** 서버 why_section · why_item 의 CHECK 와 같다 */
+export const WHY_LIMITS = { eyebrow: 40, title: 60, intro: 400, itemTitle: 40, itemBody: 300, minItems: 2, maxItems: 5 } as const;
+
+export const adminWhy = () => request<WhyAdminView>("GET", "/api/admin/why");
+export const saveWhy = (input: { eyebrow: string; title: string; intro: string; items: { title: string; body: string; mediaId: string | null }[] }) =>
+  request<WhyAdminView>("PUT", "/api/admin/why", input);
+
 // ── 진열 순서 (메인 구성) ────────────────────────────────────
 
 /** 공개 상품 id 를 보여 줄 순서대로. 지금 공개 상품 전부여야 한다(아니면 409 — 다시 불러온다). */

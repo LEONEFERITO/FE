@@ -1,13 +1,17 @@
+import fs from "node:fs";
+import path from "node:path";
+
 import { CategoryGrid } from "@/components/home/CategoryGrid";
 import { ExchangeNotice } from "@/components/home/ExchangeNotice";
 import { FeaturedProducts } from "@/components/home/FeaturedProducts";
 import { FitCompare } from "@/components/home/FitCompare";
 import { Hero } from "@/components/home/Hero";
 import { HeroSplit } from "@/components/home/HeroSplit";
-import { WhySection } from "@/components/home/WhySection";
+import { WhyScroll } from "@/components/home/WhyScroll";
 import { SizeFinder } from "@/components/home/SizeFinder";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import { getWhy } from "@/lib/why";
 import { getCatalog } from "@/lib/catalog";
 
 /**
@@ -41,7 +45,23 @@ import { getCatalog } from "@/lib/catalog";
 
 const HERO_VARIANT: "split" | "stage" = "split";
 
+/**
+ * WHY 구간의 기본 배경 — 줄자로 어깨를 재는 장면. 관리자가 항목에 사진을 올리지 않았을 때 쓴다.
+ * 빌드 시점에 파일이 있는지 확인한다 — 없으면 배경 없이 바탕색으로 두고, 깨진 이미지도 404 도 나가지 않는다.
+ */
+const WHY_BACKGROUND = "/brand/tailoring.webp";
+
+function whyBackground(): string | null {
+  try {
+    return fs.existsSync(path.join(process.cwd(), "public", WHY_BACKGROUND)) ? WHY_BACKGROUND : null;
+  } catch {
+    return null;
+  }
+}
+
 export default async function Home() {
+  /** WHY 구간 — 관리자가 고친 문구와 사진. 빌드 때 받는다(lib/why.ts). */
+  const why = await getWhy();
   /** 메인에 노출할 제품. 촬영본이 있는 것만 — 빈 카드가 섞이면 준비 안 된 가게로 보인다. */
   const FEATURED = (await getCatalog()).filter((p) => p.images.length > 0).slice(0, 4);
 
@@ -68,7 +88,7 @@ export default async function Home() {
           크림 구간은 토큰만 뒤집는다 — 안의 컴포넌트는 그대로다 (globals.css .on-cream).
         */}
         <div className="on-cream">
-          <WhySection />
+          <WhyScroll content={why} fallbackImage={whyBackground()} />
           <FeaturedProducts products={FEATURED} />
         </div>
 
