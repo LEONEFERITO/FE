@@ -73,6 +73,7 @@ function draft(
     leadTimeDays: null, // TODO(고객확인) 제작 기간
     images: [{ url: image, alt: "버건디 배경 앞에 선 모델의 착용 사진" }],
     cutout,
+    story: [],
     // 주문 불가(orderable: false)는 숨기지 않고 비활성으로 노출한다 — 숨기면 "내 사이즈가 원래 없는
     // 브랜드" 로 보이고, 보여주면 "이번에 품절" 로 읽힌다.
     skus: SIZES.map((size) => ({

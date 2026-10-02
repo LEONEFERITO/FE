@@ -25,6 +25,7 @@ export const SAMPLE_PRODUCT: Product = {
   leadTimeDays: null, // TODO(고객확인) 제작 기간
   images: [], // TODO(고객확인) 제품 촬영본
   cutout: null,
+  story: [],
 
   // TODO(고객확인) B-3: 사이즈 체계(95/100/105 인지 S/M/L 인지)가 확정되면 교체.
   // 주문 불가(orderable: false)는 숨기지 않고 비활성으로 노출한다 — 숨기면 "내 사이즈가 원래 없는

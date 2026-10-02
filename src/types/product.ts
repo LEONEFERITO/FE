@@ -127,6 +127,9 @@ export interface Sku {
 export interface ProductPhoto {
   url: string;
   alt: string;
+  /** 원본 크기. 알면 화면이 자리를 미리 잡는다(긴 상세 이미지가 늦게 떠도 아래가 밀리지 않게). */
+  width?: number | null;
+  height?: number | null;
 }
 
 /** 모델 착용 정보. "이 모델과 내 체형이 비슷한가" 가 사이즈 판단의 마지막 근거다. */
@@ -176,8 +179,13 @@ export interface Product {
    * 공개된 상품은 서버가 값이 있을 때만 공개를 허락한다.
    */
   leadTimeDays: number | null;
-  /** 첫 장이 대표 사진이다. 나머지는 착용·디테일 컷 순. */
+  /** 메인 사진 — 첫 장이 대표 사진이다. 나머지는 착용·디테일 컷 순. 상세 맨 위에 보인다. */
   images: ProductPhoto[];
+  /**
+   * 상세 이미지 — 한국 쇼핑몰식 긴 이미지 여러 장. 상세 페이지 가운데에 간격 없이 이어 붙인다.
+   * 메인 사진과 따로 둔다: 메인은 "무엇인가" 를 한눈에, 상세는 스크롤하며 읽는 이야기다.
+   */
+  story: ProductPhoto[];
   /**
    * 배경을 뺀 누끼 컷. 없으면 null.
    * 사진(images)과 따로 두는 이유: 쓰이는 자리가 다르다. 카드·상세는 촬영 원본을 쓰고,

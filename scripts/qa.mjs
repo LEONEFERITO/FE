@@ -112,11 +112,19 @@ function composite(fg, bg, alpha) {
 }
 
 const results = [];
-const browser = await puppeteer.launch({
-  executablePath: EDGE,
-  headless: true,
-  args: ["--hide-scrollbars"],
-});
+// Edge 가 업데이트 중이면 뜨지 않는다 — 그때는 크롬으로 (둘 다 창 없이 돈다)
+const CHROME = "C:/Program Files/Google/Chrome/Application/chrome.exe";
+async function launch() {
+  for (const executablePath of [EDGE, CHROME]) {
+    try {
+      return await puppeteer.launch({ executablePath, headless: true, args: ["--hide-scrollbars"] });
+    } catch (e) {
+      console.log(`브라우저를 띄우지 못했다 (${executablePath}) — 다음 것으로`);
+    }
+  }
+  throw new Error("QA 브라우저를 띄우지 못했다");
+}
+const browser = await launch();
 
 /*
  * 상품 상세 주소 — 목록 페이지에서 첫 상품 링크를 찾는다. 상품은 관리자가 공개한 것이라

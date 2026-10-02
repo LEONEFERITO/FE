@@ -10,6 +10,7 @@ import {
   type ImageFieldValue,
 } from "@/components/admin/ImageField";
 import { ProductPreview } from "@/components/admin/ProductPreview";
+import { StoryImagesField, type StoryImage } from "@/components/admin/StoryImagesField";
 import {
   DEFAULT_SIZES,
   SizeListField,
@@ -37,9 +38,10 @@ import { CATEGORY_LABEL, LINE_LABEL, type Category, type ProductLine } from "@/t
  * 데스크톱에서는 미리보기가 따라다니고(sticky), 모바일에서는 폼 위에 얹는다 —
  * 좁은 화면에서 옆에 두면 둘 다 못 읽는다.
  *
- * ── 이미지는 네 종류 ────────────────────────────────────
- * 고객이 상세페이지 요구사항에서 지정한 4종이다: 대표 · 착용샷 · 디테일컷 · 누끼샷.
+ * ── 이미지는 두 묶음 ────────────────────────────────────
+ * 메인 사진 4종(고객 지정): 대표 · 착용샷 · 디테일컷 · 누끼샷 — 종류마다 한 장, 상세 맨 위에 보인다.
  * 대표만 필수다 — 대표가 없으면 목록 카드에 그릴 것이 없다.
+ * 상세 이미지(STORY): 긴 상세페이지 이미지 여러 장 — 상세 가운데에 간격 없이 이어 붙는다(StoryImagesField).
  *
  * ── 등록 = 초안 ─────────────────────────────────────────
  * 저장한다고 손님에게 보이지 않는다. 공개는 따로 누른다. 문구를 고치는 중에
@@ -128,6 +130,12 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
   const [manufacturedOn, setManufacturedOn] = useState(initial?.manufacturedOn ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [images, setImages] = useState<Images>(() => imagesFrom(initial));
+  const [story, setStory] = useState<StoryImage[]>(() =>
+    (initial?.images ?? [])
+      .filter((img) => img.kind === "STORY")
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((img) => ({ mediaId: img.mediaId, url: img.url, alt: img.alt })),
+  );
   const [sizeChart, setSizeChart] = useState<ImageFieldValue | null>(
     initial?.sizeChartMediaId && initial.sizeChartUrl
       ? { mediaId: initial.sizeChartMediaId, url: initial.sizeChartUrl, filename: "등록된 차트" }
@@ -251,7 +259,7 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
         };
       }),
 
-      images: IMAGE_SLOTS.flatMap((slot, i) => {
+      images: IMAGE_SLOTS.flatMap((slot, i): ProductDraft["images"] => {
         const v = images[slot.key];
         if (!v) return [];
         /*
@@ -270,7 +278,15 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
             sortOrder: i,
           },
         ];
-      }),
+      }).concat(
+        // 상세 이미지 — 메인 사진 뒤 순서(100~). 손님 화면은 이 순서대로 이어 붙인다.
+        story.map((s, i) => ({
+          mediaId: s.mediaId,
+          kind: "STORY",
+          alt: s.alt.trim() || `${name.trim() || "상품"} 상세 이미지 ${i + 1}`,
+          sortOrder: 100 + i,
+        })),
+      ),
       sizeChartMediaId: sizeChart?.mediaId ?? null,
       sizeChartAlt: sizeChartAlt.trim(),
       instagramUrl: instagramUrl.trim(),
@@ -477,10 +493,11 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
           />
         </div>
 
-        {/* ── 이미지 ────────────────────────────────────── */}
+        {/* ── 메인 사진 ──────────────────────────────────── */}
         <fieldset className="border-subtle flex flex-col gap-6 border-t pt-7">
-          <legend className="text-primary text-sm font-medium">이미지</legend>
+          <legend className="text-primary text-sm font-medium">메인 사진</legend>
           <p className="text-muted text-2xs -mt-4 leading-relaxed">
+            상세 맨 위 구매 판 옆에 보입니다 — 대표가 먼저, 나머지는 아래 작은 사진을 눌러 넘겨 봅니다.
             고르는 즉시 미리보기가 나타납니다. 대표 이미지는 필수입니다.
           </p>
 
@@ -499,6 +516,12 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
               />
             ))}
           </div>
+        </fieldset>
+
+        {/* ── 상세 이미지 ────────────────────────────────── */}
+        <fieldset className="border-subtle flex flex-col gap-6 border-t pt-7">
+          <legend className="text-primary text-sm font-medium">상세 이미지</legend>
+          <StoryImagesField value={story} onChange={setStory} productName={name} />
         </fieldset>
 
         {/* ── 사이즈 ────────────────────────────────────── */}

@@ -33,8 +33,10 @@ export const CATALOG_FROM_API = API_BASE.length > 0;
 
 interface ApiImage {
   url: string;
-  kind: "MAIN" | "WORN" | "DETAIL" | "CUTOUT";
+  kind: "MAIN" | "WORN" | "DETAIL" | "CUTOUT" | "STORY";
   alt: string;
+  width: number | null;
+  height: number | null;
 }
 
 interface ApiSummary {
@@ -105,7 +107,7 @@ function asContact(): string | null {
 
 function toProduct(d: ApiDetail): Product {
   const photos: ProductPhoto[] = d.images
-    .filter((i) => i.kind !== "CUTOUT")
+    .filter((i) => i.kind !== "CUTOUT" && i.kind !== "STORY")
     .map((i, index) => ({ i, index }))
     .sort((a, b) => (KIND_RANK[a.i.kind] ?? 9) - (KIND_RANK[b.i.kind] ?? 9) || a.index - b.index)
     .map(({ i }) => ({ url: i.url, alt: i.alt }));
@@ -137,6 +139,10 @@ function toProduct(d: ApiDetail): Product {
     leadTimeDays: d.leadTimeDays,
     images: photos,
     cutout: d.images.find((i) => i.kind === "CUTOUT")?.url ?? null,
+    // 서버가 순서(sortOrder)대로 준다 — 관리자가 놓은 순서 그대로 이어 붙인다
+    story: d.images
+      .filter((i) => i.kind === "STORY")
+      .map((i) => ({ url: i.url, alt: i.alt, width: i.width, height: i.height })),
     skus: d.skus.map((s) => ({
       id: `${d.slug}-${s.size}`,
       size: s.size,

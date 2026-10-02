@@ -69,7 +69,6 @@ export default async function ProductDetailPage({
   const product = await getCatalogProduct(slug);
   if (!product) notFound();
 
-  const detailImages = product.images.slice(1);
 
   return (
     <>
@@ -97,7 +96,7 @@ export default async function ProductDetailPage({
                이 래퍼가 못 줄어들면 소용이 없다 — 페이지가 통째로 가로 스크롤을 탄다)
             */}
             <Reveal className="min-w-0">
-              <ProductGallery photo={product.images[0] ?? null} name={product.name} />
+              <ProductGallery photos={product.images} name={product.name} />
             </Reveal>
             <Reveal delay={140} className="min-w-0">
               <PurchasePanel product={product} />
@@ -108,12 +107,18 @@ export default async function ProductDetailPage({
         </div>
         </div>
 
-        {/* 상세 설명 — 한국 커머스 관례상 긴 이미지 시퀀스가 온다. 와인 면(위 주석). */}
-        <section
-          className="bg-stage"
-          aria-labelledby="detail-heading"
-        >
-          <div className="mx-auto max-w-[1320px] px-5 py-24 text-center md:px-15 md:py-32">
+        {/*
+          제품 상세 — 한국 쇼핑몰식 긴 상세 이미지(관리자 "상세 이미지").
+          여러 장을 **간격 없이** 이어 붙인다: 한 장으로 만든 상세페이지를 잘라 올려도 이음매가 보이지 않게.
+            · 이미지마다 display:block — 인라인 이미지 아래 생기는 글자 줄 틈(몇 px)을 없앤다
+            · 둥근 모서리 · 테두리 · 그림자 없음 — 이미지 자체가 디자인이다
+            · 폭은 860px 가운데 (상세페이지 제작 표준 폭). 모바일은 화면 끝까지
+            · 크기를 알면 width/height 를 줘서 늦게 떠도 아래가 밀리지 않게 한다
+            · 첫 장만 바로, 나머지는 스크롤해서 다가올 때 받는다(lazy)
+          상세 이미지가 없으면 자리표시자를 둔다(촬영본 준비 중).
+        */}
+        <section className="bg-stage" aria-labelledby="detail-heading">
+          <div className="mx-auto max-w-[1320px] px-5 pt-24 text-center md:px-15 md:pt-32">
             <Reveal>
               <p className="text-muted text-2xs tracking-label">DETAIL</p>
             </Reveal>
@@ -125,31 +130,29 @@ export default async function ProductDetailPage({
                 제품 상세
               </h2>
             </Reveal>
+          </div>
 
-            {/*
-              대표 사진(첫 장)을 뺀 나머지 — 착용컷 · 디테일컷 — 가 여기 세로로 이어진다.
-              위 구매 판에는 사진을 한 장만 두기로 했으므로(고객 요청) 나머지는 전부 이 자리다.
-            */}
-            {detailImages.length > 0 ? (
-              <div className="mx-auto mt-12 flex max-w-[900px] flex-col gap-6">
-                {detailImages.map((photo, i) => (
-                  <Reveal key={photo.url} delay={i === 0 ? 180 : 0}>
-                    <div className="border-subtle bg-band/50 shadow-soft rounded-[2rem] border p-2">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={photo.url}
-                        alt={photo.alt || `${product.name ?? "제품"} 상세 사진 ${i + 1}`}
-                        loading="lazy"
-                        className="w-full rounded-[calc(2rem-0.5rem)]"
-                      />
-                    </div>
-                  </Reveal>
-                ))}
-              </div>
-            ) : (
+          {product.story.length > 0 ? (
+            <div className="mx-auto mt-12 flex w-full max-w-[860px] flex-col pb-24 md:pb-32">
+              {product.story.map((photo, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={photo.url}
+                  src={photo.url}
+                  alt={photo.alt || `${product.name ?? "제품"} 상세 이미지 ${i + 1}`}
+                  width={photo.width ?? undefined}
+                  height={photo.height ?? undefined}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  decoding="async"
+                  className="block h-auto w-full"
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="mx-auto max-w-[1320px] px-5 pb-24 md:px-15 md:pb-32">
               <Reveal delay={180}>
                 {/* 사진 자리다. 실제 촬영본 배경이 버건디라 그 톤을 미리 보여준다 */}
-                <div className="border-subtle bg-band/50 shadow-soft mx-auto mt-12 max-w-[900px] rounded-[2rem] border p-2">
+                <div className="border-subtle bg-band/50 shadow-soft mx-auto mt-12 max-w-[860px] rounded-[2rem] border p-2">
                   <div
                     className="flex aspect-[9/7] items-center justify-center rounded-[calc(2rem-0.5rem)]"
                     style={{
@@ -157,14 +160,12 @@ export default async function ProductDetailPage({
                         "linear-gradient(155deg, #4E0C17 0%, #7B1526 55%, #2A0A11 100%)",
                     }}
                   >
-                    <p className="px-6 text-center text-sm text-white/55">
-                      상세 컷 · 원단 클로즈업 · 착용 컷 준비 중
-                    </p>
+                    <p className="px-6 text-center text-sm text-white/55">상세 이미지 준비 중</p>
                   </div>
                 </div>
               </Reveal>
-            )}
-          </div>
+            </div>
+          )}
         </section>
 
         {/*
