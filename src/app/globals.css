@@ -506,6 +506,553 @@ html[data-motion="on"] .stage-in[data-staged="true"] {
   transform: none;
 }
 
+/* ════════════════════════════════════════════════════════
+ * 스크롤 장면 (components/motion/Scene) — 브랜드 페이지의 스토리텔링
+ *
+ * Scene 이 `--p`(0~1 진행도, 관성 포함)와 `--mx` · `--my`(마우스, -1~1)만 쓰고,
+ * 여기 규칙이 그 숫자를 움직임으로 바꾼다.
+ * 움직이는 건 transform · opacity · filter 뿐이다 — 레이아웃을 건드리는 속성은 자간 하나(첫인상)뿐이고,
+ * 그것도 두 줄짜리 글자에만 건다.
+ *
+ * ── 3D 는 CSS 로만 ─────────────────────────────────────
+ * perspective + translateZ 로 깊이를 만든다. 멀리 있는 층은 작고 느리게, 가까운 층은 크고 빠르게
+ * 움직이는 것은 브라우저가 투영 행렬로 계산한다 — WebGL 도, 추가 번들도 없다.
+ * 무거우면 빼기로 한 요소라 전부 아래 "3d" 주석 줄에 모아 둔다. 그 줄만 지우면 평면이 된다.
+ *
+ * ── 시간 연출과 스크롤 연출을 같은 속성에 겹치지 않는다 ──
+ * 처음 등장(brand-rise · brand-card-in · brand-fade)은 키프레임이고, fill-mode 가 both 라
+ * 끝난 뒤에도 그 값이 남는다. 같은 요소의 같은 속성을 `--p` 로도 움직이면 키프레임 값이 이긴다.
+ * 그래서 등장은 **안쪽 요소**에, 스크롤은 **바깥 층**에 건다.
+ *
+ * ── 세 가지 상태 ───────────────────────────────────────
+ *   JS 켜짐           : 아래 html[data-motion="on"] 규칙이 스크롤에 따라 그린다
+ *   JS 없음           : 기본 규칙 = 완성된 상태. 핀도 깊이도 없다
+ *   움직임 줄임       : 맨 아래 미디어쿼리가 완성된 상태로 되돌린다 (스크롤로 화면이 머무는 것 자체가 불편한 사용자)
+ * ════════════════════════════════════════════════════════ */
+.scene {
+  position: relative;
+  --p: 0;
+  --mx: 0;
+  --my: 0;
+}
+
+.scene-stage {
+  position: relative;
+  min-height: 100dvh;
+}
+
+html[data-motion="on"] .scene[data-pin] {
+  height: var(--scene-h, 200vh);
+}
+
+html[data-motion="on"] .scene[data-pin] > .scene-stage {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+}
+
+/* 진행 눈금 — 핀 장면 오른쪽 아래의 가는 선. 금색이 진행도만큼 찬다. 좁은 화면에서는 뺀다 */
+.brand-rail {
+  position: absolute;
+  right: 1.5rem;
+  bottom: 1.75rem;
+  width: 1px;
+  height: 3.5rem;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--text-primary) 22%, transparent);
+}
+
+.brand-rail::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--accent-base);
+  transform: scaleY(var(--p));
+  transform-origin: top;
+}
+
+html:not([data-motion="on"]) .brand-rail {
+  display: none;
+}
+
+@media (width < 768px) {
+  .brand-rail {
+    display: none;
+  }
+}
+
+/* ── 처음 등장 (시간) ──────────────────────────────────
+ * 가리개 아래에서 올라오는 글줄 · 살짝 커진 채 맺히는 사진 · 늦게 켜지는 워드마크. 각자 --d 만큼 늦게. */
+@keyframes brand-rise {
+  from {
+    opacity: 0;
+    transform: translateY(110%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes brand-card-in {
+  from {
+    opacity: 0;
+    transform: scale(1.06) translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes brand-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+html[data-motion="on"] .brand-in {
+  animation: brand-rise 1.2s var(--ease-soft) var(--d, 0s) both;
+}
+
+html[data-motion="on"] .brand-hero-card {
+  animation: brand-card-in 1.7s var(--ease-soft) 0.1s both;
+}
+
+html[data-motion="on"] .brand-hero-mark > span {
+  animation: brand-fade 2s var(--ease-soft) 0.5s both;
+}
+
+/* ── 장면 1 · 빅 히어로 — 카메라가 앞으로 밀고 들어간다 ──────
+ * 세 층(워드마크 → 사진 → 표제)이 각자 다른 깊이(--z)에 있고, 스크롤이 전부를 같은 만큼 앞으로 당긴다.
+ * 그래서 멀리 있던 워드마크는 천천히 커지고, 사진은 화면을 채우며, 표제는 걷힌다.
+ * 마우스는 층마다 다른 계수(--kx · --ky)로 민다 — 앞 층이 더 많이 움직여 깊이가 보인다. */
+.brand-hero-stage {
+  overflow: hidden;
+  perspective: 1200px; /* 3d */
+  /* 소실점은 사진 한가운데 — 사진이 제자리에서 커진다. 1024 이상은 사진이 오른쪽에 있다 */
+  perspective-origin: 50% 46%; /* 3d */
+}
+
+@media (width >= 1024px) {
+  .brand-hero-stage {
+    perspective-origin: 64% 46%; /* 3d */
+  }
+}
+
+.brand-hero-layer {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d; /* 3d */
+  --kx: 0px;
+  --ky: 0px;
+}
+
+html[data-motion="on"] .brand-hero-layer {
+  transform: translate3d(
+    calc(var(--mx) * var(--kx)),
+    calc(var(--my) * var(--ky)),
+    calc(var(--z, 0px) + var(--p) * 600px) /* 3d */
+  );
+  will-change: transform;
+}
+
+/* 뒤 조명 — 사진 뒤에서 천천히 숨 쉬는 금빛. 사진과 같은 자리(소실점)에 둔다 */
+.brand-hero-glow {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 72vmin;
+  height: 72vmin;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--gold-base) 26%, transparent),
+    color-mix(in srgb, var(--gold-base) 8%, transparent) 55%,
+    transparent 74%
+  );
+  transform: translate(-50%, -50%);
+  animation: brand-breathe 7s ease-in-out infinite alternate;
+}
+
+@media (width >= 1024px) {
+  .brand-hero-glow {
+    left: 64%;
+  }
+}
+
+@keyframes brand-breathe {
+  from {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+}
+
+/* 사진 액자 — 처음엔 살짝 돌아서 있다가 정면을 본다 */
+.brand-hero-frame {
+  position: relative;
+  overflow: hidden;
+}
+
+html[data-motion="on"] .brand-hero-frame {
+  transform: rotateY(calc((1 - var(--p)) * -9deg)); /* 3d */
+}
+
+/* 빛 쓸기 — 처음 한 번, 사진 위를 대각선으로 지나는 하이라이트 */
+.brand-hero-frame::after {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 42%,
+    rgba(255, 240, 210, 0.2) 50%,
+    transparent 58%
+  );
+  transform: translateX(-80%);
+}
+
+html[data-motion="on"] .brand-hero-frame::after {
+  animation: brand-sweep 2.6s var(--ease-soft) 1.1s both;
+}
+
+@keyframes brand-sweep {
+  from {
+    transform: translateX(-80%);
+  }
+  to {
+    transform: translateX(80%);
+  }
+}
+
+/* 유령 액자 — 사진보다 한 발 뒤, 어긋나 있다가 스크롤하면 사진에 들어맞는다 */
+.brand-hero-ghost {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 1px solid color-mix(in srgb, var(--gold-base) 55%, transparent);
+}
+
+html[data-motion="on"] .brand-hero-ghost {
+  transform: translate3d(
+    calc((1 - var(--p)) * 18px),
+    calc((1 - var(--p)) * 18px),
+    -40px /* 3d */
+  );
+}
+
+/* 표제 — 깊이로 당기지 않는다. 소실점 기준으로 커지면 왼쪽 글자가 화면 밖으로 밀린다.
+ * 대신 왼쪽 아래를 붙잡고 조금 커지며 위로 걷힌다 (0.42 → 0.7 에 사라진다). */
+html[data-motion="on"] .brand-hero-copy {
+  transform: translate3d(
+      calc(var(--mx) * var(--kx)),
+      calc(var(--p) * -120px + var(--my) * var(--ky)),
+      0
+    )
+    scale(calc(1 + var(--p) * 0.12));
+  transform-origin: 0 100%;
+  opacity: clamp(0, calc(1 - (var(--p) - 0.42) / 0.28), 1);
+}
+
+/* 워드마크 — 끝에서 함께 걷힌다. 광택은 Logo 안쪽에서 지나간다 (brand-shine) */
+.brand-hero-mark {
+  opacity: 0.16;
+}
+
+html[data-motion="on"] .brand-hero-mark {
+  opacity: calc(0.16 * clamp(0, calc(1 - (var(--p) - 0.72) / 0.22), 1));
+}
+
+.brand-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(255, 244, 220, 0.95) 50%,
+    transparent 65%
+  );
+  transform: translateX(-100%);
+}
+
+html[data-motion="on"] .brand-shine {
+  animation: brand-shine 9s cubic-bezier(0.4, 0, 0.2, 1) 2.5s infinite;
+}
+
+@keyframes brand-shine {
+  0% {
+    transform: translateX(-100%);
+  }
+  30%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* 장막 — 장면 끝에서 바닥색으로 덮어 다음 장면과 이어 붙인다 */
+.brand-hero-veil {
+  opacity: 0;
+}
+
+html[data-motion="on"] .brand-hero-veil {
+  opacity: clamp(0, calc((var(--p) - 0.8) / 0.2), 1);
+}
+
+/* 스크롤 안내 — 움직이기 시작하면 바로 걷힌다. JS 가 없으면 안내할 게 없으니 숨긴다 */
+html:not([data-motion="on"]) .brand-hero-cue {
+  display: none;
+}
+
+html[data-motion="on"] .brand-hero-cue {
+  opacity: clamp(0, calc(1 - var(--p) * 6), 1);
+}
+
+@keyframes brand-cue {
+  0% {
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+  45% {
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+  55% {
+    transform: scaleY(1);
+    transform-origin: bottom;
+  }
+  100% {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+}
+
+.brand-hero-cue i {
+  animation: brand-cue 2.2s var(--ease-soft) infinite;
+}
+
+/* ── 장면 2 · 슬로건 — 낱말이 스크롤을 따라 하나씩 켜진다 ──────
+ * 낱말 i 는 진행도 × 낱말 수가 i 를 지날 때 켜진다(--lit 0→1). 전체는 0.8 지점에 다 켜지고 나머지는 읽는 시간이다.
+ * 켜지는 동안 금빛 잔불에서 크림으로, 흐림에서 또렷함으로, 조금 아래에서 제자리로.
+ * 문단은 눕혀진 채 들어와서(rotateX) 첫 1/4 동안 일어선다. */
+.brand-word {
+  --i: 0;
+  --lit: 1;
+  display: inline-block;
+}
+
+html[data-motion="on"] .brand-word {
+  --lit: clamp(0, calc((var(--p) * var(--n, 20) * 1.35 - var(--i)) / 2), 1);
+  opacity: calc(0.22 + var(--lit) * 0.78);
+  color: color-mix(in srgb, var(--text-primary) calc(var(--lit) * 100%), var(--accent-base));
+  filter: blur(calc((1 - var(--lit)) * 4px));
+  transform: translate3d(0, calc((1 - var(--lit)) * 0.22em), 0);
+}
+
+html[data-motion="on"] .brand-tilt {
+  transform: perspective(1000px) rotateX(calc(clamp(0, calc(0.25 - var(--p)), 0.25) * 48deg)) /* 3d */
+    translateY(calc(clamp(0, calc(0.25 - var(--p)), 0.25) * 160px));
+  transform-origin: 50% 100%;
+}
+
+/* ── 장면 3 · 키워드 — 띠 두 줄이 서로 반대로 흐른다 ──────
+ * 기본(JS 없음)은 줄바꿈되는 보통 목록이다. 움직일 때만 한 줄로 펴서 가로로 민다.
+ * 둘째 낱말마다 윤곽선만 남겨 채운 글자와 번갈아 리듬을 만든다.
+ * 띠 전체를 살짝 비스듬히 세워(rotateY) 멀어지는 쪽이 작아지고, 멈춰 있을 때도 아주 천천히 흔들린다(brand-drift). */
+.brand-row {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 0.55em;
+}
+
+.brand-row li:nth-child(even) {
+  color: transparent;
+  -webkit-text-stroke: 1px var(--text-primary);
+}
+
+html[data-motion="on"] .brand-ribbon {
+  transform: perspective(1400px) rotateY(-9deg) rotateX(7deg); /* 3d */
+  transform-style: preserve-3d; /* 3d */
+}
+
+html[data-motion="on"] .brand-drift {
+  animation: brand-drift 18s ease-in-out infinite alternate;
+}
+
+@keyframes brand-drift {
+  from {
+    transform: translate3d(-1.5%, 0, 0);
+  }
+  to {
+    transform: translate3d(1.5%, 0, 0);
+  }
+}
+
+html[data-motion="on"] .brand-row {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  width: max-content;
+  will-change: transform;
+}
+
+html[data-motion="on"] .brand-row-a {
+  transform: translate3d(calc(var(--p) * -36%), 0, 0);
+}
+
+html[data-motion="on"] .brand-row-b {
+  transform: translate3d(calc(-36% + var(--p) * 36%), 0, 0);
+}
+
+/* ── 장면 4 · 사진 — 깊이가 다른 사진이 다른 속도로 지나간다 ──────
+ * 사진마다 자기 Scene(view) 이라 --p 는 그 사진이 화면을 지나는 진행도다 (0.5 = 한가운데).
+ * --dy 가 클수록 멀리서(빠르게) 지나간다. 한가운데를 지날 때 정면을 보고, 그 앞뒤로 살짝 돌아 있다.
+ * 들어올 때는 바닥색 가리개가 위로 걷히며 드러나고(--from → --to), 안쪽 사진은 천천히 당겨진다. */
+.brand-float {
+  --dy: -200px;
+  --tilt: 0deg;
+  --from: 0.04;
+  --to: 0.36;
+  --lp: 1;
+}
+
+html[data-motion="on"] .brand-float {
+  --lp: clamp(0, calc((var(--p) - var(--from)) / (var(--to) - var(--from))), 1);
+  transform: perspective(1200px) translate3d(0, calc((var(--p) - 0.5) * var(--dy)), 0)
+    rotateY(calc((0.5 - var(--p)) * var(--tilt))); /* 3d */
+  will-change: transform;
+}
+
+html[data-motion="on"] .brand-float img {
+  transform: scale(calc(1.16 - var(--p) * 0.16));
+  will-change: transform;
+}
+
+.brand-cover {
+  display: none;
+}
+
+html[data-motion="on"] .brand-cover {
+  display: block;
+  position: absolute;
+  inset: -1px;
+  background: var(--bg-base);
+  transform: translate3d(0, calc(var(--lp) * -101%), 0);
+  will-change: transform;
+}
+
+/* ── 장면 5 · 첫인상 — 문장이 깊은 곳에서 떠오른다 ──────
+ * 각 줄은 자기 구간(--from → --to)에서만 움직인다: 흐리고 자간이 흩어진 채 멀리 있다가 모이며 초점이 맞는다.
+ * 배경 사진은 머무는 내내 천천히 다가온다. */
+html[data-motion="on"] .brand-quote-bg {
+  transform: scale(calc(1.02 + var(--p) * 0.1));
+  will-change: transform;
+}
+
+.brand-depth {
+  perspective: 1000px; /* 3d */
+  transform-style: preserve-3d; /* 3d */
+}
+
+.brand-surface {
+  --from: 0;
+  --to: 1;
+  --lp: 1;
+}
+
+html[data-motion="on"] .brand-surface {
+  --lp: clamp(0, calc((var(--p) - var(--from)) / (var(--to) - var(--from))), 1);
+  opacity: var(--lp);
+  transform: translate3d(0, calc((1 - var(--lp)) * 36px), calc((1 - var(--lp)) * -260px)); /* 3d */
+  filter: blur(calc((1 - var(--lp)) * 6px));
+  will-change: transform, opacity;
+}
+
+html[data-motion="on"] .brand-surface-text {
+  letter-spacing: calc(var(--ls-display) + (1 - var(--lp)) * 0.08em);
+}
+
+/* 금선 — 눈썹과 문장 사이, 왼쪽에서 그어진다 */
+.brand-line {
+  display: block;
+  height: 1px;
+  width: 4rem;
+  background: var(--accent-base);
+  transform-origin: left;
+}
+
+html[data-motion="on"] .brand-line {
+  transform: scaleX(var(--lp));
+}
+
+/* ── 움직임 줄임 — 전부 완성된 상태로 ────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html[data-motion="on"] .scene[data-pin] {
+    height: auto;
+  }
+
+  html[data-motion="on"] .scene[data-pin] > .scene-stage {
+    position: static;
+    height: auto;
+  }
+
+  html[data-motion="on"] .brand-hero-layer,
+  html[data-motion="on"] .brand-hero-frame,
+  html[data-motion="on"] .brand-hero-ghost,
+  html[data-motion="on"] .brand-hero-copy,
+  html[data-motion="on"] .brand-tilt,
+  html[data-motion="on"] .brand-ribbon,
+  html[data-motion="on"] .brand-drift,
+  html[data-motion="on"] .brand-row,
+  html[data-motion="on"] .brand-float,
+  html[data-motion="on"] .brand-float img,
+  html[data-motion="on"] .brand-quote-bg,
+  html[data-motion="on"] .brand-line {
+    transform: none;
+    will-change: auto;
+  }
+
+  /* 파생값은 원천(--lit · --lp)만 1 로 — 색 · 흐림 · 자간 · 가리개가 전부 끝 상태가 된다 */
+  html[data-motion="on"] .brand-word,
+  html[data-motion="on"] .brand-surface,
+  html[data-motion="on"] .brand-float {
+    --lit: 1;
+    --lp: 1;
+  }
+
+  html[data-motion="on"] .brand-surface {
+    transform: none;
+  }
+
+  html[data-motion="on"] .brand-hero-copy {
+    opacity: 1;
+  }
+
+  html[data-motion="on"] .brand-hero-mark {
+    opacity: 0.16;
+  }
+
+  html[data-motion="on"] .brand-hero-veil,
+  html[data-motion="on"] .brand-hero-cue,
+  html[data-motion="on"] .brand-cover,
+  html[data-motion="on"] .brand-shine,
+  html[data-motion="on"] .brand-rail {
+    display: none;
+  }
+
+  html[data-motion="on"] .brand-row {
+    flex-wrap: wrap;
+    white-space: normal;
+    width: auto;
+  }
+}
+
 /*
  * 키보드 포커스가 보여야 한다 (접근성 요구: 키보드 이동).
  * 딥 와인 바탕에서는 골드가 9.23:1 이라 어느 면 위에서도 링이 읽힌다.

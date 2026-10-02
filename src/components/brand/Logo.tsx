@@ -32,6 +32,11 @@ interface LogoProps {
    */
   label?: string;
   className?: string;
+  /**
+   * 마스크 안에 겹쳐 그릴 것 — 글자 모양으로만 보인다.
+   * 브랜드 히어로의 금속 광택(지나가는 빛 띠)이 이걸로 들어간다. 바탕색(currentColor)은 그대로다.
+   */
+  children?: React.ReactNode;
 }
 
 export function Logo({
@@ -39,6 +44,7 @@ export function Logo({
   fluid = false,
   label = "LEONE FERITO",
   className = "",
+  children,
 }: LogoProps) {
   const maskUrl = "url(/brand/leoneferito-wordmark.svg)";
 
@@ -47,7 +53,7 @@ export function Logo({
       role={label ? "img" : undefined}
       aria-label={label || undefined}
       aria-hidden={label ? undefined : true}
-      className={`block bg-current ${fluid ? "w-full" : "inline-block shrink-0"} ${className}`}
+      className={`block bg-current ${children ? "relative overflow-hidden" : ""} ${fluid ? "w-full" : "inline-block shrink-0"} ${className}`}
       style={{
         ...(fluid
           ? { aspectRatio: `${ASPECT_RATIO}` }
@@ -59,6 +65,8 @@ export function Logo({
         maskSize: "contain",
         WebkitMaskSize: "contain",
       }}
-    />
+    >
+      {children}
+    </span>
   );
 }
