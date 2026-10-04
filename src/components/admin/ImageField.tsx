@@ -142,7 +142,13 @@ export function ImageField({
             </span>
           )}
         </label>
-        <span className="text-muted text-2xs whitespace-nowrap">
+        {/*
+          줄바꿈을 막지 않는다. 받는 형식이 늘면서(GIF · AVIF · BMP) 이 문구가 길어졌고,
+          nowrap 이면 320px 화면에서 줄을 못 바꿔 **페이지 전체에 가로 스크롤이 생긴다**
+          (QA 에서 33px 넘침으로 잡혔다). 폭이 남으면 지금처럼 라벨 옆 한 줄로 서고,
+          좁으면 오른쪽 정렬로 접힌다.
+        */}
+        <span className="text-muted text-2xs text-right">
           JPG · PNG · WebP · GIF · AVIF · BMP · 최대 {formatBytes(MAX_IMAGE_BYTES)}
         </span>
       </div>

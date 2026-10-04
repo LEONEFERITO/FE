@@ -238,13 +238,30 @@ for (const vp of VIEWPORTS) {
           .trim();
         if (!own) return;
         const cs = getComputedStyle(el);
+        /*
+         * 윤곽선 글자 (color: transparent + -webkit-text-stroke).
+         *
+         * 속을 비우고 외곽선만 남기는 연출이다 (브랜드 페이지 키워드 띠 — globals.css
+         * `.brand-row li:nth-child(even)`). 이때 color 는 알파 0 이라 배경과 합성하면
+         * 배경색 **그 자체**가 되어 대비가 정확히 1.00:1 로 나온다. 실제로 눈에 보이게
+         * 하는 색은 stroke 쪽인데 color 만 보면 그걸 놓친다 — 멀쩡한 화면이 매번
+         * "저대비 5건" 으로 잡혀서 진짜 문제를 덮었다.
+         *
+         * 그래서 글자가 완전히 투명하고 stroke 가 있으면 stroke 색으로 판정한다.
+         * 둘 다 없으면(투명한데 stroke 도 없음) 보이지 않는 글자이니 그대로 걸린다.
+         */
+        const strokeWidth = parseFloat(cs.webkitTextStrokeWidth) || 0;
+        const fillAlpha = (cs.color.match(/rgba?\(([^)]+)\)/)?.[1].split(/[\s,/]+/).filter(Boolean) ?? [])[3];
+        const hollow = fillAlpha !== undefined && Number(fillAlpha) === 0 && strokeWidth > 0;
         textNodes.push({
           text: own.slice(0, 40),
-          color: cs.color,
+          color: hollow ? cs.webkitTextStrokeColor : cs.color,
           bg: effectiveBg(el),
           fontSize: parseFloat(cs.fontSize),
           fontWeight: parseInt(cs.fontWeight, 10) || 400,
           tag: el.tagName.toLowerCase(),
+          // 윤곽선 글자는 선이 얇아서 대비가 충분해도 읽기 어려울 수 있다. 사람이 볼 수 있게 남긴다.
+          outlined: hollow || undefined,
         });
       });
 
@@ -373,7 +390,39 @@ for (const r of results) {
   if (r.devMarkers.length) problems.push(`${where}: 개발용 표시 ${[...new Set(r.devMarkers)].join(", ")}`);
 }
 
+/*
+ * 링크 목적지가 실제로 있는가 (머리말 8번).
+ *
+ * 그동안 internalLinks 를 **모으기만 하고 판정하지 않았다** — 검사 목록에는 있는데
+ * 요약에서 한 번도 보지 않아서, 링크가 깨져도 "문제 없음" 이 나왔다. 조용히 통과하는
+ * 검사는 없는 검사보다 나쁘다. 믿고 안 보게 되기 때문이다.
+ *
+ * 화면마다가 아니라 링크마다 한 번씩 본다. 같은 링크가 여러 화면·뷰포트에 있어서
+ * 화면별로 돌면 같은 사실을 수백 번 확인하게 된다.
+ */
+const linkTargets = new Map(); // 경로 → 그 링크가 있던 화면들
+for (const r of results) {
+  for (const href of r.internalLinks) {
+    const target = href.split("#")[0].split("?")[0];
+    if (!target) continue;
+    if (!linkTargets.has(target)) linkTargets.set(target, new Set());
+    linkTargets.get(target).add(r.page);
+  }
+}
+for (const [target, pages] of [...linkTargets].sort()) {
+  let status;
+  try {
+    status = (await fetch(BASE + target, { redirect: "manual" })).status;
+  } catch (e) {
+    status = `연결 실패 ${e.message}`;
+  }
+  if (status !== 200) {
+    problems.push(`링크 깨짐: ${target} → ${status} (${[...pages].slice(0, 4).join(", ")})`);
+  }
+}
+
 console.log(problems.length === 0 ? "문제 없음" : problems.join("\n"));
+console.log(`\n확인한 내부 링크: ${linkTargets.size}종`);
 console.log(`\n검사한 화면: ${results.length}개 (페이지 ${PAGES.length} × 뷰포트 ${VIEWPORTS.length})`);
 
 if (OUT) fs.writeFileSync(OUT, JSON.stringify(results, null, 2), "utf-8");
