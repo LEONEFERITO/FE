@@ -506,6 +506,71 @@ html[data-motion="on"] .stage-in[data-staged="true"] {
   transform: none;
 }
 
+/* ── 히어로 · 가운데 한 컷 + 양옆 액자 (components/home/HeroReveal) ────
+ * Scene 이 붙잡아 둔 구간의 진행도 `--p` 로 액자 둘이 바깥에서 밀려 들어온다.
+ * 왼쪽(0.06~0.42) 다음 오른쪽(0.30~0.68). 그 뒤 1 까지는 완성된 그림을 들고 있다 — 다 나올 때까지 홀드.
+ *
+ * 기본 규칙 = 완성된 상태(JS 없음 · 크롤러). 숨기고 움직이는 건 html[data-motion="on"] 에서만.
+ * 움직이는 속성은 transform · opacity 뿐이다.
+ * ──────────────────────────────────────────────────────── */
+html[data-motion="on"] .hero-reveal-card {
+  /* --k: 이 액자의 진행도. --from 전에는 0, --to 뒤에는 1 */
+  --k: clamp(0, calc((var(--p) - var(--from)) / (var(--to) - var(--from))), 1);
+  opacity: var(--k);
+  /* 바깥(--dx)에서 안으로, 아주 조금 아래에서 위로, 살짝 크게 왔다가 제 크기로 */
+  transform: translate3d(
+      calc((1 - var(--k)) * var(--dx)),
+      calc((1 - var(--k)) * 5%),
+      0
+    )
+    scale(calc(1.04 - var(--k) * 0.04));
+  will-change: transform, opacity;
+}
+
+html[data-motion="on"] .hero-reveal-card-l {
+  --from: 0.06;
+  --to: 0.42;
+  --dx: -18%;
+}
+
+html[data-motion="on"] .hero-reveal-card-r {
+  --from: 0.3;
+  --to: 0.68;
+  --dx: 18%;
+}
+
+/* 워드마크 — 뒤에 있으니 느리게. 조금 가라앉으며 커져서 깊이가 생긴다 */
+html[data-motion="on"] .hero-reveal-mark {
+  transform: translate3d(0, calc(var(--p) * -3%), 0) scale(calc(1 + var(--p) * 0.03));
+  will-change: transform;
+}
+
+html:not([data-motion="on"]) .hero-reveal-cue {
+  display: none;
+}
+
+html[data-motion="on"] .hero-reveal-cue {
+  opacity: clamp(0, calc(1 - var(--p) * 5), 1);
+}
+
+/* 움직임 줄임 — 핀은 .scene 공통 규칙이 풀고(아래 Scene 구간), 여기선 액자를 제자리에 둔다 */
+@media (prefers-reduced-motion: reduce) {
+  html[data-motion="on"] .hero-reveal-card,
+  html[data-motion="on"] .hero-reveal-mark {
+    transform: none;
+    opacity: 1;
+    will-change: auto;
+  }
+
+  html[data-motion="on"] .hero-reveal-mark {
+    opacity: 0.08;
+  }
+
+  html[data-motion="on"] .hero-reveal-cue {
+    display: none;
+  }
+}
+
 /* ════════════════════════════════════════════════════════
  * 스크롤 장면 (components/motion/Scene) — 브랜드 페이지의 스토리텔링
  *

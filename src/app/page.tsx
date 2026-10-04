@@ -6,6 +6,7 @@ import { ExchangeNotice } from "@/components/home/ExchangeNotice";
 import { FeaturedProducts } from "@/components/home/FeaturedProducts";
 import { FitCompare } from "@/components/home/FitCompare";
 import { Hero } from "@/components/home/Hero";
+import { HeroReveal } from "@/components/home/HeroReveal";
 import { HeroSplit } from "@/components/home/HeroSplit";
 import { WhyScroll } from "@/components/home/WhyScroll";
 import { SizeFinder } from "@/components/home/SizeFinder";
@@ -32,18 +33,23 @@ import { getCatalog } from "@/lib/catalog";
  * 히어로만 벨벳(버건디)이고 그 아래는 전부 베이지+화이트다.
  * 사진이 주인공인 구간만 벨벳이다 — 제품 사진의 배경이 이미 버건디이기 때문이다.
  *
- * ── 히어로 두 가지 ─────────────────────────────────────
- *   "split" : 왼쪽 브랜드 판 + 오른쪽 제품 사진 한 장. 제품명·가격·버튼이 첫 화면에 있다.
- *             헤더는 평소 유리 알약 — 베이지/벨벳 반반 위에서 투명 헤더는 한쪽에서 사라진다.
- *   "stage" : 두 인물이 거대한 워드마크를 딛고 선 무대. 브랜드는 말하지만 물건은 안 판다.
- * 상수 하나로 전환한다. 둘 다 살아 있어야 나란히 비교할 수 있다.
+ * ── 히어로 세 가지 ─────────────────────────────────────
+ *   "reveal" : 크림 종이 위 누끼 한 명, 스크롤하면 양옆 액자 컷이 밀려 들어오고 다 나올 때까지
+ *              화면을 붙잡는다 (2026-10-04 결정, 고객 레퍼런스 TNGT). 이름·가격·버튼은 처음부터 있다.
+ *   "split"  : 왼쪽 브랜드 판 + 오른쪽 제품 사진 한 장. 제품명·가격·버튼이 첫 화면에 있다.
+ *              헤더는 평소 유리 알약 — 베이지/벨벳 반반 위에서 투명 헤더는 한쪽에서 사라진다.
+ *   "stage"  : 두 인물이 거대한 워드마크를 딛고 선 무대. 브랜드는 말하지만 물건은 안 판다.
+ * 상수 하나로 전환한다. 셋 다 살아 있어야 나란히 비교할 수 있다.
+ *
+ * reveal 은 크림 면이라 면 순서가 "크림 → WHY 크림" 으로 이어진다. 아래 주석의 "히어로 와인" 은
+ * split · stage 일 때의 이야기다. 와인 면은 카테고리 구간에서 돌아온다.
  *
  * 브랜드 문구·촬영본이 확정되기 전이라 카피는 TODO(고객확인) 로 둔다.
  * 넘겨짚어 쓰지 않는다 — 브랜드 문구는 검색 결과와 공유 미리보기에 그대로 박혀 나간다.
  */
 
 
-const HERO_VARIANT: "split" | "stage" = "split";
+const HERO_VARIANT: "reveal" | "split" | "stage" = "reveal";
 
 /**
  * WHY 구간의 기본 배경 — 줄자로 어깨를 재는 장면. 관리자가 항목에 사진을 올리지 않았을 때 쓴다.
@@ -72,13 +78,21 @@ export default async function Home() {
         분할형에서도 켜는 이유: 모바일 히어로가 무대색 한 판이라, 그 위에 헤더 면이
         또 얹히면 같은 계열 색이 두 겹으로 보여 경계가 생긴다.
       */}
-      <Header overHero />
+      {/*
+        reveal 에서는 투명 헤더를 끈다. 그 상태(검정 스크림 + 크림 글자)는 와인 히어로 위에서
+        읽히라고 만든 것이라, 크림 종이 위에 올리면 뿌연 띠가 되고 글자는 아래쪽에서 사라진다.
+        평소의 와인 유리 바가 크림 종이의 천장이 된다 — 데스크톱은 원래부터 그 모습이다.
+      */}
+      <Header overHero={HERO_VARIANT !== "reveal"} />
 
       <main id="main" className="flex-1">
-        {HERO_VARIANT === "split" ? (
-          <HeroSplit products={FEATURED} />
-        ) : (
+        {/* reveal 은 한 룩만 보여준다. 촬영본이 있는 제품이 하나도 없으면 분할형으로 — 빈 무대를 내보내지 않는다 */}
+        {HERO_VARIANT === "reveal" && FEATURED[0] ? (
+          <HeroReveal product={FEATURED[0]} />
+        ) : HERO_VARIANT === "stage" ? (
           <Hero />
+        ) : (
+          <HeroSplit products={FEATURED} />
         )}
 
         {/*
