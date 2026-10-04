@@ -5,6 +5,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { PageBand } from "@/components/ui/PageBand";
 import { TERMS } from "@/data/terms";
+import { shareMetadata } from "@/lib/metadata";
 import { pendingLabel } from "@/lib/pending";
 
 /**
@@ -16,12 +17,12 @@ import { pendingLabel } from "@/lib/pending";
  * TODO(고객확인) 약관 검토 · 시행일. 확정 전까지는 색인하지 않는다.
  */
 
-export const metadata: Metadata = {
+export const metadata: Metadata = shareMetadata({
   title: "이용약관",
   description: "LEONE FERITO 온라인몰 이용약관.",
   // 고객 검토 전 초안이다. 확정되면 이 줄을 걷는다 (사이트 전체 noindex 와 별개).
   robots: { index: false, follow: false },
-};
+});
 
 export default function Page() {
   return (

@@ -7,6 +7,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Reveal } from "@/components/motion/Reveal";
 import { Eyebrow } from "@/components/ui/Eyebrow";
+import { shareMetadata } from "@/lib/metadata";
 
 /**
  * 룩북 (요구사항 2-3).
@@ -20,10 +21,10 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
  * TODO(고객확인) 룩북 촬영본 · 엠버서더/모델 구분 · 컷을 누르면 상품으로 이어질지.
  */
 
-export const metadata: Metadata = {
+export const metadata: Metadata = shareMetadata({
   title: "룩북",
   description: "레오네 페리토 룩북. 엠버서더와 모델 스타일링.",
-};
+});
 
 const CUTS = [
   { src: "/products/photo-black-shirt.webp", alt: "블랙 셔츠 룩 — 전신", span: "md:col-span-7", tall: true },

@@ -7,6 +7,7 @@ import { Header } from "@/components/layout/Header";
 import { Reveal } from "@/components/motion/Reveal";
 import { Scene } from "@/components/motion/Scene";
 import { Eyebrow } from "@/components/ui/Eyebrow";
+import { shareMetadata } from "@/lib/metadata";
 
 /**
  * 브랜드 가치관 (요구사항 2-1) — 스크롤 스토리텔링.
@@ -29,11 +30,11 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
  * TODO(고객확인) 브랜드 촬영본. 지금 사진은 제품 촬영본으로 자리를 잡아 둔 것이다.
  */
 
-export const metadata: Metadata = {
+export const metadata: Metadata = shareMetadata({
   title: "브랜드",
   description:
     "상위 0.1%의 남자. 잘 관리된 몸매와 외모, 섹시한 핏으로 소화하는 럭셔리 스타일.",
-};
+});
 
 /** 고객 전달 슬로건 두 줄 — 원문 그대로. */
 const SLOGAN = [

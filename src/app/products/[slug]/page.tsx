@@ -10,6 +10,7 @@ import { ProductNoticeTable } from "@/components/product/ProductNoticeTable";
 import { PurchasePanel } from "@/components/product/PurchasePanel";
 import { SizeChart } from "@/components/product/SizeChart";
 import { getCatalog, getCatalogProduct } from "@/lib/catalog";
+import { openGraphBase } from "@/lib/metadata";
 import { LINE_LABEL, type Product } from "@/types/product";
 
 /**
@@ -51,13 +52,21 @@ export async function generateMetadata({
     description:
       product.summary ??
       `${fit.ko} 핏 · ${fit.description} 사이즈별 상세 실측과 모델 착용 정보를 함께 제공합니다.`,
+    /*
+     * og 는 교체되는 키다 — 루트(layout.tsx)의 값이 섞여 들어오지 않으므로
+     * siteName · locale 을 openGraphBase() 로 다시 얹는다. 빠뜨리면 카톡 카드에서
+     * 브랜드명이 사라진다.
+     *
+     * 대표 사진이 없으면 openGraphBase 가 브랜드 기본 이미지로 메운다. 도메인이 아직 없고
+     * 사진 주소가 상대경로면 이미지를 아예 넣지 않는다 — localhost 주소가 박힌 깨진 카드보다
+     * 글자만 있는 카드가 낫다 (lib/metadata.ts).
+     *
+     * TODO(고객확인) 제품 촬영본이 오면 공유용 대표 컷을 따로 지정한다.
+     */
     openGraph: {
+      ...openGraphBase(product.images[0]?.url),
       title: `${name} | LEONE FERITO`,
       description: `${fit.ko} 핏 · 사이즈별 상세 실측 제공`,
-      type: "website",
-      // TODO(고객확인) 제품 촬영본이 오면 대표 이미지를 지정한다.
-      // metadataBase(layout.tsx)가 없으면 상대경로로 나가 카톡이 못 읽는다.
-      images: product.images.length > 0 ? [product.images[0].url] : undefined,
     },
   };
 }

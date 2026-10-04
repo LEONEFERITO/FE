@@ -9,6 +9,7 @@ import { Header } from "@/components/layout/Header";
 import { Reveal } from "@/components/motion/Reveal";
 import { PageBand } from "@/components/ui/PageBand";
 import { KAKAO_CHANNEL } from "@/data/business";
+import { shareMetadata } from "@/lib/metadata";
 import { pendingLabel } from "@/lib/pending";
 import { LINE_LABEL } from "@/types/product";
 
@@ -26,10 +27,10 @@ import { LINE_LABEL } from "@/types/product";
  * TODO(고객확인) 제작 기간 · 배송비 · 교환 조건 · 더맨리 링크.
  */
 
-export const metadata: Metadata = {
+export const metadata: Metadata = shareMetadata({
   title: "QnA",
   description: "주문·제작, 사이즈, 배송·교환에 대해 자주 묻는 질문.",
-};
+});
 
 const FAQ: { q: string; a: React.ReactNode }[] = [
   {

@@ -5,6 +5,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { ProductList } from "@/components/product/ProductList";
 import { filterOptions, getCatalog } from "@/lib/catalog";
+import { shareMetadata } from "@/lib/metadata";
 
 /**
  * 제품 목록.
@@ -16,11 +17,11 @@ import { filterOptions, getCatalog } from "@/lib/catalog";
  * 그래야 필터 UI 만 JS 로 내려가고 **상품 정보는 HTML 에 박혀 나간다** (검색 노출).
  */
 
-export const metadata: Metadata = {
+export const metadata: Metadata = shareMetadata({
   title: "제품",
   description:
     "운동으로 달라진 체형을 위한 남성 기성복. 상품마다 핏 종류와 사이즈별 상세 실측을 공개합니다.",
-};
+});
 
 export default async function ProductsPage() {
   const products = await getCatalog();

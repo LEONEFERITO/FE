@@ -5,6 +5,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { PageBand } from "@/components/ui/PageBand";
 import { PRIVACY } from "@/data/privacy";
+import { shareMetadata } from "@/lib/metadata";
 import { pendingLabel } from "@/lib/pending";
 
 /**
@@ -13,11 +14,11 @@ import { pendingLabel } from "@/lib/pending";
  * TODO(고객확인) 보호책임자 · 시행일 · 수탁업체. 확정 전까지는 색인하지 않는다.
  */
 
-export const metadata: Metadata = {
+export const metadata: Metadata = shareMetadata({
   title: "개인정보처리방침",
   description: "LEONE FERITO 온라인몰 개인정보처리방침.",
   robots: { index: false, follow: false },
-};
+});
 
 export default function Page() {
   return (

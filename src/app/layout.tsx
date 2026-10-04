@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans_KR, Playfair_Display, Spectral } from "next/font/google";
 import "./globals.css";
+import { BRAND_DESCRIPTION, openGraphBase } from "@/lib/metadata";
 import { SITE_URL } from "@/lib/site";
 
 /**
@@ -60,12 +61,25 @@ export const metadata: Metadata = {
     default: "LEONE FERITO",
     template: "%s | LEONE FERITO",
   },
-  description:
-    "운동으로 달라진 체형을 위한 남성 기성복. 핏과 실측을 모두 공개합니다.",
+  description: BRAND_DESCRIPTION,
 
   // 도메인(NEXT_PUBLIC_SITE_URL · lib/site.ts)이 있으면 지정한다. 없으면 og:image 가 상대경로로 나가
   // 카톡·인스타가 이미지를 읽지 못한다 — TODO(고객확인) G-1 도메인.
   ...(SITE_URL ? { metadataBase: new URL(SITE_URL) } : {}),
+
+  /*
+    공유 미리보기 — 홈(/)의 카드이면서, og 를 따로 선언하지 않는 페이지(로그인 · 장바구니 ·
+    관리자 등)가 물려받는 기본값이다. 공개 페이지는 각자 shareMetadata() 로 자기 카드를
+    선언한다 — og 는 교체되는 키라 루트 하나로는 페이지별 제목이 나오지 않는다(lib/metadata.ts).
+
+    twitter 는 따로 적지 않는다. Next 가 openGraph 에서 twitter:card · title · description 을
+    만들어 준다 — 같은 값을 두 번 적으면 한쪽만 고치는 날이 온다.
+  */
+  openGraph: {
+    ...openGraphBase(),
+    title: "LEONE FERITO",
+    description: BRAND_DESCRIPTION,
+  },
 
   /*
     검색 노출 차단 — **오픈 전까지 유지한다.**

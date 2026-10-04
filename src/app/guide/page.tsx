@@ -8,6 +8,7 @@ import { Header } from "@/components/layout/Header";
 import { Reveal } from "@/components/motion/Reveal";
 import { PageBand } from "@/components/ui/PageBand";
 import { MEASURE_GUIDE } from "@/data/fit";
+import { shareMetadata } from "@/lib/metadata";
 import { pendingHint, pendingLabel } from "@/lib/pending";
 import { LINE_LABEL } from "@/types/product";
 
@@ -25,11 +26,11 @@ import { LINE_LABEL } from "@/types/product";
  * TODO(고객확인) 제작 기간 · 수선 정책 · 관리법 문안 · 더맨리 네이버플레이스 링크.
  */
 
-export const metadata: Metadata = {
+export const metadata: Metadata = shareMetadata({
   title: "이용 안내",
   description:
     "주문 후 제작 방식, 레오네·페리토 라인의 핏, 사이즈 고르는 법, 수선과 관리, 맞춤 제작 안내.",
-};
+});
 
 const STEPS = ["주문", `제작 · ${pendingLabel("기간")}`, "발송", "수령"];
 

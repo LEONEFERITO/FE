@@ -73,6 +73,35 @@ jobs:
           grep -q '<html lang="ko"' out/index.html || { echo "lang=\"ko\" 가 없습니다."; exit 1; }
           echo "SEO 태그 확인 완료"
 
+      - name: 공유 미리보기(OG) 태그 확인
+        # 이 검사가 없던 동안 상품 상세를 뺀 **모든 페이지에 og 태그가 하나도 없었다** —
+        # 위 검사가 title/description 만 봐서 못 잡았다. 카톡에 브랜드 주소를 붙이면
+        # 미리보기 카드가 뜨지 않는 상태였고, 그건 오픈 당일에나 드러난다.
+        #
+        # og 는 세그먼트끼리 깊은 병합이 아니라 **통째로 교체**된다(Next 사양). 그래서
+        # 페이지마다 선언이 필요하고, 한 곳만 빠져도 조용히 사라진다 — 페이지별로 본다.
+        #
+        # og:image 는 검사하지 않는다. 도메인(NEXT_PUBLIC_SITE_URL)이 있을 때만 붙도록
+        # 일부러 막아 두었고(lib/metadata.ts), CI 는 도메인 없이 빌드한다.
+        run: |
+          fail=0
+          for page in "" products brand guide lookbook qna notice terms privacy; do
+            f="out/${page:+$page/}index.html"
+            test -f "$f" || { echo "✗ $f 이 없습니다."; fail=1; continue; }
+            for tag in 'og:title' 'og:description' 'og:site_name'; do
+              grep -q "property=\"$tag\"" "$f" \
+                || { echo "✗ /${page:+$page/} 에 $tag 가 없습니다."; fail=1; }
+            done
+          done
+          # 상품 상세는 제목이 상품마다 달라야 한다 — 루트 카드를 그대로 물려받으면 안 된다.
+          detail=$(find out/products -mindepth 2 -name index.html | head -1)
+          if [ -n "$detail" ]; then
+            grep -q 'property="og:title"' "$detail" \
+              || { echo "✗ 상품 상세($detail)에 og:title 이 없습니다."; fail=1; }
+          fi
+          test "$fail" -eq 0 || exit 1
+          echo "OG 태그 확인 완료"
+
       - name: 내보내기 산출물 업로드
         if: always()
         # actions/upload-artifact v4.6.2
