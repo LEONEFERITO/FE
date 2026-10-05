@@ -35,11 +35,14 @@ export const metadata: Metadata = shareMetadata({
 const STEPS = ["주문", `제작 · ${pendingLabel("기간")}`, "발송", "수령"];
 
 function Card({
+  id,
   num,
   title,
   children,
   className = "",
 }: {
+  /** 앵커. 메인의 브랜드 이용 메뉴얼 · 맞춤 정장 버튼이 /guide/#id 로 들어온다 (components/home/BrandManual). */
+  id: string;
   num: string;
   title: string;
   children: React.ReactNode;
@@ -47,7 +50,9 @@ function Card({
 }) {
   return (
     <article
-      className={`border-subtle bg-surface flex min-w-0 flex-col rounded-2xl border p-6 md:p-8 ${className}`}
+      id={id}
+      // scroll-mt: 헤더가 sticky 라, 없으면 앵커로 왔을 때 카드 머리가 헤더 밑에 깔린다
+      className={`border-subtle bg-surface flex min-w-0 scroll-mt-24 flex-col rounded-2xl border p-6 md:p-8 ${className}`}
     >
       <p className="text-accent text-2xs tracking-label">{num}</p>
       <h2 className="font-display text-primary leading-display mt-2 text-xl md:text-2xl">
@@ -76,7 +81,7 @@ export default function GuidePage() {
           <div className="mx-auto flex max-w-[1320px] flex-col gap-5 px-5 py-12 md:px-15 md:py-16">
             {/* ── 01 주문 후 제작 ──────────────────────────── */}
             <Reveal>
-              <Card num="01 · 가장 먼저" title="주문 후 제작됩니다">
+              <Card id="order" num="01 · 가장 먼저" title="주문 후 제작됩니다">
                 <p>
                   만들어 둔 옷을 파는 것이 아니라, 주문을 확인한 뒤 한 벌씩 제작합니다.
                   그래서 재고 대신 <b className="text-primary">제작 기간</b>이 표시됩니다.
@@ -104,7 +109,7 @@ export default function GuidePage() {
             {/* ── 02 · 03 고르는 법 ─────────────────────────── */}
             <div className="grid gap-5 md:grid-cols-2">
               <Reveal delay={60}>
-                <Card num="02" title="레오네 · 페리토 — 어느 라인인가" className="h-full">
+                <Card id="lines" num="02" title="레오네 · 페리토 — 어느 라인인가" className="h-full">
                   <div className="grid grid-cols-2 gap-3">
                     {(["LEONE", "FERITO"] as const).map((line) => (
                       <figure key={line} className="min-w-0">
@@ -132,7 +137,7 @@ export default function GuidePage() {
               </Reveal>
 
               <Reveal delay={120}>
-                <Card num="03" title="내게 맞는 사이즈 고르는 법" className="h-full">
+                <Card id="size" num="03" title="내게 맞는 사이즈 고르는 법" className="h-full">
                   <p>
                     사진이 아니라 치수로 고르세요. 아래처럼 몸을 잰 뒤, 각 상품 페이지의{" "}
                     <b className="text-primary">상세 사이즈 차트</b>와 견줍니다.
@@ -159,19 +164,19 @@ export default function GuidePage() {
             {/* ── 04 · 05 · 06 받은 뒤 ───────────────────────── */}
             <div className="grid gap-5 md:grid-cols-3">
               <Reveal delay={60}>
-                <Card num="04" title="수령 후 수선" className="h-full">
+                <Card id="alteration" num="04" title="수령 후 수선" className="h-full">
                   {/* TODO(고객확인) 수선 정책 — 가능 범위 · 비용 · 기간 */}
                   <p className="text-muted">{pendingHint("수선 안내", "기장 · 허리 수선 가능 여부와 비용")}</p>
                 </Card>
               </Reveal>
               <Reveal delay={120}>
-                <Card num="05" title="관리법" className="h-full">
+                <Card id="care" num="05" title="관리법" className="h-full">
                   {/* TODO(고객확인) 원단별 세탁·보관 안내 */}
                   <p className="text-muted">{pendingHint("관리 안내", "드라이클리닝 · 보관 · 다림질")}</p>
                 </Card>
               </Reveal>
               <Reveal delay={180}>
-                <Card num="06" title="맞춤 제작을 원하시면" className="border-accent/40 h-full">
+                <Card id="custom" num="06" title="맞춤 제작을 원하시면" className="border-accent/40 h-full">
                   <p>
                     기성복으로 부족하다면 테일러샵 <b className="text-primary">더맨리</b>에서 맞춤
                     제작을 안내해 드립니다.

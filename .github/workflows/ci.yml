@@ -85,7 +85,7 @@ jobs:
         # 일부러 막아 두었고(lib/metadata.ts), CI 는 도메인 없이 빌드한다.
         run: |
           fail=0
-          for page in "" products brand guide lookbook qna notice terms privacy; do
+          for page in "" products category/shirts line/ferito brand guide lookbook qna notice terms privacy; do
             f="out/${page:+$page/}index.html"
             test -f "$f" || { echo "✗ $f 이 없습니다."; fail=1; continue; }
             for tag in 'og:title' 'og:description' 'og:site_name'; do

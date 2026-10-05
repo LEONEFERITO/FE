@@ -96,8 +96,10 @@ export function AdminDisplayOrder() {
   return (
     <div className="flex flex-col gap-6">
       <p className="border-subtle bg-surface rounded-2xl border px-5 py-4 text-sm">
-        <span className="text-secondary">메인의 WHY 구간(제목 · 항목 · 배경 사진)은 따로 고칩니다 → </span>
+        <span className="text-secondary">메인의 WHY 구간(제목 · 항목 · 배경 사진)과 OFFLINE SHOP 구간의 매장 사진은 따로 고칩니다 → </span>
         <Link href="/admin/display/why/" className="text-accent underline underline-offset-4">메인 WHY 구간</Link>
+        <span aria-hidden="true" className="text-muted"> · </span>
+        <Link href="/admin/display/offline/" className="text-accent underline underline-offset-4">매장 사진</Link>
       </p>
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" disabled={!moved || busy} onClick={save}

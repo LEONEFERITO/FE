@@ -145,6 +145,26 @@ export const adminWhy = () => request<WhyAdminView>("GET", "/api/admin/why");
 export const saveWhy = (input: { eyebrow: string; title: string; intro: string; items: { title: string; body: string; mediaId: string | null }[] }) =>
   request<WhyAdminView>("PUT", "/api/admin/why", input);
 
+// ── 사이트 사진 칸 (매장 사진 등) ────────────────────────────
+
+/** 서버의 SiteImageSlot 과 같은 값 (lib/siteImages.ts 의 손님용 타입과도 같다). */
+export type SiteImageSlot = "OFFLINE_SHOP";
+
+export interface SiteImageAdminView {
+  slot: SiteImageSlot;
+  mediaId: string | null;
+  imageUrl: string | null;
+  alt: string;
+}
+
+/** 서버 site_image.alt 의 CHECK 와 같다 */
+export const SITE_IMAGE_LIMITS = { alt: 200 } as const;
+
+export const adminSiteImages = () => request<SiteImageAdminView[]>("GET", "/api/admin/site-images");
+/** mediaId 가 null 이면 사진을 비운다 — 손님 화면은 기본 사진으로 돌아간다. */
+export const saveSiteImage = (slot: SiteImageSlot, input: { mediaId: string | null; alt: string }) =>
+  request<SiteImageAdminView>("PUT", `/api/admin/site-images/${slot}`, input);
+
 // ── 진열 순서 (메인 구성) ────────────────────────────────────
 
 /** 공개 상품 id 를 보여 줄 순서대로. 지금 공개 상품 전부여야 한다(아니면 409 — 다시 불러온다). */

@@ -30,6 +30,11 @@ const PAGES = [
   { path: "/", name: "메인" },
   { path: "/products/", name: "제품 목록" },
   // 상세는 아래에서 목록 페이지의 첫 상품으로 정한다 — 상품이 서버(관리자)에서 오므로 이름을 고정할 수 없다.
+  // 2026-10-05 디자인 가이드로 생긴 페이지. 상품이 없는 분류(수트)도 같은 레이아웃이어야 한다.
+  { path: "/category/shirts/", name: "카테고리(셔츠)" },
+  { path: "/category/suit/", name: "카테고리(수트 · 상품 없음)" },
+  { path: "/line/ferito/", name: "라인(페리토)" },
+  { path: "/line/leone/", name: "라인(레오네)" },
   { path: "/login/", name: "로그인" },
   { path: "/signup/", name: "회원가입" },
   { path: "/cart/", name: "장바구니" },
@@ -66,6 +71,7 @@ const PAGES = [
   { path: "/admin/stats/", name: "관리자 통계 → 로그인" },
   { path: "/admin/notices/edit/", name: "관리자 공지 쓰기 → 로그인" },
   { path: "/admin/display/why/", name: "관리자 WHY 구간 → 로그인" },
+  { path: "/admin/display/offline/", name: "관리자 매장 사진 → 로그인" },
   // 없는 주소 — 404 응답이 정답이다(not-found 화면)
   { path: "/no-such-page/", name: "404", expectStatus: 404 },
 ];

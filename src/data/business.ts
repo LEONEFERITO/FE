@@ -65,3 +65,32 @@ export const BUSINESS_FIELDS: { key: keyof BusinessInfo; label: string }[] = [
   { key: "privacyOfficer", label: "개인정보 보호책임자" },
   { key: "hosting", label: "호스팅 서비스 제공자" },
 ];
+
+/**
+ * 오프라인 매장 — 메인의 OFFLINE SHOP 구간이 쓴다.
+ *
+ * 2026-10-05 고객 디자인 가이드에 실린 기존 몰(leoneferito.kr)의 OFFLINE SHOP 구간 캡처에서
+ * 문구를 **받은 그대로** 옮겼다 ("오후 21시" 같은 표기도 고객 원문이다).
+ * TODO(고객확인) 지도 링크(네이버플레이스 등) — 기존 몰의 VIEW MORE 가 가리키던 곳. 오면 버튼이 생긴다.
+ */
+export const OFFLINE_SHOP = {
+  name: "더맨리 (THE MANLY)",
+  address: "경기도 수원시 영통구 매영로 425번길 1 1층 더맨리",
+  openDays: "월요일 / 목요일 / 금요일 / 토요일 / 일요일",
+  closedDays: "화요일 / 수요일",
+  weekdayHours: "평일 오전 10시 ~ 오후 21시",
+  weekendHours: "주말 정오 12시 ~ 오후 21시",
+  mapUrl: null as string | null,
+} as const;
+
+/**
+ * SNS 주소. TODO(고객확인) 인스타그램 · 유튜브 계정 주소.
+ *
+ * 기존 몰 푸터의 SNS 링크는 `https://instagram.com/` · `https://youtube.com/` 로, 호스팅사 기본값이지
+ * 계정 주소가 아니다(2026-10-05 확인). 그래서 넘겨짚어 채우지 않는다 — null 인 동안 화면에는
+ * 링크 대신 "확인 중" 이 보인다. 없는 주소를 걸어 두면 "곧 생긴다" 가 아니라 "고장났다" 로 읽힌다.
+ */
+export const SNS: { instagram: string | null; youtube: string | null } = {
+  instagram: null,
+  youtube: null,
+};
