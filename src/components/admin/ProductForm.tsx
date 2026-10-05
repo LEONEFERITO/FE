@@ -84,7 +84,8 @@ const IMAGE_SLOTS = [
   },
 ] as const;
 
-const CATEGORIES: Category[] = ["JACKET", "TROUSERS", "SHIRT", "SHOES"];
+// 내비와 같은 순서 (data/categories.ts CATEGORY_NAV). 서버의 ProductCategory · CHECK 제약(V19)과 값이 같아야 한다.
+const CATEGORIES: Category[] = ["SUIT", "JACKET", "TROUSERS", "SHIRT", "SHOES", "ACCESSORIES"];
 const LINES: ProductLine[] = ["LEONE", "FERITO"];
 
 type SlotKey = (typeof IMAGE_SLOTS)[number]["key"];

@@ -29,7 +29,29 @@ export function Footer() {
           운동으로 달라진 체형을 위한 남성 기성복.
         </p>
 
-        <div className="border-subtle mt-14 border-t pt-6">
+        {/*
+          둘러보기 — 2026-10-05 에 헤더 내비가 분류(Suit · Jacket …)로 바뀌면서 헤더에서 내려온 메뉴다.
+          헤더에서 사라진 페이지가 사이트에서 사라진 것이 되면 안 된다. 어느 화면에서든 여기서 닿는다.
+        */}
+        <nav aria-label="둘러보기" className="mt-10 flex flex-wrap gap-x-7">
+          {[
+            { href: "/brand/", label: "브랜드" },
+            { href: "/guide/", label: "이용 안내" },
+            { href: "/lookbook/", label: "룩북" },
+            { href: "/products/", label: "전체 제품" },
+            { href: "/qna/", label: "QnA" },
+          ].map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="text-secondary hover:text-primary ease-fluid inline-flex min-h-11 items-center text-xs transition-colors duration-300"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="border-subtle mt-6 border-t pt-6">
           <nav aria-label="안내 · 약관 및 정책" className="flex flex-wrap gap-x-7">
             <Link
               href="/notice/"

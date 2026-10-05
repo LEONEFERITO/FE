@@ -35,13 +35,20 @@ export const LINE_LABEL: Record<
 };
 
 /** 제품 분류. 목록 필터와 내비게이션이 같은 값을 본다. */
-export type Category = "JACKET" | "TROUSERS" | "SHIRT" | "SHOES";
+/*
+ * SUIT · ACCESSORIES 는 2026-10-05 고객 디자인 가이드에서 추가됐다 — 기존 몰(leoneferito.kr)의
+ * 분류가 Suit · Jacket · Trousers · Shirts · Shoes · Accessories 여섯이고, 헤더 내비가 그 순서를 따른다.
+ * 값을 늘리면 BE 의 ProductCategory 와 CHECK 제약(V19)도 같이 고쳐야 한다. 순서는 data/categories.ts 의 CATEGORY_NAV 가 정한다.
+ */
+export type Category = "SUIT" | "JACKET" | "TROUSERS" | "SHIRT" | "SHOES" | "ACCESSORIES";
 
 export const CATEGORY_LABEL: Record<Category, { en: string; ko: string }> = {
+  SUIT: { en: "SUIT", ko: "수트" },
   JACKET: { en: "JACKET", ko: "자켓" },
   TROUSERS: { en: "TROUSERS", ko: "트라우저" },
   SHIRT: { en: "SHIRT", ko: "셔츠" },
   SHOES: { en: "SHOES", ko: "구두 · 로퍼" },
+  ACCESSORIES: { en: "ACCESSORIES", ko: "액세서리" },
 };
 
 /**

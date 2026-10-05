@@ -61,3 +61,22 @@ export const CATEGORY_COVERS: CategoryCover[] = [
     note: "마무리를 결정하는 한 켤레",
   },
 ];
+
+/**
+ * 헤더 내비와 카테고리 페이지(/category/{slug}/)의 목록.
+ *
+ * 순서와 표기는 고객 지정이다 (2026-10-05 디자인 가이드 — 기존 몰 leoneferito.kr 의 내비
+ * Suit · Jacket · Trousers · Shirts · Shoes · Accessories 를 그대로 옮긴다).
+ * slug 는 주소에 쓰는 소문자 영문이고, title 은 페이지 제목에 쓰는 표기다.
+ * 상품이 아직 없는 분류도 페이지는 있다 — 내비에서 눌렀는데 404 면 고장으로 읽힌다.
+ */
+export const CATEGORY_NAV: { category: Category; slug: string; label: string; title: string }[] = [
+  { category: "SUIT", slug: "suit", label: "SUIT", title: "Suit" },
+  { category: "JACKET", slug: "jacket", label: "JACKET", title: "Jacket" },
+  { category: "TROUSERS", slug: "trousers", label: "TROUSERS", title: "Trousers" },
+  { category: "SHIRT", slug: "shirts", label: "SHIRTS", title: "Shirts" },
+  { category: "SHOES", slug: "shoes", label: "SHOES", title: "Shoes" },
+  { category: "ACCESSORIES", slug: "accessories", label: "ACCESSORIES", title: "Accessories" },
+];
+
+export const categoryHref = (slug: string) => `/category/${slug}/`;

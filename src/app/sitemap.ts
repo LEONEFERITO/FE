@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 
+import { CATEGORY_NAV, categoryHref } from "@/data/categories";
 import { getCatalog } from "@/lib/catalog";
 import { SITE_URL } from "@/lib/site";
 
@@ -11,7 +12,20 @@ import { SITE_URL } from "@/lib/site";
  */
 export const dynamic = "force-static";
 
-const PAGES = ["/", "/products/", "/brand/", "/guide/", "/lookbook/", "/qna/", "/terms/", "/privacy/"];
+const PAGES = [
+  "/",
+  "/products/",
+  // 분류 · 라인 페이지 (2026-10-05). 분류 목록은 내비와 같은 곳에서 온다.
+  ...CATEGORY_NAV.map((c) => categoryHref(c.slug)),
+  "/line/leone/",
+  "/line/ferito/",
+  "/brand/",
+  "/guide/",
+  "/lookbook/",
+  "/qna/",
+  "/terms/",
+  "/privacy/",
+];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (!SITE_URL) return [];

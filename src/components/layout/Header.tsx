@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { Logo } from "@/components/brand/Logo";
+import { CATEGORY_NAV, categoryHref } from "@/data/categories";
 
 /**
  * 전역 헤더 — 화면 폭을 가득 채우는 배너.
@@ -42,12 +43,27 @@ import { Logo } from "@/components/brand/Logo";
  * 링크가 가리키는 페이지는 전부 실재한다. 없는 주소를 미리 걸어두면
  * "곧 생긴다" 가 아니라 "고장났다" 로 읽힌다 — 내용이 없는 동안에는 준비 중 화면을 둔다.
  */
+/*
+ * ── 2026-10-05 고객 디자인 가이드로 바뀐 규칙 (위 주석은 그 전의 규칙이다) ──
+ * 헤더 내비는 **분류**다: 메인 · Suit · Jacket · Trousers · Shirts · Shoes · Accessories.
+ * 기존 몰(leoneferito.kr)의 내비를 그대로 옮기고 맨 앞에 "메인" 을 더했다 — 고객이 적은 표기 그대로다.
+ * 분류 목록과 주소는 data/categories.ts 의 CATEGORY_NAV 한 곳에서 온다 (카테고리 페이지 · 사이트맵과 같은 목록).
+ *
+ * 헤더에서 내려온 메뉴(BRAND · GUIDE · LOOKBOOK · QNA)는 없어지지 않는다. 모바일 메뉴의 둘째 묶음과
+ * 푸터로 옮겼고, 메인의 "브랜드 이용 메뉴얼" · "문의 · 채널" 구간이 각각 GUIDE · QNA 로 잇는다.
+ */
 const NAV = [
-  { href: "/brand", label: "BRAND" },
-  { href: "/guide", label: "GUIDE" },
-  { href: "/lookbook", label: "LOOKBOOK" },
-  { href: "/products", label: "COLLECTION" },
-  { href: "/qna", label: "QNA" },
+  { href: "/", label: "메인" },
+  ...CATEGORY_NAV.map((c) => ({ href: categoryHref(c.slug), label: c.label })),
+];
+
+/** 헤더 한 줄에서는 빠지고, 모바일 메뉴(둘째 묶음)와 푸터에 있는 메뉴. */
+const SECONDARY_NAV = [
+  { href: "/brand/", label: "BRAND" },
+  { href: "/guide/", label: "GUIDE" },
+  { href: "/lookbook/", label: "LOOKBOOK" },
+  { href: "/products/", label: "COLLECTION" },
+  { href: "/qna/", label: "QNA" },
 ] as const;
 
 /** 오른쪽 묶음. 개인 영역이라 탐색 메뉴와 나눠 둔다. */
@@ -167,7 +183,8 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
             aria-label="주요 메뉴"
             className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 lg:block"
           >
-            <ul className="flex items-center gap-8">
+            {/* 일곱 칸이라 간격을 한 단 줄였다(8 → 7). 1024px 에서 로고 · 계정 묶음과 닿지 않는 폭이다 */}
+            <ul className="flex items-center gap-7">
               {NAV.map((item) => (
                 <li key={item.href}>
                   <Link
@@ -237,10 +254,15 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
       >
         <nav
           aria-label="모바일 메뉴"
-          className="flex h-full flex-col justify-center px-8"
+          /*
+            가운데 정렬(justify-center)을 버리고 위에서부터 쌓는다. 분류 일곱에 나머지 메뉴가 더해져
+            작은 화면에서는 한 화면을 넘는다 — 가운데 정렬이면 위아래가 잘려 닿지 못하는 링크가 생긴다.
+            넘치면 이 안에서 스크롤한다.
+          */
+          className="flex h-full flex-col overflow-y-auto px-8 pb-10 pt-24"
         >
-          <ul className="flex flex-col gap-6">
-            {[...NAV, ...ACCOUNT_NAV].map((item, i) => (
+          <ul className="flex flex-col gap-4">
+            {NAV.map((item, i) => (
               <li
                 key={item.href}
                 className="ease-soft transition-all duration-700"
@@ -253,7 +275,25 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
                 <Link
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="font-display text-accent-deep hover:text-accent ease-fluid text-3xl transition-colors duration-500"
+                  className="font-display text-accent-deep hover:text-accent ease-fluid text-2xl transition-colors duration-500"
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          {/* 둘째 묶음 — 헤더 한 줄에서 내려온 메뉴와 개인 영역. 분류보다 작게, 두 열로 */}
+          <ul
+            className="border-subtle ease-soft mt-8 grid grid-cols-2 gap-x-6 border-t pt-5 transition-opacity duration-700"
+            style={{ opacity: open ? 1 : 0, transitionDelay: open ? "520ms" : "0ms" }}
+          >
+            {[...SECONDARY_NAV, ...ACCOUNT_NAV].map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className="text-secondary hover:text-accent tracking-label ease-fluid inline-flex min-h-11 items-center text-xs transition-colors duration-500"
                 >
                   {item.label}
                 </Link>
