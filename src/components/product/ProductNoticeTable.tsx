@@ -31,7 +31,7 @@ export function ProductNoticeTable({ notice }: { notice: ProductNotice }) {
 
   return (
     <section
-      className="bg-band border-subtle border-t"
+      className="border-subtle border-t"
       aria-labelledby="notice-heading"
     >
       <div className="mx-auto max-w-[1320px] px-5 py-24 md:px-15 md:py-32">
@@ -46,7 +46,7 @@ export function ProductNoticeTable({ notice }: { notice: ProductNotice }) {
           전자상거래 등에서의 상품 등의 정보제공에 관한 고시에 따른 표기입니다.
         </p>
 
-        <div className="border-subtle bg-band/60 shadow-soft mt-8 rounded-2xl border p-1.5">
+        <div className="mt-8">
           <dl className="bg-surface rounded-none">
             {FIELDS.map((f, i) => (
               <div

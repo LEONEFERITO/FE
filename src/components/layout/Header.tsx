@@ -66,13 +66,9 @@ import { ABOUT_GROUPS, ABOUT_LABEL, CATEGORY_GROUPS, type NavLink } from "@/data
  * 드롭다운은 hover 와 키보드 초점(focus-within) 둘 다로 열린다. 마우스가 없는 사람도 Tab 으로 하위 메뉴에 닿는다.
  */
 
-/** 헤더 한 줄의 링크 모양 — 히어로 위(light)에서는 크림, 평소엔 보조색 */
-const navLinkClass = (light: boolean) =>
-  `text-2xs tracking-label ease-fluid inline-flex min-h-11 items-center whitespace-nowrap transition-colors duration-700 ${
-    light
-      ? "text-primary/80 hover:text-primary md:text-secondary"
-      : "text-secondary hover:text-accent group-focus-within/nav:text-accent group-hover/nav:text-accent"
-  }`;
+/** 헤더 한 줄의 링크 모양 — 흰 GNB 위 진한 글자(기존 몰과 같은 #1A1A1A 계열), 강조는 와인 */
+const navLinkClass = () =>
+  "text-2xs tracking-label ease-fluid inline-flex min-h-11 items-center whitespace-nowrap text-primary transition-colors duration-700 hover:text-accent group-focus-within/nav:text-accent group-hover/nav:text-accent";
 
 /** 사이트 밖 주소(카카오톡)는 새 창으로 — 둘러보던 사람이 사이트를 잃지 않게 */
 function NavAnchor({
@@ -168,16 +164,16 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
 
   return (
     <>
+      {/*
+        GNB 색 — 2026-10-06 고객 요청("상단 GNB 컬러 확인"): 기존 몰(leoneferito.kr)처럼 **흰 바탕 · 진한 글자 ·
+        아래 얇은 선**. on-cream on-white 로 이 안의 토큰만 밝은 쪽으로 뒤집는다(드롭다운 · ABOUT 판도 같이).
+        반투명(bg-base/85)을 쓰지 않는다 — 반투명이면 뒤 페이지 색이 비쳐 흰 페이지 위에서 회갈색으로 탁해졌다.
+        히어로 위에서는 바탕 · 선을 비워 투명하고, 히어로 배너를 지나면 원래 색(흰 GNB)으로 굳는다(2026-10-06 요청 — PC · 모바일 모두).
+      */}
       <header
-        className={`ease-fluid sticky top-0 z-40 w-full border-b transition-all duration-700 ${
-          light
-            ? /*
-                위에서 아래로 옅어지는 scrim 만 남긴다. 완전 투명으로 두면
-                히어로 상단이 밝은 컷일 때 로고와 햄버거가 묻힌다.
-                md: 부터는 평소의 와인 배너로 되돌린다.
-              */
-              "border-transparent bg-gradient-to-b from-black/45 to-transparent md:border-subtle/70 md:bg-base/85 md:bg-none md:shadow-soft md:backdrop-blur-xl"
-            : "border-subtle/70 bg-base/85 shadow-soft backdrop-blur-xl"
+        className={`on-cream on-white ease-fluid sticky top-0 z-40 w-full border-b transition-colors duration-700 ${
+          // .on-cream 이 background 를 직접 깔아서(레이어 밖 CSS) 유틸리티보다 세다 — 투명은 ! 로 이긴다
+          light ? "border-transparent bg-transparent!" : "border-subtle bg-base"
         }`}
       >
         <div className="relative flex h-14 w-full items-center justify-between px-5 md:h-18 md:px-10">
@@ -190,11 +186,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
           */}
           <Link
             href="/"
-            className={`ease-fluid transition-colors duration-700 ${
-              light
-                ? "text-primary hover:text-accent md:text-accent-deep"
-                : "text-accent-deep hover:text-accent"
-            }`}
+            className="text-accent-deep hover:text-accent ease-fluid transition-colors duration-700"
             aria-label="LEONE FERITO 홈"
           >
             <span className="md:hidden">
@@ -213,14 +205,14 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
           <nav aria-label="주요 메뉴" className="hidden min-w-0 flex-1 justify-center px-4 lg:flex">
             <ul className="flex items-center gap-5 xl:gap-8">
               <li>
-                <Link href="/" className={navLinkClass(light)}>
+                <Link href="/" className={navLinkClass()}>
                   MAIN
                 </Link>
               </li>
 
               {/* ABOUT — 넓은 판(헤더 폭 전체)에 네 묶음이 열로. li 가 relative 가 아니라서 판은 헤더 줄 기준이다 */}
               <li className="group/nav">
-                <Link href="/brand/" className={navLinkClass(light)}>
+                <Link href="/brand/" className={navLinkClass()}>
                   {ABOUT_LABEL}
                 </Link>
                 <div className="invisible absolute inset-x-0 top-full z-50 pt-0 opacity-0 transition-[opacity,visibility] duration-300 ease-out group-focus-within/nav:visible group-focus-within/nav:opacity-100 group-hover/nav:visible group-hover/nav:opacity-100">
@@ -256,7 +248,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
 
               {CATEGORY_GROUPS.map((group) => (
                 <li key={group.label} className="group/nav relative">
-                  <Link href={group.href} className={navLinkClass(light)}>
+                  <Link href={group.href} className={navLinkClass()}>
                     {group.label}
                   </Link>
                   {group.children.length > 0 && (
@@ -296,11 +288,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`text-2xs tracking-label ease-fluid hidden min-h-11 min-w-11 items-center justify-center whitespace-nowrap px-1 transition-colors duration-700 sm:inline-flex ${
-                  light
-                    ? "text-primary hover:text-white md:text-accent-deep"
-                    : "text-accent-deep hover:text-accent"
-                }`}
+                className="text-2xs tracking-label text-accent-deep hover:text-accent ease-fluid hidden min-h-11 min-w-11 items-center justify-center whitespace-nowrap px-1 transition-colors duration-700 sm:inline-flex"
               >
                 {item.label}
               </Link>
@@ -317,12 +305,12 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
             >
               <span
                 className={`ease-fluid absolute left-1/2 top-1/2 block h-px w-5 -translate-x-1/2 transition-all duration-500 ${
-                  light ? "bg-primary md:bg-accent-deep" : "bg-accent-deep"
+                  "bg-accent-deep"
                 } ${open ? "rotate-45" : "-translate-y-1"}`}
               />
               <span
                 className={`ease-fluid absolute left-1/2 top-1/2 block h-px w-5 -translate-x-1/2 transition-all duration-500 ${
-                  light ? "bg-primary md:bg-accent-deep" : "bg-accent-deep"
+                  "bg-accent-deep"
                 } ${open ? "-rotate-45" : "translate-y-1"}`}
               />
             </button>
@@ -334,7 +322,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
       <div
         id="mobile-menu"
         hidden={!open}
-        className="bg-base/90 fixed inset-0 z-30 backdrop-blur-2xl lg:hidden"
+        className="on-cream on-white bg-base fixed inset-0 z-30 lg:hidden"
       >
         <nav
           aria-label="모바일 메뉴"

@@ -87,7 +87,8 @@ export default async function Home() {
         투명 헤더는 와인 히어로(split · stage) 전용이다. 그 상태(검정 스크림 + 크림 글자)를 밝은 첫 화면에
         올리면 뿌연 띠가 되고 글자는 아래쪽에서 사라진다. why · reveal 에서는 평소의 와인 유리 바가 천장이 된다.
       */}
-      <Header overHero={HERO_VARIANT === "split" || HERO_VARIANT === "stage"} />
+      {/* 히어로 위에서는 헤더가 투명, 배너를 지나면 원래 색 — why 를 뺀 세 히어로 모두 data-hero 를 갖는다 */}
+      <Header overHero={HERO_VARIANT !== "why"} />
 
       <main id="main" className="flex-1">
         {HERO_VARIANT === "why" ? (

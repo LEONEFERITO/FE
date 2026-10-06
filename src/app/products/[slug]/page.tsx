@@ -85,12 +85,14 @@ export default async function ProductDetailPage({
 
       <main id="main" className="flex-1">
         {/*
+          2026-10-06 고객 요청(피그마 "변경 요청 사항" — 이 상세 페이지 캡처): **페이지 전체 흰 바탕**.
+          아래 예전 설명의 크림 · 와인 면 구분은 걷었다 — 구매 판 · 제품 상세 · 상세 사이즈가 모두 흰 면이다.
           면 순서 (색 시안 · 상세): 사는 곳은 크림, 보는 곳은 와인.
           가격 · 사이즈 · 버튼이 있는 구매 판은 가장 또렷해야 해서 크림.
           아래 "제품 상세" 사진 구간은 와인 — 버건디 배경 원본 사진과 한 공기가 된다.
           그 아래 상세 사이즈 · 고시는 다시 크림(읽는 곳).
         */}
-        <div className="on-cream">
+        <div className="on-cream on-white">
         <div className="mx-auto max-w-[1320px] px-5 py-12 md:px-15 md:py-20">
           {/*
             모바일은 세로로 쌓고, 데스크톱은 이미지 : 정보 = 대략 7 : 5.
@@ -126,7 +128,7 @@ export default async function ProductDetailPage({
             · 첫 장만 바로, 나머지는 스크롤해서 다가올 때 받는다(lazy)
           상세 이미지가 없으면 자리표시자를 둔다(촬영본 준비 중).
         */}
-        <section className="bg-stage" aria-labelledby="detail-heading">
+        <section className="on-cream on-white" aria-labelledby="detail-heading">
           <div className="mx-auto max-w-[1320px] px-5 pt-24 text-center md:px-15 md:pt-32">
             <Reveal>
               <p className="text-muted text-2xs tracking-label">DETAIL</p>
@@ -161,7 +163,7 @@ export default async function ProductDetailPage({
             <div className="mx-auto max-w-[1320px] px-5 pb-24 md:px-15 md:pb-32">
               <Reveal delay={180}>
                 {/* 사진 자리다. 실제 촬영본 배경이 버건디라 그 톤을 미리 보여준다 */}
-                <div className="border-subtle bg-band/50 shadow-soft mx-auto mt-12 max-w-[860px] rounded-none border p-2">
+                <div className="mx-auto mt-12 max-w-[860px]">
                   <div
                     className="flex aspect-[9/7] items-center justify-center rounded-none"
                     style={{
@@ -183,7 +185,7 @@ export default async function ProductDetailPage({
           띄우는 값이다 — 없으면 제목이 헤더 밑에 가려진 채로 멈춘다.
           모델 정보도 함께 왔다. 둘 다 "내 몸에 맞는가" 를 판단하는 재료다.
         */}
-        <div className="on-cream">
+        <div className="on-cream on-white">
         <section
           id="size-detail"
           className="scroll-mt-24"
