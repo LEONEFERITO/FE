@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans_KR, Playfair_Display, Spectral } from "next/font/google";
 import "./globals.css";
+import { QuickMenu } from "@/components/layout/QuickMenu";
 import { BRAND_DESCRIPTION, openGraphBase } from "@/lib/metadata";
 import { SITE_URL } from "@/lib/site";
 
@@ -134,6 +135,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           }}
         />
         {children}
+        <QuickMenu />
       </body>
     </html>
   );

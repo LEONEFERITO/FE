@@ -53,6 +53,12 @@ export const KAKAO_CHANNEL = {
   chat: "https://pf.kakao.com/_ZiAxiX/chat",
 } as const;
 
+/**
+ * 퀵메뉴 "전화 연결" 번호. 대표 전화가 두 개라 그중 앞 번호를 쓴다.
+ * TODO(고객확인) 손님 전화를 받을 번호가 어느 쪽인지.
+ */
+export const CALL_NUMBER = "010-2434-7794";
+
 /** 푸터에 표시하는 순서. */
 export const BUSINESS_FIELDS: { key: keyof BusinessInfo; label: string }[] = [
   { key: "companyName", label: "상호" },
