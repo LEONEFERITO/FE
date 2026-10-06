@@ -19,18 +19,72 @@ import { KAKAO_CHANNEL, OFFLINE_SHOP } from "@/data/business";
  * 시안의 VIEW MORE 는 기존 몰에서 매장 안내로 갔다. 지도 링크를 아직 받지 못해(mapUrl = null) 지금은
  * "방문 문의" 가 카카오톡 채널로 간다 — 눌러서 갈 곳이 실제로 있는 유일한 길이다. 지도 링크가 오면
  * VIEW MORE 가 그 앞에 생긴다.
+ *
+ * ── 지도 (map) ─────────────────────────────────────────
+ * 브랜드 페이지(ABOUT) 맨 끝은 사진 대신 지도 이미지를 둔다 (2026-10-06 요청).
+ * 고객이 고른 구글 지도 캡처(public/brand/offline-map.webp) — 영통역과 매장이 한 장에 보이는 범위다.
+ * 움직이는 지도(임베드)는 핀을 늘 가운데 둬서 좁은 화면에서 역이 잘렸다. 그래서 고정 이미지로 둔다.
+ * 이미지 전체가 "구글 지도에서 보기" 링크다 — 길찾기는 거기서 한다 (OFFLINE_SHOP.mapQuery).
+ *
+ * 왼쪽 끝 역과 오른쪽 핀이 둘 다 남아야 해서, 가로가 넉넉하지 않은 폭(lg 미만)에서는 잘라 맞추지 않고
+ * 원본 비율 그대로 위에 쌓는다. 1200px 이상은 지도 칸을 넓혀(3:2) 거의 원본 비율로 둔다(1024 에서 나란히 두면 둘 다 잘렸다).
+ * 제목 뒤 가림막은 왼쪽 아래 모서리에만 깐다 — 오른쪽 아래의 핀을 덮지 않는다.
+ * TODO 캡처가 897px 이라 큰 화면에서 조금 흐리다 — 고해상도로 다시 캡처하면 같은 파일명으로 바꾼다.
  */
-export function OfflineShop({ image, alt }: { image: string | null; alt?: string | null }) {
+export function OfflineShop({
+  image = null,
+  alt,
+  map = false,
+}: {
+  image?: string | null;
+  alt?: string | null;
+  /** 사진 대신 고정 지도 이미지 (누르면 구글 지도) */
+  map?: boolean;
+}) {
+  const q = encodeURIComponent(OFFLINE_SHOP.mapQuery);
   return (
     <section
       id="offline-shop"
       aria-labelledby="offline-heading"
-      className="mx-auto max-w-[1320px] px-5 pb-24 md:px-15 md:pb-32"
+      // 지도판은 화면 끝까지 채운다 — 가운데 떠 있는 블록이 아니라 페이지의 마지막 면이다 (2026-10-06 요청)
+      className={map ? "w-full" : "mx-auto max-w-[1320px] px-5 pb-24 md:px-15 md:pb-32"}
     >
-      <div className="bg-surface grid md:grid-cols-[minmax(0,11fr)_minmax(0,14fr)]">
+      <div
+        className={`bg-surface grid ${
+          map ? "min-[1200px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]" : "md:grid-cols-[minmax(0,11fr)_minmax(0,14fr)]"
+        }`}
+      >
         {/* 사진 면은 버건디 — 토큰을 뒤집지 않는 면이다(globals.css .on-cream 주석). 글자는 고정 크림 */}
-        <div className="bg-velvet relative aspect-[4/3] md:aspect-auto md:min-h-[520px]">
-          {image && (
+        <div
+          className={`bg-velvet relative overflow-hidden ${
+            map ? "aspect-[897/594] min-[1200px]:aspect-auto min-[1200px]:min-h-[600px]" : "aspect-[4/3] md:aspect-auto md:min-h-[520px]"
+          }`}
+        >
+          {map && (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/brand/offline-map.webp"
+                alt={`${OFFLINE_SHOP.name} 위치 지도 — 영통역에서 매영로 방향, 매영로425번길 1`}
+                width={897}
+                height={594}
+                loading="lazy"
+                className="absolute inset-0 h-full w-full object-cover object-[45%_50%]"
+              />
+              <span className="pointer-events-none absolute right-2 top-2 z-20 bg-white/80 px-1.5 text-[10px] text-[#444]">
+                지도 © Google
+              </span>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${q}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute inset-0 z-10"
+              >
+                <span className="sr-only">구글 지도에서 {OFFLINE_SHOP.name} 위치 보기 (새 창)</span>
+              </a>
+            </>
+          )}
+          {!map && image && (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={image}
@@ -43,18 +97,22 @@ export function OfflineShop({ image, alt }: { image: string | null; alt?: string
           {/* 제목 자리를 눌러 준다 — 사진이 밝아도 왼쪽 아래 글자가 읽힌다 */}
           <span
             aria-hidden="true"
-            className="absolute inset-0"
-            style={{ background: "linear-gradient(to top, rgba(40,6,12,0.86) 0%, rgba(40,6,12,0.18) 52%, rgba(40,6,12,0) 100%)" }}
+            className="pointer-events-none absolute inset-0 z-20"
+            style={{
+              background: map
+                ? "radial-gradient(ellipse 70% 55% at 0% 100%, rgba(40,6,12,0.9) 0%, rgba(40,6,12,0.55) 45%, rgba(40,6,12,0) 100%)"
+                : "linear-gradient(to top, rgba(40,6,12,0.86) 0%, rgba(40,6,12,0.18) 52%, rgba(40,6,12,0) 100%)",
+            }}
           />
           <h2
             id="offline-heading"
-            className="font-display tracking-display absolute bottom-7 left-7 text-3xl text-[#F7F1EA] md:bottom-12 md:left-12 md:text-4xl"
+            className="font-display tracking-display pointer-events-none absolute bottom-7 left-7 z-20 text-3xl text-[#F7F1EA] md:bottom-12 md:left-12 md:text-4xl"
           >
             OFFLINE SHOP
           </h2>
         </div>
 
-        <div className="flex flex-col justify-center gap-10 p-7 md:p-16">
+        <div className={`flex flex-col justify-center gap-10 p-7 md:p-16 ${map ? "min-[1200px]:px-20" : ""}`}>
           <dl className="flex flex-col gap-9">
             <div>
               <dt className="text-primary text-sm font-semibold">주소</dt>

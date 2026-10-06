@@ -87,6 +87,11 @@ export const OFFLINE_SHOP = {
   weekdayHours: "평일 오전 10시 ~ 오후 21시",
   weekendHours: "주말 정오 12시 ~ 오후 21시",
   mapUrl: null as string | null,
+  /**
+   * 구글 지도에서 찾을 주소 — 도로명 주소만(층 · 상호는 검색을 흐린다).
+   * 브랜드 페이지의 지도 이미지를 누르면 이 주소로 구글 지도가 열린다.
+   */
+  mapQuery: "경기도 수원시 영통구 매영로425번길 1",
 } as const;
 
 /**

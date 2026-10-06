@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
+import { ChatCircle } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 
 import { Logo } from "@/components/brand/Logo";
+import { OfflineShop } from "@/components/home/OfflineShop";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Reveal } from "@/components/motion/Reveal";
 import { Scene } from "@/components/motion/Scene";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { SLOGAN } from "@/data/brand";
+import { KAKAO_CHANNEL } from "@/data/business";
 import { shareMetadata } from "@/lib/metadata";
 
 /**
@@ -23,7 +26,8 @@ import { shareMetadata } from "@/lib/metadata";
  *   3 키워드      — 열한 낱말이 두 줄 띠로 서로 반대 방향으로 흐른다 (크림)
  *   4 사진        — 깊이가 다른 사진 셋이 가리개를 걷으며 다른 속도로 지나간다
  *   5 첫인상      — "나도 저렇게 되고 싶다" 가 흩어진 자간을 모으며 깊은 곳에서 떠오른다
- *   6 맺음        — 모노그램 · 워드마크 · 컬렉션으로
+ *   6 맺음        — 모노그램 · 워드마크 · 컬렉션으로 · 카카오톡 채널 홈 안내
+ *   7 매장        — OFFLINE SHOP. 고정된 구글 지도 · 주소 · 운영시간 · 방문 문의(카카오톡)
  *
  * 3D 는 CSS perspective 뿐이다 — 번들에 더해지는 것이 없다. 무거우면 globals.css 의 "3d" 줄만 지운다.
  * JS 가 없거나 움직임을 줄인 사용자에게는 핀 없이 완성된 장면이 차례로 보인다.
@@ -363,8 +367,37 @@ export default function BrandPage() {
                 </Link>
               </div>
             </Reveal>
+
+            {/*
+              카카오톡 채널 홈 안내 — 퀵메뉴 · QnA 는 1:1 채팅으로 바로 가지만, 여기는 브랜드를 다 본 사람에게
+              "채널을 추가해 소식을 받으라" 는 자리라 채널 홈(소개 · 소식 · 친구 추가)으로 보낸다.
+            */}
+            <Reveal delay={320}>
+              <div className="border-subtle mt-14 flex w-full max-w-md flex-col items-center gap-4 border-t pt-10">
+                <p className="text-secondary text-sm leading-relaxed">
+                  카카오톡 채널 <b className="text-primary">{KAKAO_CHANNEL.name}</b>을 추가하시면
+                  <br />
+                  새 소식을 받아보실 수 있습니다.
+                </p>
+                <a
+                  href={KAKAO_CHANNEL.home}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ease-fluid inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#FEE500] px-6 text-sm font-medium text-[#191919] transition-all duration-500 hover:-translate-y-px hover:bg-[#F5DC00] active:scale-[0.98]"
+                >
+                  <ChatCircle size={18} weight="fill" aria-hidden="true" />
+                  카카오톡 채널 바로가기
+                  <span className="sr-only">(새 창)</span>
+                </a>
+              </div>
+            </Reveal>
           </div>
         </section>
+
+        {/* ── 7 · 매장 — 메인과 같은 OFFLINE SHOP 구간, 사진 대신 고정된 구글 지도 ── */}
+        <div className="on-cream">
+          <OfflineShop map />
+        </div>
       </main>
 
       <Footer />
