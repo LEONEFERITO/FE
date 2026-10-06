@@ -9,6 +9,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { CATEGORY_NAV, CATEGORY_SUBS, categoryHref, subHref } from "@/data/categories";
 import { getCatalog } from "@/lib/catalog";
+import { getSiteImages } from "@/lib/siteImages";
 import { shareMetadata } from "@/lib/metadata";
 import type { Category, Product, ProductLine } from "@/types/product";
 
@@ -121,6 +122,12 @@ function LookCategories({ links, tone }: { links: { label: string; href: string 
 
 export default async function LookbookPage() {
   const catalog = await getCatalog();
+  // 관리자가 올린 컷(사이트 사진 칸 LOOKBOOK_*, V23)이 있으면 그것, 없으면 코드의 임시 컷
+  const site = await getSiteImages();
+  const cutSrc = (line: ProductLine, i: number, c: Cut) => {
+    const s = site[`LOOKBOOK_${line}_${i + 1}` as "LOOKBOOK_LEONE_1" | "LOOKBOOK_LEONE_2" | "LOOKBOOK_FERITO_1" | "LOOKBOOK_FERITO_2"];
+    return s ? { src: s.url, alt: s.alt || c.alt } : { src: c.src, alt: c.alt };
+  };
   const bySlug = new Map(catalog.map((p) => [p.slug, p]));
   /*
     카테고리마다 갈 곳: 그 룩에 연결한 상품 중 그 분류가 있으면 그 상품 페이지, 없으면 그 분류 페이지.
@@ -184,8 +191,8 @@ export default async function LookbookPage() {
                           <div className="group/look bg-velvet-deep relative aspect-[4/5] overflow-hidden md:aspect-[4/3]">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
-                              src={c.src}
-                              alt={c.alt}
+                              src={cutSrc(col.key, i, c).src}
+                              alt={cutSrc(col.key, i, c).alt}
                               loading={ci === 0 ? "eager" : "lazy"}
                               className="ease-fluid absolute inset-0 h-full w-full object-cover object-top transition-transform duration-700 group-hover/look:scale-[1.03]"
                             />

@@ -8,6 +8,7 @@ import { Header } from "@/components/layout/Header";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { getCatalog } from "@/lib/catalog";
+import { getSiteImages, lineSlots } from "@/lib/siteImages";
 import { shareMetadata } from "@/lib/metadata";
 import { pendingLabel } from "@/lib/pending";
 import { CATEGORY_LABEL, LINE_LABEL, type Category, type ProductLine } from "@/types/product";
@@ -26,7 +27,8 @@ import { CATEGORY_LABEL, LINE_LABEL, type Category, type ProductLine } from "@/t
  * ("설명 적어주고…"). 브랜드의 말을 우리가 지어 쓰지 않는다 — 검색 결과와 공유 미리보기에 그대로 나간다.
  * 그 자리는 "확인 중" 으로 드러내 둔다. TODO(고객확인) 라인별 의도 문안 · 페인포인트/니즈 다섯 문장 · 다섯 칸 사진.
  *
- * 다섯 칸의 사진은 그 라인 상품의 사진을 앞에서부터 채운다. 모자라면 버건디 면으로 남는다(가이드의 회색 칸).
+ * 다섯 칸의 사진은 관리자가 올린다(/admin/display/line — 서버 site_image LINE_*_1~5, V22). 비운 칸은 그 라인
+ * 상품의 사진을 앞에서부터 채우고, 모자라면 가이드의 회색 칸으로 남는다.
  */
 
 const LINE_BY_SLUG: Record<string, ProductLine> = { leone: "LEONE", ferito: "FERITO" };
@@ -58,7 +60,11 @@ export default async function LinePage({ params }: PageProps<"/line/[line]">) {
 
   const label = LINE_LABEL[key];
   const products = (await getCatalog()).filter((p) => p.line === key);
-  const photos = products.flatMap((p) => p.images).slice(0, TILE_COUNT);
+  // 다섯 칸: 관리자가 올린 사진(/admin/display/line, V22) 먼저, 빈 칸은 그 라인 상품 사진으로, 그것도 없으면 회색 칸
+  const slots = lineSlots(await getSiteImages(), key);
+  const fallback = products.flatMap((p) => p.images);
+  let used = 0;
+  const photos = slots.map((s) => s ?? fallback[used++] ?? null);
   const groups = CATEGORY_ORDER.map((category) => ({
     category,
     items: products.filter((p) => p.category === category),
@@ -71,49 +77,44 @@ export default async function LinePage({ params }: PageProps<"/line/[line]">) {
       <Header />
 
       <main id="main" className="flex-1">
-        {/* ── 1 머리 + 2 다섯 칸. 가이드의 검은 화면 — 이 사이트의 가장 깊은 와인으로 옮겼다 ── */}
-        <section aria-labelledby="line-heading" className="border-subtle border-b">
-          <div className="mx-auto max-w-[1320px] px-5 py-16 md:px-15 md:py-24">
-            <div className="mx-auto max-w-2xl text-center">
-              {/* 가이드는 라인 이름을 빨강으로 적었다. 이 바닥 위 버건디는 1.9:1 이라 사라진다 — 골드로 둔다 */}
-              <h1
-                id="line-heading"
-                className="font-display text-accent leading-display tracking-display text-4xl md:text-(length:--fs-hero)"
-              >
-                {label.en}
-              </h1>
-              <p className="text-primary tracking-label mt-6 text-sm">{label.kind} 라인</p>
-              <p className="text-secondary mt-4 text-(length:--fs-base) leading-relaxed">{label.description}</p>
-              {/* 이 라인이 왜 존재하는지 — 문안을 받기 전이다 (머리말 "아직 없는 글") */}
-              <p className="text-muted mt-4 text-sm">{pendingLabel("라인 소개 문안")}</p>
-            </div>
+        {/*
+          ── 1 머리 + 2 다섯 칸 — 2026-10-06 고객 요청: 가이드 그림 그대로 **검은 바탕 · 빨간 라인 이름 · 가운데 정렬**.
+          전에는 사이트의 와인 바닥으로 옮겨 그렸는데, 가이드의 검정 · 빨강을 그대로 쓰기로 했다.
+          색 대비(검정 위): 빨강 #E0202E 4.6:1(큰 글자 기준 3:1 통과) · 흰 글자 21:1 · 회색 글자 #B5B5B5 10:1.
+          다섯 칸은 넓은 화면에서 한 줄 다섯, 좁은 화면은 2열(다섯째 칸은 가운데 줄 아래로 간다).
+        */}
+        <section aria-labelledby="line-heading" className="bg-[#000000]">
+          <div className="mx-auto max-w-[1320px] px-5 py-16 text-center md:px-15 md:py-24">
+            <h1
+              id="line-heading"
+              className="font-display leading-display tracking-display text-3xl text-[#E0202E] md:text-4xl"
+            >
+              {label.en}
+            </h1>
+            <p className="mt-8 text-sm text-[#F5F5F5]">{label.kind} 라인</p>
+            <p className="mt-4 text-sm text-[#F5F5F5]">{label.description}</p>
+            {/* 이 라인이 왜 존재하는지 — 문안을 받기 전이다 (머리말 "아직 없는 글") */}
+            <p className="mt-4 text-sm text-[#B5B5B5]">{pendingLabel("라인 소개 문안")}</p>
 
-            <div className="mt-14 md:mt-20">
-              <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-5">
-                {Array.from({ length: TILE_COUNT }, (_, i) => {
-                  const photo = photos[i];
-                  return (
-                    /*
-                      칸 수는 줄마다 딱 떨어지게: 좁은 화면 2열 × 2줄(넷), 중간 3열 × 1줄(셋), 넓은 화면 5열(다섯).
-                      다섯을 2열 · 3열에 그대로 흘리면 마지막 줄에 한두 칸만 남아 덜 채운 격자로 보인다.
-                    */
-                    <li key={i} className={i === 3 ? "sm:hidden lg:block" : i === 4 ? "hidden lg:block" : undefined}>
-                      <figure className="bg-velvet relative aspect-[3/4] overflow-hidden rounded-xl">
-                        {photo && (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img src={photo.url} alt={photo.alt} loading="lazy" className="absolute inset-0 h-full w-full object-cover object-top" />
-                        )}
-                        <figcaption className="text-2xs tracking-label absolute left-3 top-3 tabular-nums text-[#F7F1EA]/80">
-                          {String(i + 1).padStart(2, "0")}
-                        </figcaption>
-                      </figure>
-                    </li>
-                  );
-                })}
-              </ul>
-              <h2 className="text-primary mt-6 text-center text-sm">페인포인트와 니즈 포인트</h2>
-              <p className="text-muted mt-2 text-center text-xs">{pendingLabel("칸별 내용")}</p>
-            </div>
+            <ul className="mt-12 grid grid-cols-2 gap-3 md:mt-16 md:grid-cols-5 md:gap-3">
+              {Array.from({ length: TILE_COUNT }, (_, i) => {
+                const photo = photos[i];
+                // 좁은 화면의 다섯째 칸: 두 칸을 차지하고 그 안에서 가운데 — 폭은 안쪽 figure 가 맡는다(li 에 w-auto 를 주면 grid 안에서 0 이 된다)
+                return (
+                  <li key={i} className={i === 4 ? "col-span-2 flex justify-center md:col-span-1 md:block" : undefined}>
+                    {/* 사진이 없으면 가이드의 회색 칸 그대로 */}
+                    <figure className={`relative aspect-[3/4] overflow-hidden bg-[#D9D9D9] ${i === 4 ? "w-[calc(50%-0.375rem)] md:w-auto" : ""}`}>
+                      {photo && (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={photo.url} alt={photo.alt} loading="lazy" className="absolute inset-0 h-full w-full object-cover object-top" />
+                      )}
+                    </figure>
+                  </li>
+                );
+              })}
+            </ul>
+            <h2 className="mt-5 text-sm text-[#F5F5F5]">페인포인트와 니즈 포인트</h2>
+            <p className="mt-2 text-xs text-[#B5B5B5]">{pendingLabel("칸별 내용")}</p>
           </div>
         </section>
 

@@ -148,7 +148,13 @@ export const saveWhy = (input: { eyebrow: string; title: string; intro: string; 
 // ── 사이트 사진 칸 (매장 사진 등) ────────────────────────────
 
 /** 서버의 SiteImageSlot 과 같은 값 (lib/siteImages.ts 의 손님용 타입과도 같다). */
-export type SiteImageSlot = "OFFLINE_SHOP";
+export type SiteImageSlot =
+  | "OFFLINE_SHOP"
+  | "LINE_LEONE_1" | "LINE_LEONE_2" | "LINE_LEONE_3" | "LINE_LEONE_4" | "LINE_LEONE_5"
+  | "LINE_FERITO_1" | "LINE_FERITO_2" | "LINE_FERITO_3" | "LINE_FERITO_4" | "LINE_FERITO_5"
+  | "MAIN_LINE_LEONE" | "MAIN_LINE_FERITO"
+  | "LOOKBOOK_LEONE_1" | "LOOKBOOK_LEONE_2" | "LOOKBOOK_FERITO_1" | "LOOKBOOK_FERITO_2"
+  | "BRAND_HERO" | "BRAND_PHOTO_1" | "BRAND_PHOTO_2" | "BRAND_PHOTO_3" | "BRAND_IMPRESSION";
 
 export interface SiteImageAdminView {
   slot: SiteImageSlot;

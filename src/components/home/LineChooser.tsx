@@ -1,3 +1,4 @@
+import type { SiteImage } from "@/lib/siteImages";
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 
@@ -25,12 +26,20 @@ const LINES: ProductLine[] = ["LEONE", "FERITO"];
 
 export const lineHref = (line: ProductLine) => `/line/${line.toLowerCase()}/`;
 
-export function LineChooser({ products }: { products: Product[] }) {
+export function LineChooser({
+  products,
+  covers = {},
+}: {
+  products: Product[];
+  /** 관리자가 올린 카드 사진(사이트 사진 칸 MAIN_LINE_*, V23). 없으면 그 라인의 첫 상품 사진 */
+  covers?: Partial<Record<ProductLine, SiteImage | null>>;
+}) {
   const photoOf = (line: ProductLine) =>
-    products.find((p) => p.line === line && p.images.length > 0)?.images[0] ?? null;
+    covers[line] ?? products.find((p) => p.line === line && p.images.length > 0)?.images[0] ?? null;
 
   return (
-    <section aria-labelledby="lines-heading">
+    // 2026-10-06 고객 요청: 이 구간 바탕은 검정 — 라인 페이지(검정 · 빨강)와 한 공기
+    <section aria-labelledby="lines-heading" className="bg-[#000000]">
       <div className="mx-auto max-w-[1320px] px-5 py-24 md:px-15 md:py-32">
         <h2
           id="lines-heading"

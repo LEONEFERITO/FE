@@ -4,10 +4,10 @@ import { AdminPage } from "@/components/admin/AdminPage";
 import { AdminSiteImagesEditor } from "@/components/admin/AdminSiteImagesEditor";
 import { siteImageGroup } from "@/data/siteImageGroups";
 
-const group = siteImageGroup("offline")!;
+const group = siteImageGroup("main-lines")!;
 
 export const metadata: Metadata = {
-  title: "매장 사진",
+  title: "메인 라인 카드",
   robots: { index: false, follow: false },
 };
 

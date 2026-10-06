@@ -12,6 +12,7 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { SLOGAN } from "@/data/brand";
 import { KAKAO_CHANNEL } from "@/data/business";
 import { shareMetadata } from "@/lib/metadata";
+import { getSiteImages } from "@/lib/siteImages";
 
 /**
  * 브랜드 가치관 (요구사항 2-1) — 스크롤 스토리텔링.
@@ -124,7 +125,16 @@ function Chapter({ id, title, description }: { id: string; title: string; descri
 /** 핀 장면 오른쪽 아래의 진행 눈금 (CSS 가 --p 로 채운다) */
 const Rail = () => <i aria-hidden="true" className="brand-rail" />;
 
-export default function BrandPage() {
+export default async function BrandPage() {
+  // 관리자가 올린 사진(사이트 사진 칸 BRAND_*, V23)이 있으면 그것, 없으면 제품 촬영본 임시 컷
+  const site = await getSiteImages();
+  const heroSrc = site.BRAND_HERO?.url ?? "/products/photo-brown-shirt.webp";
+  const impressionSrc = site.BRAND_IMPRESSION?.url ?? "/brand/tailoring.webp";
+  const gallery = GALLERY.map((g, i) => {
+    const s = site[`BRAND_PHOTO_${i + 1}` as "BRAND_PHOTO_1" | "BRAND_PHOTO_2" | "BRAND_PHOTO_3"];
+    return s ? { ...g, src: s.url, alt: s.alt || g.alt } : g;
+  });
+
   let wordIndex = 0;
 
   return (
@@ -168,7 +178,7 @@ export default function BrandPage() {
               <div className="brand-hero-frame border-accent/35 h-full w-full border">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/products/photo-brown-shirt.webp"
+                  src={heroSrc}
                   alt="버건디 배경 앞에 선 남성 모델 — 브라운 셔츠와 블랙 트라우저"
                   className="h-full w-full object-cover object-top"
                 />
@@ -312,7 +322,7 @@ export default function BrandPage() {
                 </Reveal>
               </div>
 
-              {GALLERY.map((g) => (
+              {gallery.map((g) => (
                 <Scene key={g.src} as="figure" className={`brand-float ${g.className}`} style={css(g.depth)}>
                   <div className="relative aspect-[4/5] overflow-hidden">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -335,7 +345,7 @@ export default function BrandPage() {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/brand/tailoring.webp"
+            src={impressionSrc}
             alt=""
             loading="lazy"
             className="brand-quote-bg absolute inset-0 h-full w-full object-cover"

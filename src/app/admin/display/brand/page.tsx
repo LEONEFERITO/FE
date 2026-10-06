@@ -4,10 +4,10 @@ import { AdminPage } from "@/components/admin/AdminPage";
 import { AdminSiteImagesEditor } from "@/components/admin/AdminSiteImagesEditor";
 import { siteImageGroup } from "@/data/siteImageGroups";
 
-const group = siteImageGroup("offline")!;
+const group = siteImageGroup("brand")!;
 
 export const metadata: Metadata = {
-  title: "매장 사진",
+  title: "브랜드 페이지 사진",
   robots: { index: false, follow: false },
 };
 
