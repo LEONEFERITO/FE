@@ -27,7 +27,15 @@ import {
   type AdminProductEdit,
   type ProductDraft,
 } from "@/lib/admin";
-import { CATEGORY_LABEL, LINE_LABEL, type Category, type ProductLine } from "@/types/product";
+import {
+  CATEGORY_LABEL,
+  LINE_LABEL,
+  STYLE_LABEL,
+  stylesFor,
+  type Category,
+  type ProductLine,
+  type ProductStyle,
+} from "@/types/product";
 
 /**
  * 상품 등록 폼.
@@ -121,6 +129,9 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
   const [line, setLine] = useState<ProductLine>(
     (initial?.line as ProductLine | undefined) ?? "LEONE",
   );
+  // 세부 분류(트라우저 핏 · 신발 종류). 분류를 바꾸면 맞지 않는 값은 비운다 — 서버도 그 조합을 400 으로 막는다.
+  const [style, setStyle] = useState<ProductStyle | null>((initial?.style as ProductStyle | null | undefined) ?? null);
+  const styleChoices = stylesFor(category);
   const [priceKrw, setPriceKrw] = useState(initial?.priceKrw?.toString() ?? "");
   const [leadTimeDays, setLeadTimeDays] = useState(initial?.leadTimeDays?.toString() ?? "");
   const [fabric, setFabric] = useState(initial?.fabric ?? "");
@@ -225,6 +236,7 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
       name: name.trim(),
       category,
       line,
+      style: style && STYLE_LABEL[style].category === category ? style : null,
       priceKrw: priceKrw ? Number(priceKrw) : null,
       summary: summary.trim(),
       description: description.trim(),
@@ -438,11 +450,21 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
             <label htmlFor="category" className="text-secondary text-2xs">
               카테고리
             </label>
+            {/*
+              분류는 등록 때만 정한다 — 서버가 수정 요청의 분류를 반영하지 않는다(AdminProductService.update).
+              수정 화면에서 바꿀 수 있게 두면 바뀐 줄 알지만 그대로다. 그래서 잠그고 이유를 적는다.
+            */}
             <select
               id="category"
               value={category}
-              onChange={(e) => setCategory(e.target.value as Category)}
-              className="text-primary border-interactive focus-visible:border-accent ease-fluid min-h-12 w-full rounded-xl border bg-transparent px-4 text-sm transition-colors duration-300"
+              disabled={editing}
+              aria-describedby={editing ? "category-hint" : undefined}
+              onChange={(e) => {
+                const next = e.target.value as Category;
+                setCategory(next);
+                if (style && STYLE_LABEL[style].category !== next) setStyle(null);
+              }}
+              className="text-primary border-interactive focus-visible:border-accent ease-fluid min-h-12 w-full rounded-xl border bg-transparent px-4 text-sm transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {CATEGORIES.map((c) => (
                 <option key={c} value={c} className="bg-surface">
@@ -450,6 +472,11 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
                 </option>
               ))}
             </select>
+            {editing && (
+              <p id="category-hint" className="text-muted text-2xs">
+                카테고리는 등록 후 바꿀 수 없습니다. 바꾸려면 새 상품으로 등록해 주세요.
+              </p>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -470,6 +497,31 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
             </select>
           </div>
         </div>
+
+        {/* 세부 분류 — 트라우저(핏) · 구두(종류)만. 메뉴의 Regular · Straight · Flare / Oxfords · Loafers 가 이 값으로 거른다 */}
+        {styleChoices.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <label htmlFor="style" className="text-secondary text-2xs">
+              세부 분류 {category === "TROUSERS" ? "(핏)" : "(종류)"}
+            </label>
+            <select
+              id="style"
+              value={style ?? ""}
+              onChange={(e) => setStyle(e.target.value ? (e.target.value as ProductStyle) : null)}
+              className="text-primary border-interactive focus-visible:border-accent ease-fluid min-h-12 w-full rounded-xl border bg-transparent px-4 text-sm transition-colors duration-300 sm:max-w-[calc(50%-0.625rem)]"
+            >
+              <option value="" className="bg-surface">
+                선택 안 함
+              </option>
+              {styleChoices.map((s) => (
+                <option key={s} value={s} className="bg-surface">
+                  {STYLE_LABEL[s].en} · {STYLE_LABEL[s].ko}
+                </option>
+              ))}
+            </select>
+            <p className="text-muted text-2xs">메뉴의 세부 분류에 이 상품이 나오게 합니다. 고르지 않으면 분류 전체에만 나옵니다.</p>
+          </div>
+        )}
 
         <div className="grid gap-5 sm:grid-cols-2">
           <CountedField

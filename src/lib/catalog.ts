@@ -6,6 +6,7 @@ import type {
   Product,
   ProductLine,
   ProductPhoto,
+  ProductStyle,
 } from "@/types/product";
 
 /**
@@ -49,6 +50,7 @@ interface ApiDetail {
   summary: string | null;
   category: Category;
   line: ProductLine;
+  style?: ProductStyle | null;
   priceKrw: number | null;
   listPriceKrw: number | null;
   description: string | null;
@@ -130,6 +132,7 @@ function toProduct(d: ApiDetail): Product {
     name: d.name,
     category: d.category,
     line: d.line,
+    style: d.style ?? null,
     priceKrw: d.priceKrw,
     listPriceKrw: d.listPriceKrw,
     summary: d.summary,

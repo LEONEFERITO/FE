@@ -23,13 +23,19 @@ import { LINE_LABEL } from "@/types/product";
  * 고지해야 법적으로 성립한다 (BRAND_BRIEF.md 3장). 결제 화면에도 다시 나오지만,
  * 여기서 먼저 읽은 사람은 결제에서 놀라지 않는다.
  *
- * TODO(고객확인) 제작 기간 · 수선 정책 · 관리법 문안 · 더맨리 네이버플레이스 링크.
+ * ── THE GUIDE (2026-10-06 고객 사이트 구조표) ─────────────
+ * 헤더 드롭다운의 다섯 항목이 이 페이지의 카드로 바로 온다:
+ *   #order MADE TO ORDER · #size Size Guide(#lines 체형별 포함) · #alteration Alterations · #delivery Delivery · #care Care
+ * 맞춤 제작(#custom)은 구조표에서 THE MAISON 의 THE TAILORING 으로 옮겨 갔다 — 카드는 그쪽으로 잇는 길만 남긴다
+ * (메인의 브랜드 이용 메뉴얼이 /guide/#custom 으로 들어오므로 앵커는 유지한다).
+ *
+ * TODO(고객확인) 제작 기간 · 수선 정책 · 배송 방식 · 배송비 · 관리법 문안.
  */
 
 export const metadata: Metadata = shareMetadata({
   title: "이용 안내",
   description:
-    "주문 후 제작 방식, 레오네·페리토 라인의 핏, 사이즈 고르는 법, 수선과 관리, 맞춤 제작 안내.",
+    "주문 후 제작 방식, 사이즈 고르는 법, 수선 · 배송 · 관리 안내. LEONE FERITO 이용 가이드.",
 });
 
 const STEPS = ["주문", `제작 · ${pendingLabel("기간")}`, "발송", "수령"];
@@ -72,16 +78,16 @@ export default function GuidePage() {
 
       <main id="main" className="flex-1">
         <PageBand
-          eyebrow="GUIDE"
+          eyebrow="THE GUIDE"
           title="이용 안내"
-          description="주문부터 수령, 수선과 관리까지. 궁금해하실 여섯 가지를 한 페이지에 모았습니다."
+          description="주문부터 수령, 수선과 관리까지. 브랜드 이용 가이드를 한 페이지에 모았습니다."
         />
 
         <div className="on-cream">
           <div className="mx-auto flex max-w-[1320px] flex-col gap-5 px-5 py-12 md:px-15 md:py-16">
             {/* ── 01 주문 후 제작 ──────────────────────────── */}
             <Reveal>
-              <Card id="order" num="01 · 가장 먼저" title="주문 후 제작됩니다">
+              <Card id="order" num="01 · MADE TO ORDER" title="주문 후 제작됩니다">
                 <p>
                   만들어 둔 옷을 파는 것이 아니라, 주문을 확인한 뒤 한 벌씩 제작합니다.
                   그래서 재고 대신 <b className="text-primary">제작 기간</b>이 표시됩니다.
@@ -109,11 +115,11 @@ export default function GuidePage() {
             {/* ── 02 · 03 고르는 법 ─────────────────────────── */}
             <div className="grid gap-5 md:grid-cols-2">
               <Reveal delay={60}>
-                <Card id="lines" num="02" title="레오네 · 페리토 — 어느 라인인가" className="h-full">
+                <Card id="lines" num="02 · SIZE GUIDE — 체형별" title="레오네 · 페리토 — 어느 라인인가" className="h-full">
                   <div className="grid grid-cols-2 gap-3">
                     {(["LEONE", "FERITO"] as const).map((line) => (
                       <figure key={line} className="min-w-0">
-                        <div className="border-subtle bg-band/50 relative aspect-[4/5] overflow-hidden rounded-xl border">
+                        <div className="bg-band/50 relative aspect-[4/5] overflow-hidden">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={line === "LEONE" ? "/products/photo-black-shirt.webp" : "/products/photo-brown-shirt.webp"}
@@ -137,7 +143,7 @@ export default function GuidePage() {
               </Reveal>
 
               <Reveal delay={120}>
-                <Card id="size" num="03" title="내게 맞는 사이즈 고르는 법" className="h-full">
+                <Card id="size" num="02 · SIZE GUIDE — 실측" title="내게 맞는 사이즈 고르는 법" className="h-full">
                   <p>
                     사진이 아니라 치수로 고르세요. 아래처럼 몸을 잰 뒤, 각 상품 페이지의{" "}
                     <b className="text-primary">상세 사이즈 차트</b>와 견줍니다.
@@ -161,31 +167,47 @@ export default function GuidePage() {
               </Reveal>
             </div>
 
-            {/* ── 04 · 05 · 06 받은 뒤 ───────────────────────── */}
+            {/* ── 03 · 04 · 05 받은 뒤 ───────────────────────── */}
             <div className="grid gap-5 md:grid-cols-3">
               <Reveal delay={60}>
-                <Card id="alteration" num="04" title="수령 후 수선" className="h-full">
+                <Card id="alteration" num="03 · ALTERATIONS" title="수령 후 수선" className="h-full">
                   {/* TODO(고객확인) 수선 정책 — 가능 범위 · 비용 · 기간 */}
-                  <p className="text-muted">{pendingHint("수선 안내", "기장 · 허리 수선 가능 여부와 비용")}</p>
+                  <p className="text-muted">{pendingHint("수선 안내", "소매 · 바지 기장 수선 가능 여부와 비용")}</p>
                 </Card>
               </Reveal>
               <Reveal delay={120}>
-                <Card id="care" num="05" title="관리법" className="h-full">
-                  {/* TODO(고객확인) 원단별 세탁·보관 안내 */}
-                  <p className="text-muted">{pendingHint("관리 안내", "드라이클리닝 · 보관 · 다림질")}</p>
+                <Card id="delivery" num="04 · DELIVERY" title="제작 기간과 배송" className="h-full">
+                  <p>
+                    제작 기간은 상품마다 다르며, 각 상품 페이지와 결제 전에 표시됩니다. 제작이 끝나면 발송하고,
+                    진행 상황은 <Link href="/mypage/#order-status" className="text-accent hover:text-accent-hover underline underline-offset-4">마이페이지</Link>에서 확인하실 수 있습니다.
+                  </p>
+                  {/* TODO(고객확인) 출고 예정일 기준 · 택배사 · 배송비 */}
+                  <p className="text-muted text-xs">{pendingHint("배송 안내", "출고 예정일 · 택배사 · 배송비")}</p>
                 </Card>
               </Reveal>
               <Reveal delay={180}>
-                <Card id="custom" num="06" title="맞춤 제작을 원하시면" className="border-accent/40 h-full">
-                  <p>
-                    기성복으로 부족하다면 테일러샵 <b className="text-primary">더맨리</b>에서 맞춤
-                    제작을 안내해 드립니다.
-                  </p>
-                  {/* TODO(고객확인) 네이버플레이스 링크 — 오면 여기 버튼이 된다 */}
-                  <p className="text-muted text-xs">{pendingLabel("네이버플레이스 링크")}</p>
+                <Card id="care" num="05 · CARE" title="관리법" className="h-full">
+                  {/* TODO(고객확인) 수트 · 셔츠 · 팬츠 · 신발류 세탁 · 보관 안내 */}
+                  <p className="text-muted">{pendingHint("관리 안내", "수트 · 셔츠 · 팬츠 · 신발류 세탁 · 보관 · 관리")}</p>
                 </Card>
               </Reveal>
             </div>
+
+            {/* 맞춤 제작 — THE MAISON 의 THE TAILORING 으로 잇는 길 */}
+            <Reveal delay={60}>
+              <Card id="custom" num="THE TAILORING" title="맞춤 제작을 원하시면" className="border-accent/40">
+                <p>
+                  기성복으로 부족하다면 테일러샵 <b className="text-primary">더맨리</b>에서 정교한 맞춤 제작을 안내해 드립니다.
+                </p>
+                <Link
+                  href="/brand/#tailoring"
+                  className="text-accent hover:text-accent-hover ease-fluid inline-flex min-h-11 w-fit items-center gap-1.5 text-xs underline underline-offset-4 transition-colors duration-300"
+                >
+                  매장 위치 · 운영시간 보기
+                  <ArrowRight size={12} weight="light" aria-hidden="true" />
+                </Link>
+              </Card>
+            </Reveal>
           </div>
         </div>
       </main>

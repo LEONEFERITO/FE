@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useId, useMemo, useState } from "react";
 
 import { ProductCard } from "@/components/product/ProductCard";
+import { matchesSub, subHref, type CategorySub } from "@/data/categories";
 import type { Product } from "@/types/product";
 
 /**
@@ -28,9 +30,31 @@ const SORTS: { value: Sort; label: string }[] = [
   { value: "price-desc", label: "높은가격" },
 ];
 
-export function CategoryProducts({ products }: { products: Product[] }) {
+/**
+ * 주소의 ?sub= 를 읽어 세부 메뉴를 고른다 (2026-10-06 구조표 — 헤더 드롭다운의 Classic Fit · Flare Fit · Loafers 등).
+ * 정적 내보내기라 쿼리는 브라우저에서만 읽힌다. 그래서 페이지는 이 컴포넌트를 Suspense 로 감싸고,
+ * 빌드 HTML(= 대체 화면)에는 분류 전체를 그린다 — 검색엔진과 JS 없는 환경에는 전체 목록이 보인다.
+ */
+export function CategoryProductsFromUrl(props: { products: Product[]; categorySlug: string; subs: CategorySub[] }) {
+  const sub = useSearchParams().get("sub");
+  return <CategoryProducts {...props} activeSub={props.subs.some((s) => s.slug === sub) ? sub : null} />;
+}
+
+export function CategoryProducts({
+  products: all,
+  categorySlug,
+  subs = [],
+  activeSub = null,
+}: {
+  products: Product[];
+  categorySlug?: string;
+  subs?: CategorySub[];
+  activeSub?: string | null;
+}) {
   const [sort, setSort] = useState<Sort>("new");
   const selectId = useId();
+  const current = subs.find((s) => s.slug === activeSub) ?? null;
+  const products = useMemo(() => (current ? all.filter((p) => matchesSub(p, current)) : all), [all, current]);
 
   const sorted = useMemo(() => {
     // "신상품" 은 서버가 준 순서 그대로다(관리자가 정한 진열 순서).
@@ -57,6 +81,35 @@ export function CategoryProducts({ products }: { products: Product[] }) {
 
   return (
     <div>
+      {/* 세부 메뉴 칩 — 링크라서 주소가 바뀌고, 그 주소를 공유하면 같은 목록이 열린다 */}
+      {subs.length > 0 && categorySlug && (
+        <nav aria-label="세부 분류" className="mb-6">
+          <ul className="flex flex-wrap gap-2">
+            {[{ slug: null as string | null, label: "전체" }, ...subs].map((s) => {
+              const on = s.slug === (current?.slug ?? null);
+              return (
+                <li key={s.slug ?? "all"}>
+                  <Link
+                    href={s.slug ? subHref(categorySlug, s.slug) : `/category/${categorySlug}/`}
+                    replace
+                    scroll={false}
+                    aria-current={on ? "page" : undefined}
+                    className={`ease-fluid tracking-label inline-flex min-h-11 items-center border px-5 text-xs transition-colors duration-300 ${
+                      on
+                        ? "border-accent bg-accent text-on-accent"
+                        : "border-interactive text-secondary hover:border-accent hover:text-accent"
+                    }`}
+                  >
+                    {s.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+          {current && <p className="text-muted mt-3 text-xs">{current.description}</p>}
+        </nav>
+      )}
+
       <div className="border-subtle flex flex-wrap items-center justify-between gap-4 border-b pb-4">
         <p className="text-secondary text-sm">
           총 <strong className="text-primary font-semibold tabular-nums">{products.length}</strong>개의 상품
@@ -85,7 +138,7 @@ export function CategoryProducts({ products }: { products: Product[] }) {
       </div>
 
       {sorted.length > 0 ? (
-        <ul className="mt-10 grid grid-cols-2 gap-x-5 gap-y-12 md:grid-cols-3 lg:grid-cols-4">
+        <ul className="mt-10 grid grid-cols-2 gap-x-5 gap-y-12 md:grid-cols-3">
           {sorted.map((p) => (
             <li key={p.slug}>
               <ProductCard product={p} />
@@ -98,7 +151,9 @@ export function CategoryProducts({ products }: { products: Product[] }) {
           "준비 중" 딱지 대신 갈 곳을 준다 — 빈 화면에서 끝나면 뒤로 가기밖에 할 것이 없다.
         */
         <div className="flex flex-col items-center gap-5 py-24 text-center">
-          <p className="text-secondary text-sm">이 분류의 상품을 준비하고 있습니다.</p>
+          <p className="text-secondary text-sm">
+            {current ? `${current.label} 상품을 준비하고 있습니다.` : "이 분류의 상품을 준비하고 있습니다."}
+          </p>
           <Link
             href="/products/"
             className="border-interactive text-accent hover:border-accent hover:bg-accent-tint ease-fluid tracking-button inline-flex min-h-11 items-center rounded-full border px-6 text-xs transition-all duration-500"

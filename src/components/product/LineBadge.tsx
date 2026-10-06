@@ -38,13 +38,18 @@ export function LineBadge({ line }: { line: ProductLine }) {
   );
 }
 
-/** 라인 배지 + 한 줄 설명. 배지만으로는 "페리토가 뭔데?" 가 남는다. */
+/**
+ * 라인 이름 + 한 줄 설명. 이름만으로는 "페리토가 뭔데?" 가 남는다.
+ * 2026-10-06 고객 요청으로 알약 모양 배지를 걷고 글자로만 둔다 — 상품 카드에서도 배지를 없앴다.
+ */
 export function LineSummary({ line }: { line: ProductLine }) {
   const label = LINE_LABEL[line];
 
   return (
-    <div className="flex flex-col gap-3.5">
-      <LineBadge line={line} />
+    <div className="flex flex-col gap-1.5">
+      <p className="text-accent text-2xs tracking-label">
+        {label.en} · {label.ko} ({label.kind})
+      </p>
       <p className="text-secondary text-sm">{label.description}</p>
     </div>
   );

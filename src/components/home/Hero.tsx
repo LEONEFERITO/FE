@@ -80,10 +80,6 @@ function Cutout({
       className="stage-in relative h-[44dvh] max-h-[460px] shrink-0 md:h-[70dvh] md:max-h-[720px]"
       data-staged={staged}
     >
-      <span
-        aria-hidden="true"
-        className="absolute inset-x-[-10%] bottom-[-1%] h-[2.2%] rounded-[50%] bg-[rgba(10,1,4,0.45)] blur-[7px]"
-      />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
@@ -91,7 +87,7 @@ function Cutout({
         width={width}
         height={height}
         loading="eager"
-        className="relative block h-full w-auto [filter:drop-shadow(0_26px_34px_rgba(16,2,6,0.62))]"
+        className="relative block h-full w-auto"
       />
     </div>
   );
@@ -297,7 +293,7 @@ export function Hero() {
             <div className="flex flex-wrap items-center justify-center gap-3 md:justify-start">
               <Link
                 href="/products"
-                className="group text-accent tracking-button ease-fluid inline-flex items-center gap-2 rounded-full bg-primary py-2.5 pl-5 pr-1.5 text-xs shadow-[0_14px_30px_-14px_rgba(18,2,7,0.9)] transition-all duration-500 hover:bg-white active:scale-[0.98] md:gap-3 md:py-3 md:pl-6 md:pr-2 md:text-sm"
+                className="group text-accent tracking-button ease-fluid inline-flex items-center gap-2 rounded-full bg-primary py-2.5 pl-5 pr-1.5 text-xs transition-all duration-500 hover:bg-white active:scale-[0.98] md:gap-3 md:py-3 md:pl-6 md:pr-2 md:text-sm"
               >
                 COLLECTION
                 <span className="bg-velvet/10 ease-fluid flex h-7 w-7 items-center justify-center rounded-full transition-transform duration-500 group-hover:-translate-y-px group-hover:translate-x-1 group-hover:scale-105 md:h-8 md:w-8">

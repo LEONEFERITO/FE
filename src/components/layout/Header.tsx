@@ -1,10 +1,11 @@
 "use client";
 
+import { CaretDown } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { Logo } from "@/components/brand/Logo";
-import { CATEGORY_NAV, categoryHref } from "@/data/categories";
+import { ABOUT_GROUPS, ABOUT_LABEL, CATEGORY_GROUPS, type NavLink } from "@/data/siteNav";
 
 /**
  * 전역 헤더 — 화면 폭을 가득 채우는 배너.
@@ -52,19 +53,50 @@ import { CATEGORY_NAV, categoryHref } from "@/data/categories";
  * 헤더에서 내려온 메뉴(BRAND · GUIDE · LOOKBOOK · QNA)는 없어지지 않는다. 모바일 메뉴의 둘째 묶음과
  * 푸터로 옮겼고, 메인의 "브랜드 이용 메뉴얼" · "문의 · 채널" 구간이 각각 GUIDE · QNA 로 잇는다.
  */
-const NAV = [
-  { href: "/", label: "메인" },
-  ...CATEGORY_NAV.map((c) => ({ href: categoryHref(c.slug), label: c.label })),
-];
+/*
+ * ── 2026-10-06 고객 사이트 구조표로 바뀐 규칙 (위 두 주석은 그 전의 규칙이다) ──
+ * 헤더는 구조표의 상위 메뉴 열 개다: THE MAISON · THE GUIDE · THE LOOKBOOK · SHIRTS · TROUSERS · JACKET · SUIT ·
+ * FOOTWEAR · ACCESSORIES · CLIENT SERVICES. 하위 메뉴는 PC 에서 드롭다운, 모바일에서 펼침이다.
+ * 목록은 data/siteNav.ts 의 SITE_NAV 하나에서 온다 (푸터도 같은 목록).
+ *
+ * 같은 날 정리: 브랜드 · 안내 · 룩북 · 고객 서비스 넷은 ABOUT 한 칸으로 묶었다(data/siteNav.ts ABOUT_GROUPS).
+ * 헤더 한 줄은 MAIN · ABOUT · SHIRTS · TROUSERS · JACKET · SUIT · FOOTWEAR · ACCESSORIES 여덟 칸이고,
+ * 1024px 부터 평소 글자 크기로 들어간다. 그 아래는 햄버거로 연다.
+ *
+ * 드롭다운은 hover 와 키보드 초점(focus-within) 둘 다로 열린다. 마우스가 없는 사람도 Tab 으로 하위 메뉴에 닿는다.
+ */
 
-/** 헤더 한 줄에서는 빠지고, 모바일 메뉴(둘째 묶음)와 푸터에 있는 메뉴. */
-const SECONDARY_NAV = [
-  { href: "/brand/", label: "BRAND" },
-  { href: "/guide/", label: "GUIDE" },
-  { href: "/lookbook/", label: "LOOKBOOK" },
-  { href: "/products/", label: "COLLECTION" },
-  { href: "/qna/", label: "QNA" },
-] as const;
+/** 헤더 한 줄의 링크 모양 — 히어로 위(light)에서는 크림, 평소엔 보조색 */
+const navLinkClass = (light: boolean) =>
+  `text-2xs tracking-label ease-fluid inline-flex min-h-11 items-center whitespace-nowrap transition-colors duration-700 ${
+    light
+      ? "text-primary/80 hover:text-primary md:text-secondary"
+      : "text-secondary hover:text-accent group-focus-within/nav:text-accent group-hover/nav:text-accent"
+  }`;
+
+/** 사이트 밖 주소(카카오톡)는 새 창으로 — 둘러보던 사람이 사이트를 잃지 않게 */
+function NavAnchor({
+  item,
+  className,
+  onClick,
+  children,
+}: {
+  item: NavLink;
+  className: string;
+  onClick?: () => void;
+  children: React.ReactNode;
+}) {
+  return item.external ? (
+    <a href={item.href} target="_blank" rel="noopener noreferrer" className={className} onClick={onClick}>
+      {children}
+      <span className="sr-only">(새 창)</span>
+    </a>
+  ) : (
+    <Link href={item.href} className={className} onClick={onClick}>
+      {children}
+    </Link>
+  );
+}
 
 /** 오른쪽 묶음. 개인 영역이라 탐색 메뉴와 나눠 둔다. */
 const ACCOUNT_NAV = [
@@ -174,29 +206,81 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
           </Link>
 
           {/*
-            내비는 **화면 정중앙**에 고정한다.
-            justify-between 안에 두면 좌우 그룹(로고 · 카트)의 폭 차이만큼 밀린다.
-            지금은 오른쪽으로 44px 밀려 있었고, 히어로 위에서 로고가 사라지면 더 틀어진다.
-            바가 풀와이드가 되면서 이 정중앙이 곧 화면 정중앙이라 기준이 하나로 맞는다.
+            여덟 칸 — MAIN · ABOUT · 분류 여섯. 로고와 계정 묶음 사이 남는 폭의 한가운데.
+            드롭다운은 hover 와 키보드 초점(focus-within) 둘 다로 열린다. 위에 투명한 다리(pt-3)를 둬서
+            마우스가 내려오는 동안 닫히지 않고, 닫혀 있을 때는 invisible 이라 Tab 순서에서도 빠진다.
           */}
-          <nav
-            aria-label="주요 메뉴"
-            className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 lg:block"
-          >
-            {/* 일곱 칸이라 간격을 한 단 줄였다(8 → 7). 1024px 에서 로고 · 계정 묶음과 닿지 않는 폭이다 */}
-            <ul className="flex items-center gap-7">
-              {NAV.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={`text-2xs tracking-label ease-fluid transition-colors duration-700 ${
-                      light
-                        ? "text-primary/80 hover:text-primary md:text-secondary"
-                        : "text-secondary hover:text-accent"
-                    }`}
-                  >
-                    {item.label}
+          <nav aria-label="주요 메뉴" className="hidden min-w-0 flex-1 justify-center px-4 lg:flex">
+            <ul className="flex items-center gap-5 xl:gap-8">
+              <li>
+                <Link href="/" className={navLinkClass(light)}>
+                  MAIN
+                </Link>
+              </li>
+
+              {/* ABOUT — 넓은 판(헤더 폭 전체)에 네 묶음이 열로. li 가 relative 가 아니라서 판은 헤더 줄 기준이다 */}
+              <li className="group/nav">
+                <Link href="/brand/" className={navLinkClass(light)}>
+                  {ABOUT_LABEL}
+                </Link>
+                <div className="invisible absolute inset-x-0 top-full z-50 pt-0 opacity-0 transition-[opacity,visibility] duration-300 ease-out group-focus-within/nav:visible group-focus-within/nav:opacity-100 group-hover/nav:visible group-hover/nav:opacity-100">
+                  <div className="bg-base border-subtle shadow-lift border-y">
+                    <div className="mx-auto grid max-w-[1180px] grid-cols-4 gap-8 px-10 py-8">
+                      {ABOUT_GROUPS.map((group) => (
+                        <div key={group.label} className="min-w-0">
+                          <Link
+                            href={group.href}
+                            className="text-accent hover:text-accent-hover tracking-label ease-fluid inline-flex min-h-11 items-center text-xs transition-colors duration-300"
+                          >
+                            {group.label}
+                          </Link>
+                          <p className="text-muted text-2xs mb-2">{group.description}</p>
+                          <ul>
+                            {group.children.map((child) => (
+                              <li key={child.href}>
+                                <NavAnchor
+                                  item={child}
+                                  className="text-secondary hover:text-primary focus-visible:text-primary ease-fluid tracking-label inline-flex min-h-10 items-center text-2xs transition-colors duration-300"
+                                >
+                                  {child.label}
+                                </NavAnchor>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </li>
+
+              {CATEGORY_GROUPS.map((group) => (
+                <li key={group.label} className="group/nav relative">
+                  <Link href={group.href} className={navLinkClass(light)}>
+                    {group.label}
                   </Link>
+                  {group.children.length > 0 && (
+                    <div className="invisible absolute left-1/2 top-full z-50 -translate-x-1/2 pt-3 opacity-0 transition-[opacity,visibility] duration-300 ease-out group-focus-within/nav:visible group-focus-within/nav:opacity-100 group-hover/nav:visible group-hover/nav:opacity-100">
+                      <div className="bg-base border-subtle shadow-lift w-64 border p-2">
+                        <p className="text-muted text-2xs px-3 pb-2 pt-2">{group.description}</p>
+                        <ul>
+                          {group.children.map((child) => (
+                            <li key={child.href}>
+                              <NavAnchor
+                                item={child}
+                                className="hover:bg-band focus-visible:bg-band ease-fluid flex min-h-11 flex-col justify-center px-3 py-2 transition-colors duration-300"
+                              >
+                                <span className="text-primary text-xs tracking-label">{child.label}</span>
+                                {child.description && (
+                                  <span className="text-muted text-2xs mt-0.5 leading-snug">{child.description}</span>
+                                )}
+                              </NavAnchor>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
@@ -261,34 +345,76 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
           */
           className="flex h-full flex-col overflow-y-auto px-8 pb-10 pt-24"
         >
-          <ul className="flex flex-col gap-4">
-            {NAV.map((item, i) => (
+          {/*
+            상위 메뉴마다 펼침(<details>) — 열고 닫기 · 키보드 · 스크린리더를 브라우저가 해 준다.
+            열 개를 다 펼쳐 두면 한 화면이 세 번 넘게 넘친다. 하위 메뉴가 없는 ACCESSORIES 는 바로 링크다.
+          */}
+          <ul className="flex flex-col">
+            {[...CATEGORY_GROUPS, ...ABOUT_GROUPS].map((group, i) => (
               <li
-                key={item.href}
-                className="ease-soft transition-all duration-700"
+                key={group.label}
+                className={`border-subtle ease-soft border-b transition-all duration-700 ${
+                  i === CATEGORY_GROUPS.length ? "border-t-accent/40 mt-6 border-t pt-2" : ""
+                }`}
                 style={{
-                  transitionDelay: open ? `${120 + i * 70}ms` : "0ms",
+                  transitionDelay: open ? `${100 + i * 45}ms` : "0ms",
                   opacity: open ? 1 : 0,
-                  transform: open ? "none" : "translateY(1.5rem)",
+                  transform: open ? "none" : "translateY(1.25rem)",
                 }}
               >
-                <Link
-                  href={item.href}
-                  onClick={() => setOpen(false)}
-                  className="font-display text-accent-deep hover:text-accent ease-fluid text-2xl transition-colors duration-500"
-                >
-                  {item.label}
-                </Link>
+                {group.children.length === 0 ? (
+                  <Link
+                    href={group.href}
+                    onClick={() => setOpen(false)}
+                    className="font-display text-accent-deep hover:text-accent ease-fluid flex min-h-14 items-center text-xl transition-colors duration-500"
+                  >
+                    {group.label}
+                  </Link>
+                ) : (
+                  <details className="group/m">
+                    <summary className="font-display text-accent-deep flex min-h-14 cursor-pointer list-none items-center justify-between text-xl [&::-webkit-details-marker]:hidden">
+                      {group.label}
+                      <CaretDown
+                        size={14}
+                        weight="light"
+                        aria-hidden="true"
+                        className="ease-fluid transition-transform duration-500 group-open/m:rotate-180"
+                      />
+                    </summary>
+                    <ul className="pb-4">
+                      <li>
+                        <Link
+                          href={group.href}
+                          onClick={() => setOpen(false)}
+                          className="text-accent tracking-label ease-fluid inline-flex min-h-11 items-center text-xs transition-colors duration-500"
+                        >
+                          전체 보기 — {group.description}
+                        </Link>
+                      </li>
+                      {group.children.map((child) => (
+                        <li key={child.href}>
+                          <NavAnchor
+                            item={child}
+                            onClick={() => setOpen(false)}
+                            className="text-secondary hover:text-accent tracking-label ease-fluid inline-flex min-h-11 items-center text-xs transition-colors duration-500"
+                          >
+                            {child.label}
+                          </NavAnchor>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
               </li>
             ))}
           </ul>
 
           {/* 둘째 묶음 — 헤더 한 줄에서 내려온 메뉴와 개인 영역. 분류보다 작게, 두 열로 */}
           <ul
-            className="border-subtle ease-soft mt-8 grid grid-cols-2 gap-x-6 border-t pt-5 transition-opacity duration-700"
-            style={{ opacity: open ? 1 : 0, transitionDelay: open ? "520ms" : "0ms" }}
+            className="ease-soft mt-6 grid grid-cols-2 gap-x-6 transition-opacity duration-700"
+            style={{ opacity: open ? 1 : 0, transitionDelay: open ? "560ms" : "0ms" }}
           >
-            {[...SECONDARY_NAV, ...ACCOUNT_NAV].map((item) => (
+            {[{ href: "/", label: "MAIN" }, ...ACCOUNT_NAV].map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}

@@ -64,6 +64,7 @@ function draft(
     name: null, // TODO(고객확인) B-1 제품명
     category,
     line,
+    style: null,
     priceKrw: null, // TODO(고객확인) B-2 가격
     listPriceKrw: null,
     summary: null,

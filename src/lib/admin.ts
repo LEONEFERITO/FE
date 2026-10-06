@@ -164,6 +164,8 @@ export interface ProductDraft {
   name: string;
   category: string;
   line: string;
+  /** 세부 분류. 트라우저 · 신발만, 없으면 null (서버 V21) */
+  style: string | null;
   priceKrw: number | null;
   listPriceKrw: number | null;
   summary: string;
@@ -306,6 +308,8 @@ export interface AdminProductRow {
   name: string | null;
   category: string;
   line: string;
+  /** 세부 분류. 트라우저 · 신발만, 없으면 null (서버 V21) */
+  style: string | null;
   status: ProductStatus;
   priceKrw: number | null;
   mainImageUrl: string | null;
@@ -324,6 +328,8 @@ export interface AdminProductEdit {
   name: string | null;
   category: string;
   line: string;
+  /** 세부 분류. 트라우저 · 신발만, 없으면 null (서버 V21) */
+  style: string | null;
   priceKrw: number | null;
   listPriceKrw: number | null;
   summary: string | null;

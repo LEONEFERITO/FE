@@ -84,7 +84,7 @@ export function SizeChart({ chart, basis, tolerance, headingId }: Props) {
 
       {chart ? (
         <>
-          <div className="border-subtle bg-band/60 shadow-soft min-w-0 overflow-hidden rounded-2xl border p-1.5">
+          <div className="min-w-0 overflow-hidden">
             <button
               type="button"
               onClick={() => setZoomed(true)}

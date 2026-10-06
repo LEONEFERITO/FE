@@ -107,21 +107,16 @@ export function HeroSplit({ products }: { products: Product[] }) {
                 loading={i === 0 ? "eager" : "lazy"}
                 // 첫 장은 LCP 후보다. 우선순위를 올려 CSS 보다 뒤로 밀리지 않게 한다. 나머지는 기본.
                 fetchPriority={i === 0 ? "high" : undefined}
-                className={`${cls} inset-x-0 bottom-[6%] mx-auto h-[86%] w-auto [filter:drop-shadow(0_18px_24px_rgba(16,2,6,0.5))] md:inset-0 md:bottom-auto md:h-full md:w-full md:object-cover md:object-top md:[filter:none]`}
+                className={`${cls} inset-x-0 bottom-[6%] mx-auto h-[86%] w-auto md:inset-0 md:bottom-auto md:h-full md:w-full md:object-cover md:object-top`}
               />
             </picture>
           );
         })}
 
-        {/* 모바일 접지 그림자 — 누끼 발밑. 데스크톱은 사진이 제 그림자를 갖고 있다 */}
-        <span
-          aria-hidden="true"
-          className="absolute bottom-[5%] left-1/2 h-[2.2%] w-[40%] -translate-x-1/2 rounded-[50%] bg-[rgba(10,1,4,0.45)] blur-[6px] md:hidden"
-        />
         {/* 데스크톱 사진 안쪽 헤어라인 — 판과 사진의 경계가 종이 접힌 선처럼 읽힌다 */}
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] md:block"
+          className="pointer-events-none absolute inset-0 hidden md:block"
         />
       </div>
 

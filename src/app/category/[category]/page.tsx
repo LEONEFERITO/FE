@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
-import { CategoryProducts } from "@/components/product/CategoryProducts";
-import { CATEGORY_NAV } from "@/data/categories";
+import { CategoryProducts, CategoryProductsFromUrl } from "@/components/product/CategoryProducts";
+import { CATEGORY_NAV, CATEGORY_SUBS } from "@/data/categories";
 import { getCatalog } from "@/lib/catalog";
 import { shareMetadata } from "@/lib/metadata";
 import { CATEGORY_LABEL } from "@/types/product";
@@ -55,10 +56,10 @@ export default async function CategoryPage({ params }: PageProps<"/category/[cat
     <>
       <Header />
 
-      <main id="main" className="on-cream flex-1">
+      <main id="main" className="on-cream on-white flex-1">
         <div className="mx-auto max-w-[1320px] px-5 pb-24 md:px-15 md:pb-32">
-          {/* 위치 표시 — 기존 몰처럼 오른쪽 위. 현재 위치는 링크가 아니다 */}
-          <nav aria-label="현재 위치" className="flex justify-end pt-6">
+          {/* 위치 표시 — 왼쪽 정렬(2026-10-06). 현재 위치는 링크가 아니다 */}
+          <nav aria-label="현재 위치" className="flex justify-start pt-6">
             <ol className="text-muted flex items-center gap-2 text-xs">
               <li>
                 {/* min-w-6: "홈" 한 글자는 폭이 12px 라 표적 기준(24×24)에 못 미친다 — QA 에서 잡혔다. 높이만 채워서는 모자라다 */}
@@ -66,14 +67,15 @@ export default async function CategoryPage({ params }: PageProps<"/category/[cat
                   홈
                 </Link>
               </li>
-              <li aria-hidden="true">/</li>
+              <li aria-hidden="true">&gt;</li>
               <li aria-current="page" className="text-secondary">
                 {entry.title}
               </li>
             </ol>
           </nav>
 
-          <header className="py-10 text-center md:py-16">
+          {/* 2026-10-06 고객 요청: 왼쪽 정렬 · 흰 바탕 (기존 몰 분류 페이지와 같게) */}
+          <header className="py-10 text-left md:py-14">
             <h1 className="font-display text-primary leading-display tracking-display text-4xl md:text-(length:--fs-hero)">
               {entry.title}
             </h1>
@@ -82,7 +84,10 @@ export default async function CategoryPage({ params }: PageProps<"/category/[cat
 
           {/* 카드의 상품명이 h3 이라 그 위 단계를 둔다 — 화면에는 보이지 않는다 */}
           <h2 className="sr-only">{ko} 상품 목록</h2>
-          <CategoryProducts products={products} />
+          {/* 세부 메뉴(?sub=)는 브라우저에서 읽는다. 빌드 HTML 에는 분류 전체가 나간다 */}
+          <Suspense fallback={<CategoryProducts products={products} />}>
+            <CategoryProductsFromUrl products={products} categorySlug={entry.slug} subs={CATEGORY_SUBS[entry.category] ?? []} />
+          </Suspense>
         </div>
       </main>
 

@@ -47,9 +47,28 @@ export const CATEGORY_LABEL: Record<Category, { en: string; ko: string }> = {
   JACKET: { en: "JACKET", ko: "자켓" },
   TROUSERS: { en: "TROUSERS", ko: "트라우저" },
   SHIRT: { en: "SHIRT", ko: "셔츠" },
-  SHOES: { en: "SHOES", ko: "구두 · 로퍼" },
+  // 2026-10-06 고객 사이트 구조표: 메뉴 이름이 FOOTWEAR 다. 값(SHOES)은 서버와 같아 그대로 둔다.
+  SHOES: { en: "FOOTWEAR", ko: "구두 · 로퍼" },
   ACCESSORIES: { en: "ACCESSORIES", ko: "액세서리" },
 };
+
+/**
+ * 세부 분류 — 분류 안에서 한 번 더 나눈다 (2026-10-06 고객 사이트 구조표, 서버 ProductStyle · V21).
+ * 트라우저는 핏, 신발은 종류. 셔츠 · 자켓 · 수트의 Classic / Athletic 은 세부 분류가 아니라 라인(LEONE · FERITO)이다.
+ */
+export type ProductStyle = "REGULAR" | "STRAIGHT" | "FLARE" | "OXFORD" | "LOAFER";
+
+export const STYLE_LABEL: Record<ProductStyle, { en: string; ko: string; category: Category }> = {
+  REGULAR: { en: "Regular Fit", ko: "레귤러핏", category: "TROUSERS" },
+  STRAIGHT: { en: "Straight Fit", ko: "스트레이트핏", category: "TROUSERS" },
+  FLARE: { en: "Flare Fit", ko: "플레어핏", category: "TROUSERS" },
+  OXFORD: { en: "Oxfords", ko: "옥스퍼드", category: "SHOES" },
+  LOAFER: { en: "Loafers", ko: "로퍼", category: "SHOES" },
+};
+
+/** 이 분류에서 고를 수 있는 세부 분류. 없으면 빈 배열. */
+export const stylesFor = (category: Category): ProductStyle[] =>
+  (Object.keys(STYLE_LABEL) as ProductStyle[]).filter((s) => STYLE_LABEL[s].category === category);
 
 /**
  * 실측 항목 정의.
@@ -169,6 +188,8 @@ export interface Product {
   name: string | null;
   category: Category;
   line: ProductLine;
+  /** 세부 분류(트라우저 핏 · 신발 종류). 없으면 null */
+  style: ProductStyle | null;
   /** 판매가(원). 서버가 계산한 값만 신뢰한다 — 화면은 표시만 한다. */
   priceKrw: number | null;
   /** 정가(원). 할인 중이 아니면 null. */

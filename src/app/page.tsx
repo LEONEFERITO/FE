@@ -118,8 +118,11 @@ export default async function Home() {
         {/* 카드 사진은 그 라인의 첫 상품 사진 — 촬영본이 있는 것만이 아니라 전체 카탈로그에서 찾는다 */}
         <LineChooser products={catalog} />
 
-        <div className="on-cream">
+        {/* 제품 구간은 흰 바탕 — 분류 페이지 · 전체 제품과 같은 면(2026-10-06 요청) */}
+        <div className="on-cream on-white">
           <FeaturedProducts products={FEATURED} />
+        </div>
+        <div className="on-cream">
           <Connect />
           {/* 매장 사진은 관리자가 올린 것(/admin/display/offline). 아직 없으면 기본 사진 */}
           <OfflineShop

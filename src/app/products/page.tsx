@@ -54,7 +54,7 @@ export default async function ProductsPage() {
           flow-root: ProductList 첫 요소의 mt-12 가 이 래퍼 밖으로 빠져나가(마진 병합)
           와인 띠와 크림 사이에 페이지 바닥(딥)이 줄로 드러났다. 새 서식 맥락을 만들어 안에 가둔다.
         */}
-        <div className="on-cream flow-root">
+        <div className="on-cream on-white flow-root">
           <div className="mx-auto max-w-[1320px] px-5 pb-12 md:px-15 md:pb-20">
             <ProductList
               products={products}

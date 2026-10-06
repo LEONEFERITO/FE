@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { ChatCircle } from "@phosphor-icons/react/dist/ssr";
 
-import { FaqList } from "@/components/content/FaqList";
+import { FaqChat } from "@/components/content/FaqChat";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Reveal } from "@/components/motion/Reveal";
@@ -17,7 +17,8 @@ import { LINE_LABEL } from "@/types/product";
  * QnA (요구사항 3).
  *
  * 자주 묻는 질문 + 카카오톡 채널로 바로 묻는 길.
- * 질문은 관리자 FAQ 관리에서 고친다. 하나도 등록하지 않았으면 아래 기본 질문(FAQ)이 나간다(FaqList).
+ * 질문은 관리자 FAQ 관리에서 고친다. 하나도 등록하지 않았으면 아래 기본 질문(FAQ)이 나간다.
+ * 2026-10-06 구조표의 FAQ "AI 답변형식 정해진 답변" — 채팅처럼 묻고 답하는 화면(FaqChat). 답은 관리자가 적은 그대로다.
  * 채널은 더맨리 카카오톡 채널이다(data/business.ts KAKAO_CHANNEL) — 버튼은 1:1 채팅을 바로 연다.
  *
  * ── 아코디언은 <details> 다 ─────────────────────────────
@@ -103,7 +104,7 @@ export default function QnaPage() {
 
       <main id="main" className="flex-1">
         <PageBand
-          eyebrow="QNA"
+          eyebrow="CLIENT SERVICES · FAQ"
           title="자주 묻는 질문"
           description="여기서 답을 못 찾으시면 카카오톡 채널로 바로 물어보실 수 있습니다."
         />
@@ -111,7 +112,7 @@ export default function QnaPage() {
         <div className="on-cream">
           <div className="mx-auto grid max-w-[1320px] gap-8 px-5 py-12 md:grid-cols-[minmax(0,1fr)_minmax(0,360px)] md:gap-10 md:px-15 md:py-16">
             <Reveal className="min-w-0">
-              <FaqList fallback={FAQ} />
+              <FaqChat fallback={FAQ} />
             </Reveal>
 
             <div className="flex min-w-0 flex-col gap-4">

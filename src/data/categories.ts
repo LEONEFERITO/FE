@@ -1,4 +1,4 @@
-import type { Category } from "@/types/product";
+import type { Category, Product, ProductLine, ProductStyle } from "@/types/product";
 
 /**
  * 카테고리 대표컷.
@@ -65,18 +65,65 @@ export const CATEGORY_COVERS: CategoryCover[] = [
 /**
  * 헤더 내비와 카테고리 페이지(/category/{slug}/)의 목록.
  *
- * 순서와 표기는 고객 지정이다 (2026-10-05 디자인 가이드 — 기존 몰 leoneferito.kr 의 내비
- * Suit · Jacket · Trousers · Shirts · Shoes · Accessories 를 그대로 옮긴다).
+ * 순서와 표기는 고객 지정이다 — 2026-10-06 고객 사이트 구조표(브랜드웹사이트상세정보.xlsx):
+ * SHIRTS · TROUSERS · JACKET · SUIT · FOOTWEAR. ACCESSORIES 는 구조표에 없지만 그대로 두기로 했다(2026-10-06).
  * slug 는 주소에 쓰는 소문자 영문이고, title 은 페이지 제목에 쓰는 표기다.
  * 상품이 아직 없는 분류도 페이지는 있다 — 내비에서 눌렀는데 404 면 고장으로 읽힌다.
  */
-export const CATEGORY_NAV: { category: Category; slug: string; label: string; title: string }[] = [
-  { category: "SUIT", slug: "suit", label: "SUIT", title: "Suit" },
-  { category: "JACKET", slug: "jacket", label: "JACKET", title: "Jacket" },
-  { category: "TROUSERS", slug: "trousers", label: "TROUSERS", title: "Trousers" },
-  { category: "SHIRT", slug: "shirts", label: "SHIRTS", title: "Shirts" },
-  { category: "SHOES", slug: "shoes", label: "SHOES", title: "Shoes" },
-  { category: "ACCESSORIES", slug: "accessories", label: "ACCESSORIES", title: "Accessories" },
+export const CATEGORY_NAV: { category: Category; slug: string; label: string; title: string; description: string }[] = [
+  { category: "SHIRT", slug: "shirts", label: "SHIRTS", title: "Shirts", description: "셔츠류 전체" },
+  { category: "TROUSERS", slug: "trousers", label: "TROUSERS", title: "Trousers", description: "트라우저류 전체" },
+  { category: "JACKET", slug: "jacket", label: "JACKET", title: "Jacket", description: "자켓류 전체" },
+  { category: "SUIT", slug: "suit", label: "SUIT", title: "Suit", description: "수트류 전체" },
+  { category: "SHOES", slug: "footwear", label: "FOOTWEAR", title: "Footwear", description: "신발류" },
+  { category: "ACCESSORIES", slug: "accessories", label: "ACCESSORIES", title: "Accessories", description: "액세서리" },
 ];
 
 export const categoryHref = (slug: string) => `/category/${slug}/`;
+
+/**
+ * 분류 안의 세부 메뉴 (2026-10-06 구조표). 카테고리 페이지의 칩과 헤더 드롭다운이 같은 목록을 본다.
+ *
+ * 셔츠 · 자켓 · 수트의 Classic / Athletic 은 **라인**으로 거른다 — 레오네가 클래식, 페리토가 애슬레틱이다.
+ * 트라우저 핏 · 신발 종류는 상품의 **세부 분류**(style)로 거른다. 관리자가 상품마다 고른다.
+ * 표기는 구조표 그대로 두되 철자만 바로잡았다(구조표의 "Atheletic" → Athletic).
+ */
+export interface CategorySub {
+  /** 주소 쿼리 값: /category/{slug}/?sub={이 값} */
+  slug: string;
+  label: string;
+  /** 구조표의 설명 칸 */
+  description: string;
+  line?: ProductLine;
+  style?: ProductStyle;
+}
+
+export const CATEGORY_SUBS: Partial<Record<Category, CategorySub[]>> = {
+  SHIRT: [
+    { slug: "classic", label: "Classic Fit Shirts", description: "클래식핏 셔츠류", line: "LEONE" },
+    { slug: "athletic", label: "Athletic Fit Shirts", description: "애슬레틱핏 셔츠류", line: "FERITO" },
+  ],
+  TROUSERS: [
+    { slug: "regular", label: "Regular Fit", description: "레귤러핏 트라우저류", style: "REGULAR" },
+    { slug: "straight", label: "Straight Fit", description: "스트레이트핏 트라우저류", style: "STRAIGHT" },
+    { slug: "flare", label: "Flare Fit", description: "플레어핏 트라우저류", style: "FLARE" },
+  ],
+  JACKET: [
+    { slug: "classic", label: "Classic Fit Jacket", description: "클래식핏 자켓류", line: "LEONE" },
+    { slug: "athletic", label: "Athletic Fit Jacket", description: "애슬레틱핏 자켓류", line: "FERITO" },
+  ],
+  SUIT: [
+    { slug: "classic", label: "Classic Fit Suit", description: "클래식핏 수트류", line: "LEONE" },
+    { slug: "athletic", label: "Athletic Fit Suit", description: "애슬레틱 수트류", line: "FERITO" },
+  ],
+  SHOES: [
+    { slug: "oxfords", label: "Oxfords", description: "옥스퍼드 구두류", style: "OXFORD" },
+    { slug: "loafers", label: "Loafers", description: "로퍼류", style: "LOAFER" },
+  ],
+};
+
+export const subHref = (categorySlug: string, subSlug: string) => `/category/${categorySlug}/?sub=${subSlug}`;
+
+/** 상품이 세부 메뉴에 들어가는가 */
+export const matchesSub = (p: Pick<Product, "line" | "style">, sub: CategorySub) =>
+  (sub.line === undefined || p.line === sub.line) && (sub.style === undefined || p.style === sub.style);

@@ -139,13 +139,9 @@ export function HeroReveal({ product }: { product: Product }) {
 
           {/* ── 무대. 인물 + 액자 둘. 남는 높이를 전부 쓴다 ──────────── */}
           <div className="relative z-10 mx-auto mt-4 min-h-0 w-full max-w-[1320px] flex-1 md:mt-0">
-            {/* 인물 — 처음부터 있다. 발밑 타원이 종이에 닿은 느낌을 만든다 */}
+            {/* 인물 — 처음부터 있다. 그림자 · 발밑 타원은 걷었다(2026-10-06 그림자 전부 제거) */}
             <div className="absolute inset-x-0 bottom-0 flex h-full justify-center">
               <div className="relative h-full">
-                <span
-                  aria-hidden="true"
-                  className="absolute inset-x-[-14%] bottom-[-0.5%] h-[2%] rounded-[50%] bg-[rgba(23,10,14,0.22)] blur-[7px]"
-                />
                 {figure && (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img
@@ -154,7 +150,7 @@ export function HeroReveal({ product }: { product: Product }) {
                     loading="eager"
                     // 첫 화면의 가장 큰 그림 = LCP 후보. CSS 뒤로 밀리지 않게 우선순위를 올린다.
                     fetchPriority="high"
-                    className="relative block h-full w-auto [filter:drop-shadow(0_22px_28px_rgba(23,10,14,0.28))]"
+                    className="relative block h-full w-auto"
                   />
                 )}
               </div>
@@ -173,11 +169,11 @@ export function HeroReveal({ product }: { product: Product }) {
             </p>
           </div>
 
-          {/* 문 두 개. 모바일은 무대 아래 가운데, 데스크톱은 이름 블록 아래 왼쪽 */}
+          {/* 문 두 개. 모바일은 무대 아래 가운데, 데스크톱은 이름 블록 아래 왼쪽. 높이를 같게 고정한다(2026-10-06 요청 — 원형 화살표 때문에 왼쪽이 더 컸다) */}
           <div className="relative z-10 mt-5 flex flex-wrap items-center justify-center gap-3 md:absolute md:bottom-10 md:left-10 md:mt-0 md:justify-start lg:left-[7%]">
             <Link
               href={`/products/${product.slug}`}
-              className="group bg-accent text-on-accent hover:bg-accent-hover shadow-button hover:shadow-button-hover tracking-button ease-fluid inline-flex items-center gap-2 rounded-full py-2.5 pl-5 pr-1.5 text-xs transition-all duration-500 hover:-translate-y-px active:scale-[0.98] md:gap-3 md:py-3 md:pl-6 md:pr-2 md:text-sm"
+              className="group bg-accent text-on-accent hover:bg-accent-hover shadow-button hover:shadow-button-hover tracking-button ease-fluid inline-flex h-11 items-center gap-2 rounded-full pl-5 pr-1.5 text-xs transition-all duration-500 hover:-translate-y-px active:scale-[0.98] md:h-12 md:gap-3 md:pl-6 md:pr-2 md:text-sm"
             >
               자세히 보기
               <span className="bg-on-accent/12 ease-fluid flex h-7 w-7 items-center justify-center rounded-full transition-transform duration-500 group-hover:-translate-y-px group-hover:translate-x-1 group-hover:scale-105 md:h-8 md:w-8">
@@ -186,7 +182,7 @@ export function HeroReveal({ product }: { product: Product }) {
             </Link>
             <Link
               href="/products"
-              className="tracking-button ease-fluid border-strong hover:border-accent hover:text-accent hover:shadow-soft inline-flex items-center rounded-full border px-5 py-2.5 text-xs text-primary transition-all duration-500 active:scale-[0.98] md:px-6 md:py-3 md:text-sm"
+              className="tracking-button ease-fluid border-strong hover:border-accent hover:text-accent hover:shadow-soft inline-flex h-11 items-center rounded-full border px-5 text-xs text-primary transition-all duration-500 active:scale-[0.98] md:h-12 md:px-6 md:text-sm"
             >
               전체 제품
             </Link>

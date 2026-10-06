@@ -95,7 +95,7 @@ export const OFFLINE_SHOP = {
 } as const;
 
 /**
- * SNS 주소. 인스타그램은 2026-10-06 고객 전달(추적 꼬리 ?__d=… 는 떼고 계정 주소만). TODO(고객확인) 유튜브 계정 주소.
+ * SNS 주소. 인스타그램은 2026-10-06 고객 전달(추적 꼬리 ?__d=… 는 떼고 계정 주소만). 유튜브는 2026-10-06 고객 전달(더맨리 공식 채널).
  *
  * 기존 몰 푸터의 SNS 링크는 `https://instagram.com/` · `https://youtube.com/` 로, 호스팅사 기본값이지
  * 계정 주소가 아니다(2026-10-05 확인). 그래서 넘겨짚어 채우지 않는다 — null 인 동안 화면에는
@@ -103,5 +103,5 @@ export const OFFLINE_SHOP = {
  */
 export const SNS: { instagram: string | null; youtube: string | null } = {
   instagram: "https://www.instagram.com/leoneferito_/",
-  youtube: null,
+  youtube: "https://www.youtube.com/@THEMANLY_OFFICIAL",
 };

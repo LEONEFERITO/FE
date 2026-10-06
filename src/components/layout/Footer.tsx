@@ -34,17 +34,18 @@ export function Footer() {
           헤더에서 사라진 페이지가 사이트에서 사라진 것이 되면 안 된다. 어느 화면에서든 여기서 닿는다.
         */}
         <nav aria-label="둘러보기" className="mt-10 flex flex-wrap gap-x-7">
+          {/* 2026-10-06 구조표의 상위 메뉴 이름 그대로 — 분류는 헤더에 있으니 여기엔 브랜드 · 안내 · 서비스만 */}
           {[
-            { href: "/brand/", label: "브랜드" },
-            { href: "/guide/", label: "이용 안내" },
-            { href: "/lookbook/", label: "룩북" },
-            { href: "/products/", label: "전체 제품" },
-            { href: "/qna/", label: "QnA" },
+            { href: "/brand/", label: "THE MAISON" },
+            { href: "/guide/", label: "THE GUIDE" },
+            { href: "/lookbook/", label: "THE LOOKBOOK" },
+            { href: "/products/", label: "COLLECTION" },
+            { href: "/qna/", label: "CLIENT SERVICES" },
           ].map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="text-secondary hover:text-primary ease-fluid inline-flex min-h-11 items-center text-xs transition-colors duration-300"
+              className="text-secondary hover:text-primary tracking-label ease-fluid inline-flex min-h-11 items-center text-2xs transition-colors duration-300"
             >
               {item.label}
             </Link>

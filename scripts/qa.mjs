@@ -33,6 +33,8 @@ const PAGES = [
   // 2026-10-05 디자인 가이드로 생긴 페이지. 상품이 없는 분류(수트)도 같은 레이아웃이어야 한다.
   { path: "/category/shirts/", name: "카테고리(셔츠)" },
   { path: "/category/suit/", name: "카테고리(수트 · 상품 없음)" },
+  { path: "/category/footwear/", name: "카테고리(풋웨어 · 세부 메뉴)" },
+  { path: "/category/accessories/", name: "카테고리(액세서리 · 세부 메뉴 없음)" },
   { path: "/line/ferito/", name: "라인(페리토)" },
   { path: "/line/leone/", name: "라인(레오네)" },
   { path: "/login/", name: "로그인" },

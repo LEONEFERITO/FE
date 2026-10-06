@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { AccountSettings } from "@/components/account/AccountSettings";
 import { MyOrders } from "@/components/shop/MyOrders";
+import { KAKAO_CHANNEL } from "@/data/business";
 import {
   AUTH_CONNECTED,
   fetchCurrentUser,
@@ -23,6 +24,11 @@ import { pendingLabel } from "@/lib/pending";
  * 빈 칸은 "고장" 으로 읽히고, 이유가 적힌 칸은 "아직" 으로 읽힌다.
  *
  * TODO(고객확인) 포인트 적립률·유효기간 · 등급 기준 · 주문 기능.
+ * TODO(고객확인) 등급 — 2026-10-06 구조표 "체스판 말 등급별로 나눌 예정" (폰 · 나이트 · 비숍 · 룩 · 퀸 · 킹 등).
+ *   등급 이름 · 승급 기준(누적 구매금액?) · 혜택이 정해지면 위 "등급" 칸에 말 아이콘과 함께 표시한다.
+ *
+ * 2026-10-06 구조표의 CLIENT SERVICES — MY ACCOUNT 는 이 페이지, ORDER STATUS · ORDER HISTORY 는 MyOrders 의
+ * 두 구간(#order-status · #orders), RETURNS & EXCHANGES 는 아래 #returns 구간이다.
  */
 
 type State =
@@ -40,11 +46,14 @@ export function MypagePanel() {
     if (!AUTH_CONNECTED) return;
     let alive = true;
     fetchCurrentUser()
-      .then(
-        (user) =>
-          alive &&
-          setState(user ? { kind: "member", user } : { kind: "guest" }),
-      )
+      .then((user) => {
+        if (!alive) return;
+        setState(user ? { kind: "member", user } : { kind: "guest" });
+        // 메뉴의 RETURNS & EXCHANGES(/mypage/#returns) — 구간은 회원 화면이 그려진 뒤에 생긴다
+        if (user && window.location.hash === "#returns") {
+          requestAnimationFrame(() => document.getElementById("returns")?.scrollIntoView());
+        }
+      })
       .catch(() => alive && setState({ kind: "guest" }));
     return () => {
       alive = false;
@@ -190,6 +199,39 @@ export function MypagePanel() {
       </dl>
 
       <MyOrders />
+
+      {/* RETURNS & EXCHANGES — 신청은 주문 상세에서 한다. 여기는 어디서 어떻게 하는지 알려 주는 자리 */}
+      <section
+        id="returns"
+        className="border-subtle bg-surface scroll-mt-20 rounded-2xl border p-6 md:scroll-mt-24 md:p-8"
+        aria-labelledby="returns-heading"
+      >
+        <p className="text-accent text-2xs tracking-label">RETURNS &amp; EXCHANGES</p>
+        <h2 id="returns-heading" className="text-primary mt-1 text-sm font-medium">
+          교환 · 반품
+        </h2>
+        <ol className="text-secondary mt-3 flex list-decimal flex-col gap-1.5 pl-5 text-sm leading-relaxed">
+          <li>배송이 끝난 주문을 위 주문 내역에서 엽니다.</li>
+          <li>주문 상세의 <b className="text-primary">교환 · 반품 신청</b>에서 사유와 사진을 남깁니다.</li>
+          <li>접수 → 승인 → 회수 → 완료 순서로 진행 상황이 그 주문 상세에 쌓입니다.</li>
+        </ol>
+        <p className="text-muted mt-3 text-xs leading-relaxed">
+          신청 기간과 기준은{" "}
+          <Link href="/terms#article-16" className="text-accent hover:text-accent-hover underline underline-offset-4">
+            이용약관 제16조
+          </Link>
+          에 있습니다. 기간이 지났거나 궁금한 점은{" "}
+          <a
+            href={KAKAO_CHANNEL.chat}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent hover:text-accent-hover underline underline-offset-4"
+          >
+            카카오톡 채널<span className="sr-only">(새 창)</span>
+          </a>
+          로 알려 주세요.
+        </p>
+      </section>
 
       <AccountSettings
         onNameChanged={(name) =>

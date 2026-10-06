@@ -47,7 +47,7 @@ export default function LoginPage() {
             />
             <span
               aria-hidden="true"
-              className="pointer-events-none absolute inset-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]"
+              className="pointer-events-none absolute inset-0"
             />
           </div>
 

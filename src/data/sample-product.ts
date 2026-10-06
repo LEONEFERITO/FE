@@ -16,6 +16,7 @@ export const SAMPLE_PRODUCT: Product = {
   name: null, // TODO(고객확인) F-2 / B-1
   category: "JACKET", // TODO(고객확인) B-1 실제 분류. 셋업이면 상·하의를 나눌지 정해야 한다
   line: "FERITO",
+  style: null,
   priceKrw: null, // TODO(고객확인)
   listPriceKrw: null, // TODO(고객확인)
   summary: null,

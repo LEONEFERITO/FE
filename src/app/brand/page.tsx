@@ -20,8 +20,18 @@ import { shareMetadata } from "@/lib/metadata";
  * 스크롤이 페이지를 넘기는 게 아니라 **장면을 진행**시킨다 (components/motion/Scene — 진행도 `--p`,
  * 움직임은 globals.css 의 .brand-* 규칙). 글은 전부 BRAND_BRIEF.md 1-1 의 고객 전달 문안 그대로다.
  *
+ * THE MAISON (2026-10-06 고객 사이트 구조표) — 헤더 드롭다운이 이 페이지의 구간으로 바로 간다:
+ *   #beginning   THE BEGINNING   브랜드가 시작된 배경        — TODO(고객확인) 본문. 지금은 자리만
+ *   #philosophy  OUR PHILOSOPHY  브랜드의 철학과 가치관      — TODO(고객확인) 본문. 지금은 자리만
+ *   #identity    OUR IDENTITY    브랜드가 추구하는 정체성    — 슬로건 · 키워드 · 사진 · 첫인상 (고객 전달 문안)
+ *   #symbol      OUR SYMBOL      브랜드명 · 로고의 상징      — 모노그램 · 워드마크. TODO(고객확인) 의미 설명
+ *   #tailoring   THE TAILORING   오프라인 테일러샵 안내      — OFFLINE SHOP (지도)
+ * 구조표 순서는 TAILORING 이 SYMBOL 앞이지만, 지도는 페이지 맨 끝에 두기로 해서(2026-10-06) 마지막에 둔다.
+ * 비어 있는 두 구간은 글을 지어 넣지 않는다 — 브랜드의 이야기는 고객이 정한다.
+ *
  * 장면 순서
  *   1 빅 히어로   — 워드마크 · 사진 · 표제가 서로 다른 깊이에 있고 카메라가 밀고 들어간다. 마우스에도 기운다
+ *   ─ THE BEGINNING · OUR PHILOSOPHY (자리)
  *   2 슬로건      — 두 문장의 낱말이 스크롤을 따라 금빛 잔불에서 크림으로 하나씩 켜진다
  *   3 키워드      — 열한 낱말이 두 줄 띠로 서로 반대 방향으로 흐른다 (크림)
  *   4 사진        — 깊이가 다른 사진 셋이 가리개를 걷으며 다른 속도로 지나간다
@@ -83,6 +93,33 @@ const GALLERY = [
 ];
 
 const css = (v: Record<string, string | number>) => v as React.CSSProperties;
+
+/**
+ * THE MAISON 의 장 하나 — 본문이 아직 없는 구간(THE BEGINNING · OUR PHILOSOPHY).
+ * 제목과 구조표의 설명은 보이고, 본문 자리에는 준비 중임을 적는다. 글을 지어 넣지 않는다.
+ */
+function Chapter({ id, title, description }: { id: string; title: string; description: string }) {
+  return (
+    <section id={id} aria-labelledby={`${id}-heading`} className="bg-base border-subtle scroll-mt-14 border-t md:scroll-mt-18">
+      <div className="mx-auto grid max-w-[1320px] gap-6 px-5 py-20 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:gap-16 md:px-15 md:py-28">
+        <Reveal>
+          <Eyebrow>THE MAISON</Eyebrow>
+          <h2
+            id={`${id}-heading`}
+            className="font-display text-primary leading-display tracking-display mt-4 text-3xl md:text-4xl"
+          >
+            {title}
+          </h2>
+        </Reveal>
+        <Reveal delay={100} className="md:pt-10">
+          <p className="text-secondary text-sm leading-relaxed md:text-(length:--fs-base)">{description}</p>
+          {/* TODO(고객확인) 본문 — 받으면 이 자리에 넣는다 */}
+          <p className="text-muted border-subtle mt-6 border-t pt-6 text-xs">본문을 준비하고 있습니다.</p>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
 
 /** 핀 장면 오른쪽 아래의 진행 눈금 (CSS 가 --p 로 채운다) */
 const Rail = () => <i aria-hidden="true" className="brand-rail" />;
@@ -151,7 +188,7 @@ export default function BrandPage() {
             </div>
             <h1
               id="brand-heading"
-              className="font-display text-primary leading-hero tracking-hero mt-5 overflow-hidden text-[clamp(2.75rem,6.6vw,6rem)] [text-shadow:0_2px_28px_rgba(10,3,5,0.7)]"
+              className="font-display text-primary leading-hero tracking-hero mt-5 overflow-hidden text-[clamp(2.75rem,6.6vw,6rem)]"
             >
               <span className="brand-in block" style={css({ "--d": "0.35s" })}>
                 상위 0.1%의 남자
@@ -171,16 +208,21 @@ export default function BrandPage() {
           <Rail />
         </Scene>
 
-        {/* ── 2 · 슬로건 ─────────────────────────────────── */}
+        {/* ── THE BEGINNING · OUR PHILOSOPHY — 본문을 받으면 채운다 ── */}
+        <Chapter id="beginning" title="THE BEGINNING" description="브랜드가 시작된 배경" />
+        <Chapter id="philosophy" title="OUR PHILOSOPHY" description="브랜드의 철학과 가치관" />
+
+        {/* ── 2 · 슬로건 — 여기부터 첫인상까지가 OUR IDENTITY ─────────── */}
         <Scene
+          id="identity"
           pin
           height="260vh"
-          className="bg-base"
+          className="bg-base scroll-mt-14 md:scroll-mt-18"
           stageClassName="flex items-center overflow-hidden"
           aria-labelledby="slogan-heading"
         >
           <div className="brand-tilt mx-auto w-full max-w-[1320px] px-5 md:px-15">
-            <Eyebrow>01 · 슬로건</Eyebrow>
+            <Eyebrow>OUR IDENTITY · 슬로건</Eyebrow>
             <h2 id="slogan-heading" className="sr-only">
               브랜드 슬로건
             </h2>
@@ -334,9 +376,16 @@ export default function BrandPage() {
           <Rail />
         </Scene>
 
-        {/* ── 6 · 맺음 ───────────────────────────────────── */}
-        <section className="bg-base border-subtle border-t" aria-labelledby="closing-heading">
+        {/* ── 6 · 맺음 = OUR SYMBOL — 모노그램과 워드마크 ──────────────── */}
+        <section
+          id="symbol"
+          className="bg-base border-subtle scroll-mt-14 border-t md:scroll-mt-18"
+          aria-labelledby="closing-heading"
+        >
           <div className="mx-auto flex max-w-[1320px] flex-col items-center px-5 py-24 text-center md:py-36">
+            <Reveal>
+              <Eyebrow className="mb-10 justify-center">OUR SYMBOL</Eyebrow>
+            </Reveal>
             <Reveal>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/brand/leoneferito-monogram.webp" alt="" width={64} height={72} className="h-[72px] w-auto" />
@@ -350,6 +399,8 @@ export default function BrandPage() {
               <p className="text-secondary mt-6 max-w-[40ch] text-sm leading-relaxed md:text-(length:--fs-base)">
                 운동으로 달라진 체형을 위한 남성 기성복.
               </p>
+              {/* TODO(고객확인) 브랜드명(LEONE · FERITO) · LF 모노그램의 의미 — 받으면 이 자리에 */}
+              <p className="text-muted mt-4 text-xs">브랜드명과 로고에 담긴 의미를 준비하고 있습니다.</p>
             </Reveal>
             <Reveal delay={240}>
               <div className="mt-10 flex flex-wrap justify-center gap-3">
@@ -395,7 +446,7 @@ export default function BrandPage() {
         </section>
 
         {/* ── 7 · 매장 — 메인과 같은 OFFLINE SHOP 구간, 사진 대신 고정된 구글 지도 ── */}
-        <div className="on-cream">
+        <div id="tailoring" className="on-cream scroll-mt-14 md:scroll-mt-18">
           <OfflineShop map />
         </div>
       </main>

@@ -42,7 +42,7 @@ export function FeaturedProducts({ products }: { products: Product[] }) {
 
         <Link
           href="/products"
-          className="group border-interactive text-accent hover:border-accent hover:text-accent hover:bg-accent-tint shadow-soft hover:shadow-lift ease-fluid tracking-button text-2xs inline-flex items-center gap-2.5 rounded-full border px-6 py-3 transition-all duration-500 hover:-translate-y-px"
+          className="group border-interactive text-accent hover:border-accent hover:text-accent hover:bg-accent-tint ease-fluid tracking-button text-2xs inline-flex items-center gap-2.5 rounded-full border px-6 py-3 transition-all duration-500 hover:-translate-y-px"
         >
           전체 보기
           <ArrowRight

@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { LineBadge } from "@/components/product/LineBadge";
 import { CATEGORY_LABEL } from "@/types/product";
 import type { Product } from "@/types/product";
 
@@ -17,6 +16,11 @@ import type { Product } from "@/types/product";
  * 가격이 null 이면 "가격 문의" 로 표시한다. 카탈로그+문의로 확정되면 이 카드를
  * 고칠 필요가 없고, 판매로 확정되면 값이 채워지면서 자연스럽게 가격이 뜬다.
  * 그래서 D1 을 기다리지 않고 목록을 만들 수 있다.
+ *
+ * ── 2026-10-06 고객 요청: 기존 몰(leoneferito.kr/category/Shirts/45/)처럼 ──────
+ * 라인 배지를 없애고, 사진은 **테두리 · 라운딩 · 그림자 없이** 맨 사진 그대로, 글자는 왼쪽 정렬.
+ * 예전의 "쟁반 위 사진"(헤어라인 테두리 + 고동색 그늘 + hover 에 들림)은 걷어 냈다 — 바탕이 흰색이 되면서
+ * 사진 자체가 면이 된다. hover 는 사진이 아주 조금 커지는 것과 이름 색만 남긴다.
  */
 
 const KRW = new Intl.NumberFormat("ko-KR");
@@ -55,8 +59,8 @@ export function ProductCard({ product }: { product: Product }) {
           비율 2:3 은 촬영 원본 비율이다 — 3:4 로 자르면 머리나 발이 잘린다.
           누끼는 히어로에서만 쓴다. 거기는 인물이 글자를 딛고 서야 해서 배경이 없어야 한다.
         */}
-        <div className="border-subtle bg-band/50 shadow-soft group-hover:shadow-lift ease-fluid rounded-none border p-1.5 transition-all duration-700 group-hover:-translate-y-1">
-          <div className="bg-velvet relative aspect-[2/3] overflow-hidden rounded-none shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]">
+        <div>
+          <div className="bg-velvet relative aspect-[2/3] overflow-hidden">
             {image ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -77,7 +81,7 @@ export function ProductCard({ product }: { product: Product }) {
             )}
 
             {allSoldOut && (
-              <span className="text-2xs tracking-label absolute left-3 top-3 rounded-full bg-[#F7F1EA] px-3 py-1 text-[#2E2925] shadow-soft">
+              <span className="text-2xs tracking-label absolute left-3 top-3 bg-[#F7F1EA] px-3 py-1 text-[#2E2925]">
                 SOLD OUT
               </span>
             )}
@@ -85,9 +89,8 @@ export function ProductCard({ product }: { product: Product }) {
         </div>
 
         <div className="mt-4 flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <LineBadge line={product.line} />
-            <h3 className="text-primary ease-fluid group-hover:text-accent mt-2 text-sm font-medium transition-colors duration-500">
+          <div className="min-w-0 text-left">
+            <h3 className="text-primary ease-fluid group-hover:text-accent text-sm font-medium transition-colors duration-500">
               {name}
             </h3>
             <p className="text-muted text-2xs tracking-label mt-1">

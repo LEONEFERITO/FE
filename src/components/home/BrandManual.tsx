@@ -16,12 +16,15 @@ import { SLOGAN } from "@/data/brand";
  * 바탕은 시안의 검정이 아니라 이 사이트의 가장 깊은 와인(바닥색)이다 — 검정은 팔레트 밖의 색이다.
  */
 
-/** id 는 /guide 의 카드 id 와 짝이다 (app/guide/page.tsx). */
+/**
+ * id 는 /guide 의 카드 id 와 짝이다 (app/guide/page.tsx).
+ * 2026-10-06 구조표의 THE GUIDE 다섯 항목(+ 맞춤 제작)에 맞췄다 — 라인별 핏은 Size Guide 카드 안에 있다.
+ */
 const TOPICS = [
   { id: "order", label: "주문 후 제작", note: "주문 후 제작 방식으로 진행되는 점에 대한 안내" },
-  { id: "lines", label: "라인별 핏", note: "제품별로 의도하는 핏 — 레오네 · 페리토" },
   { id: "size", label: "사이즈 고르는 법", note: "본인에게 맞는 사이즈의 제품을 선택하는 방법" },
   { id: "alteration", label: "수령 후 수선", note: "제품 수령 시 본인에게 맞게 수선하는 방법" },
+  { id: "delivery", label: "제작 기간 · 배송", note: "제작 기간, 출고 예정일, 배송 방식" },
   { id: "care", label: "관리법", note: "제품 수령 시 잘 관리하는 방법" },
   { id: "custom", label: "맞춤 제작", note: "맞춤 제작을 희망하시면 테일러샵 방문 안내" },
 ] as const;
