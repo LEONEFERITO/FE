@@ -47,7 +47,7 @@ export function ProductNoticeTable({ notice }: { notice: ProductNotice }) {
         </p>
 
         <div className="border-subtle bg-band/60 shadow-soft mt-8 rounded-2xl border p-1.5">
-          <dl className="bg-surface rounded-[calc(1rem-0.375rem)]">
+          <dl className="bg-surface rounded-none">
             {FIELDS.map((f, i) => (
               <div
                 key={f.key}

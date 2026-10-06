@@ -19,7 +19,7 @@ export function ModelInfo({ model }: { model: ModelInfoType }) {
       className="border-subtle bg-band/60 rounded-2xl border p-1.5"
       aria-labelledby="model-heading"
     >
-      <div className="bg-surface rounded-[calc(1rem-0.375rem)] px-5 py-4">
+      <div className="bg-surface rounded-none px-5 py-4">
         <h2 id="model-heading" className="text-muted text-2xs tracking-label">
           MODEL
         </h2>

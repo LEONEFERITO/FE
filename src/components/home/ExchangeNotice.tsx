@@ -94,8 +94,8 @@ export function ExchangeNotice() {
         {/* 7 : 5 — 핵심 항목이 넓고, 곁가지 둘은 세로로 쌓인다. 모바일은 한 열. */}
         <div className="mt-14 grid gap-8 md:grid-cols-12 md:gap-6">
           <div className="md:col-span-7">
-            <div className="border-subtle bg-band/50 shadow-soft h-full rounded-[1.75rem] border p-1.5">
-              <div className="bg-surface flex h-full flex-col rounded-[calc(1.75rem-0.375rem)] px-8 py-10 md:px-10 md:py-12">
+            <div className="border-subtle bg-band/50 shadow-soft h-full rounded-none border p-1.5">
+              <div className="bg-surface flex h-full flex-col rounded-none px-8 py-10 md:px-10 md:py-12">
                 <span className="text-muted text-2xs tracking-label tabular-nums">
                   {CORE.no}
                 </span>

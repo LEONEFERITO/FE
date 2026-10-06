@@ -161,9 +161,9 @@ export default async function ProductDetailPage({
             <div className="mx-auto max-w-[1320px] px-5 pb-24 md:px-15 md:pb-32">
               <Reveal delay={180}>
                 {/* 사진 자리다. 실제 촬영본 배경이 버건디라 그 톤을 미리 보여준다 */}
-                <div className="border-subtle bg-band/50 shadow-soft mx-auto mt-12 max-w-[860px] rounded-[2rem] border p-2">
+                <div className="border-subtle bg-band/50 shadow-soft mx-auto mt-12 max-w-[860px] rounded-none border p-2">
                   <div
-                    className="flex aspect-[9/7] items-center justify-center rounded-[calc(2rem-0.5rem)]"
+                    className="flex aspect-[9/7] items-center justify-center rounded-none"
                     style={{
                       background:
                         "linear-gradient(155deg, #4E0C17 0%, #7B1526 55%, #2A0A11 100%)",

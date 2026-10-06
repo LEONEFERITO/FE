@@ -63,7 +63,7 @@ export function FitCompare() {
 
         {/* 바깥 껍데기 + 안쪽 알맹이 — 표를 배경에 납작하게 얹지 않는다 */}
         <div className="border-subtle bg-band/60 shadow-soft mt-12 min-w-0 rounded-2xl border p-1.5">
-          <div className="bg-surface min-w-0 overflow-x-auto rounded-[calc(1rem-0.375rem)]">
+          <div className="bg-surface min-w-0 overflow-x-auto rounded-none">
             <table className="w-full min-w-[540px] border-collapse">
               <caption className="sr-only">
                 레오네 라인과 페리토 라인의 부위별 패턴 차이

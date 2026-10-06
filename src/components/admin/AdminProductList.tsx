@@ -245,8 +245,8 @@ function Skeleton() {
         <div key={i} className="flex items-center gap-6 px-3 py-5">
           <div className="bg-band aspect-[3/4] w-16 animate-pulse rounded-lg" />
           <div className="flex flex-1 flex-col gap-2">
-            <div className="bg-band h-3.5 w-40 animate-pulse rounded" />
-            <div className="bg-band h-3 w-24 animate-pulse rounded" />
+            <div className="bg-band h-3.5 w-40 animate-pulse" />
+            <div className="bg-band h-3 w-24 animate-pulse" />
           </div>
         </div>
       ))}

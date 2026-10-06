@@ -89,7 +89,7 @@ export function SizeChart({ chart, basis, tolerance, headingId }: Props) {
               type="button"
               onClick={() => setZoomed(true)}
               // 이미지 자체도 누르면 커진다. 작은 글자를 본 사람의 첫 행동이 "눌러 보기" 다.
-              className="bg-surface block w-full cursor-zoom-in overflow-hidden rounded-[calc(1rem-0.375rem)]"
+              className="bg-surface block w-full cursor-zoom-in overflow-hidden rounded-none"
               aria-label="사이즈 차트 크게 보기"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}

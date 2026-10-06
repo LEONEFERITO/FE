@@ -55,8 +55,8 @@ export function ProductCard({ product }: { product: Product }) {
           비율 2:3 은 촬영 원본 비율이다 — 3:4 로 자르면 머리나 발이 잘린다.
           누끼는 히어로에서만 쓴다. 거기는 인물이 글자를 딛고 서야 해서 배경이 없어야 한다.
         */}
-        <div className="border-subtle bg-band/50 shadow-soft group-hover:shadow-lift ease-fluid rounded-[1.25rem] border p-1.5 transition-all duration-700 group-hover:-translate-y-1">
-          <div className="bg-velvet relative aspect-[2/3] overflow-hidden rounded-[calc(1.25rem-0.375rem)] shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]">
+        <div className="border-subtle bg-band/50 shadow-soft group-hover:shadow-lift ease-fluid rounded-none border p-1.5 transition-all duration-700 group-hover:-translate-y-1">
+          <div className="bg-velvet relative aspect-[2/3] overflow-hidden rounded-none shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]">
             {image ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -119,7 +119,7 @@ export function ProductCard({ product }: { product: Product }) {
         {product.skus.map((sku) => (
           <li
             key={sku.id}
-            className={`text-2xs rounded border px-2 py-0.5 tabular-nums ${
+            className={`text-2xs border px-2 py-0.5 tabular-nums ${
               sku.orderable
                 ? "border-subtle text-secondary"
                 : "border-subtle/60 text-muted line-through"

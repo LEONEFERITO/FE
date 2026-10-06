@@ -95,13 +95,13 @@ export const OFFLINE_SHOP = {
 } as const;
 
 /**
- * SNS 주소. TODO(고객확인) 인스타그램 · 유튜브 계정 주소.
+ * SNS 주소. 인스타그램은 2026-10-06 고객 전달(추적 꼬리 ?__d=… 는 떼고 계정 주소만). TODO(고객확인) 유튜브 계정 주소.
  *
  * 기존 몰 푸터의 SNS 링크는 `https://instagram.com/` · `https://youtube.com/` 로, 호스팅사 기본값이지
  * 계정 주소가 아니다(2026-10-05 확인). 그래서 넘겨짚어 채우지 않는다 — null 인 동안 화면에는
  * 링크 대신 "확인 중" 이 보인다. 없는 주소를 걸어 두면 "곧 생긴다" 가 아니라 "고장났다" 로 읽힌다.
  */
 export const SNS: { instagram: string | null; youtube: string | null } = {
-  instagram: null,
+  instagram: "https://www.instagram.com/leoneferito_/",
   youtube: null,
 };

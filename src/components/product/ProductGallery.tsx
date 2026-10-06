@@ -29,9 +29,9 @@ export function ProductGallery({ photos, name }: { photos: ProductPhoto[]; name:
 
   return (
     <div className="flex min-w-0 flex-col gap-3">
-      <div className="border-subtle bg-band/50 shadow-soft min-w-0 rounded-[2rem] border p-2">
+      <div className="border-subtle bg-band/50 shadow-soft min-w-0 rounded-none border p-2">
         <div
-          className="relative aspect-[4/5] w-full overflow-hidden rounded-[calc(2rem-0.5rem)]"
+          className="relative aspect-[4/5] w-full overflow-hidden rounded-none"
           style={photo ? undefined : { background: PHOTO_PLACEHOLDER }}
         >
           {photo ? (

@@ -47,7 +47,7 @@ export function LineChooser({ products }: { products: Product[] }) {
               <li key={line}>
                 <Link
                   href={lineHref(line)}
-                  className="group bg-velvet shadow-lift ease-fluid relative flex min-h-[420px] flex-col justify-end overflow-hidden rounded-[1.75rem] transition-transform duration-700 hover:-translate-y-1 md:min-h-[560px]"
+                  className="group bg-velvet shadow-lift ease-fluid relative flex min-h-[420px] flex-col justify-end overflow-hidden rounded-none transition-transform duration-700 hover:-translate-y-1 md:min-h-[560px]"
                 >
                   {photo && (
                     /* eslint-disable-next-line @next/next/no-img-element */

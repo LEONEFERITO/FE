@@ -116,7 +116,7 @@ export function SizeFinder() {
           </div>
 
           <div className="border-subtle bg-band/60 shadow-soft min-w-0 rounded-2xl border p-1.5">
-            <div className="bg-surface rounded-[calc(1rem-0.375rem)] px-7 py-8">
+            <div className="bg-surface rounded-none px-7 py-8">
               {ready ? (
                 <form
                   onSubmit={(e) => {
