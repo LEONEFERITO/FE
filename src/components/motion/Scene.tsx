@@ -60,6 +60,10 @@ export function Scene({
     if (document.documentElement.dataset.motion !== "on") return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
+    // 터치 기기는 스크롤 자체가 이미 관성으로 미끄러진다. 거기에 관성을 한 번 더 얹으면 손가락보다 늦게 따라와
+    // 멈칫거린다(2026-10-07 모바일 제보) — 손가락을 그대로 따라간다.
+    const follow = window.matchMedia("(pointer: coarse)").matches ? 1 : 0.14;
+    const stage = pin ? (el.firstElementChild as HTMLElement | null) : null;
     const target = { p: 0, mx: 0, my: 0 };
     const cur = { p: 0, mx: 0, my: 0 };
     const written = { p: "", mx: "", my: "" };
@@ -90,7 +94,7 @@ export function Scene({
       for (const k of ["p", "mx", "my"] as const) {
         const d = target[k] - cur[k];
         if (Math.abs(d) > 0.0005) {
-          cur[k] += d * (k === "p" ? 0.14 : 0.08);
+          cur[k] += d * (k === "p" ? follow : 0.08);
           moving = true;
         } else {
           cur[k] = target[k];
@@ -105,7 +109,8 @@ export function Scene({
 
     const measure = () => {
       const rect = el.getBoundingClientRect();
-      const vh = window.innerHeight;
+      // 핀 구간은 무대의 실제 높이로 잰다. innerHeight 는 모바일 주소창이 접힐 때마다 바뀌어 진행도가 튄다.
+      const vh = stage?.offsetHeight || window.innerHeight;
       const raw =
         track === "pin" ? -rect.top / (rect.height - vh) : (vh - rect.top) / (vh + rect.height);
       target.p = Number.isFinite(raw) ? Math.min(1, Math.max(0, raw)) : 0;
@@ -167,7 +172,7 @@ export function Scene({
       el.removeEventListener("pointerleave", onLeave);
       if (frame) cancelAnimationFrame(frame);
     };
-  }, [track, pointer]);
+  }, [track, pointer, pin]);
 
   // 태그만 바뀌고 속성은 같다. 타입은 section 으로 고정해 둔다 — div · figure 도 같은 HTMLElement 라 ref 가 맞는다.
   const Tag = as as "section";

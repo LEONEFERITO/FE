@@ -169,11 +169,11 @@ export default async function BrandPage() {
             그 아래 폭(태블릿 세로 포함)은 사진 가운데 · 표제 아래로 쌓는다 — 768 에서 나란히 두면 표제가 사람을 가린다.
           */}
           <div
-            className="brand-hero-layer flex items-center justify-center pb-[6dvh] lg:justify-end lg:pb-0 lg:pr-[12vw]"
+            className="brand-hero-layer flex items-center justify-center pb-[6svh] lg:justify-end lg:pb-0 lg:pr-[12vw]"
             style={css({ "--z": "-220px", "--kx": "12px", "--ky": "8px" })}
           >
             {/* 좁은 화면은 사진을 조금 올려 아래 표제 · 스크롤 안내와 겹치지 않게 한다 */}
-            <div className="brand-hero-card relative aspect-[4/5] h-[50dvh] max-h-[760px] max-w-[86vw] lg:h-[66dvh]">
+            <div className="brand-hero-card relative aspect-[4/5] h-[50svh] max-h-[760px] max-w-[86vw] lg:h-[66svh]">
               <div aria-hidden="true" className="brand-hero-ghost" />
               <div className="brand-hero-frame border-accent/35 h-full w-full border">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -188,7 +188,7 @@ export default async function BrandPage() {
 
           {/* 맨 앞 — 표제. 1024 아래는 사진 아래, 그 위는 왼쪽에서 사진 가장자리와 겹친다. 크기는 폭을 따라 흐른다 */}
           <div
-            className="brand-hero-layer brand-hero-copy flex flex-col justify-end px-5 pb-[15dvh] lg:justify-center lg:px-15 lg:pb-0"
+            className="brand-hero-layer brand-hero-copy flex flex-col justify-end px-5 pb-[15svh] lg:justify-center lg:px-15 lg:pb-0"
             style={css({ "--z": "0px", "--kx": "26px", "--ky": "14px" })}
           >
             <div className="overflow-hidden">

@@ -148,7 +148,7 @@ export function AdminTopNav() {
 export function AdminTopBar() {
   return (
     <div className="border-subtle bg-base flex h-14 items-center gap-3 border-b px-5">
-      <Link href="/admin/" className="text-accent-deep inline-flex items-center gap-3" aria-label="관리자 대시보드">
+      <Link href="/admin/" className="text-accent-deep inline-flex min-h-11 items-center gap-3" aria-label="관리자 대시보드">
         <Logo width={120} label="" />
         <span className="text-primary text-sm">관리자</span>
       </Link>

@@ -91,9 +91,10 @@ export function HeroReveal({ product }: { product: Product }) {
     /*
       래퍼의 음수 상단 마진은 헤더 높이만큼이다 (Hero.tsx 와 같은 이유). 끌어올린 만큼
       무대 안쪽 padding 으로 되돌린다. data-hero 는 헤더가 "히어로를 지났는가" 를 보는 표식 —
-      220vh 래퍼 전체에 붙어서, 붙잡혀 있는 동안 내내 헤더가 투명하다(모바일).
+      값 "pin" 은 붙잡힌 무대라는 뜻 — 헤더는 무대가 풀려 위로 빠지기 시작하는 순간 원래 색으로 돌아온다
+      (그 전에 돌아오지 않으면 빠져나가는 사진 위에 투명 헤더의 글자가 겹친다, 2026-10-07 모바일 점검).
     */
-    <section data-hero="" className="on-cream -mt-[72px] md:-mt-[88px]">
+    <section data-hero="pin" className="on-cream -mt-[72px] md:-mt-[88px]">
       <Scene as="div" pin height="220vh" aria-label="대표 룩">
         <div className="relative flex h-full flex-col overflow-hidden px-5 pb-6 pt-[88px] md:px-10 md:pb-10 md:pt-[104px]">
           {/* 종이의 결 — 레퍼런스의 안개. 가운데가 아주 조금 밝다 */}
@@ -170,7 +171,7 @@ export function HeroReveal({ product }: { product: Product }) {
           </div>
 
           {/* 문 두 개. 모바일은 무대 아래 가운데, 데스크톱은 이름 블록 아래 왼쪽. 높이를 같게 고정한다(2026-10-06 요청 — 원형 화살표 때문에 왼쪽이 더 컸다) */}
-          <div className="relative z-10 mt-5 flex flex-wrap items-center justify-center gap-3 md:absolute md:bottom-10 md:left-10 md:mt-0 md:justify-start lg:left-[7%]">
+          <div data-quick-avoid="" className="relative z-10 mt-5 flex flex-wrap items-center justify-center gap-3 md:absolute md:bottom-10 md:left-10 md:mt-0 md:justify-start lg:left-[7%]">
             <Link
               href={`/products/${product.slug}`}
               className="group bg-accent text-on-accent hover:bg-accent-hover shadow-button hover:shadow-button-hover tracking-button ease-fluid inline-flex h-11 items-center gap-2 rounded-full pl-5 pr-1.5 text-xs transition-all duration-500 hover:-translate-y-px active:scale-[0.98] md:h-12 md:gap-3 md:pl-6 md:pr-2 md:text-sm"

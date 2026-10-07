@@ -41,7 +41,7 @@ import type { Category, Product, ProductLine } from "@/types/product";
 
 export const metadata: Metadata = shareMetadata({
   title: "룩북",
-  description: "레오네 페리토 룩북 — LEONE CLASSIC · FERITO ATHLETIC 컬렉션 스타일링.",
+  description: "레오네 페리토 룩북 — LEONE · FERITO 컬렉션 스타일링.",
 });
 
 interface Cut {
@@ -57,7 +57,7 @@ const COLLECTIONS: { id: string; key: ProductLine; title: string; line: string; 
   {
     id: "leone",
     key: "LEONE",
-    title: "LEONE CLASSIC COLLECTION",
+    title: "LEONE COLLECTION",
     line: "레오네 라인",
     description: "전통적인 남성 포멀웨어의 기준과 클래식한 실루엣을 중심으로 한 라인.",
     cuts: [
@@ -68,7 +68,7 @@ const COLLECTIONS: { id: string; key: ProductLine; title: string; line: string; 
   {
     id: "ferito",
     key: "FERITO",
-    title: "FERITO ATHLETIC COLLECTION",
+    title: "FERITO COLLECTION",
     line: "페리토 라인",
     description: "발달된 체형과 남성적인 실루엣을 강조하는 애슬레틱 포멀웨어 라인.",
     cuts: [
@@ -131,7 +131,7 @@ export default async function LookbookPage() {
   const bySlug = new Map(catalog.map((p) => [p.slug, p]));
   /*
     카테고리마다 갈 곳: 그 룩에 연결한 상품 중 그 분류가 있으면 그 상품 페이지, 없으면 그 분류 페이지.
-    분류 페이지는 수트 · 셔츠 · 자켓이면 이 컬렉션의 라인(Classic / Athletic)으로 거른 주소다.
+    (2026-10-07 Classic / Athletic 세부 메뉴를 빼서 분류 페이지는 거르지 않은 전체다. 컬렉션 이름에서도 그 단어를 뺐다)
     TODO(고객확인) 컷마다 실제로 입은 상품 slug — 채우면 그 줄이 상품 판매 페이지로 바로 간다.
   */
   const lookLinks = (c: Cut, line: ProductLine) => {

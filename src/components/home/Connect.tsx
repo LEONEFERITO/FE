@@ -1,7 +1,6 @@
 import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 
-import { Eyebrow } from "@/components/ui/Eyebrow";
 import { KAKAO_CHANNEL, SNS } from "@/data/business";
 import { pendingLabel } from "@/lib/pending";
 
@@ -17,6 +16,10 @@ import { pendingLabel } from "@/lib/pending";
  * 주소가 들어오면 그 칸이 저절로 링크가 된다.
  *
  * 밖으로 나가는 링크는 새 창으로 연다 — 둘러보던 사람이 사이트를 잃지 않게. 새 창임은 화면낭독기에도 알린다.
+ *
+ * ── 2026-10-07 고객 요청 ────────────────────────────────
+ * 위의 "— CONTACT" 꼬리표를 뺐고, 구간 바탕은 흰색(page.tsx 에서 on-white), 칸은 테두리 없는 옅은 면이다.
+ * 처음에는 고객 요청대로 모서리를 둥글렸다가 같은 날 다시 직각으로 — 사이트 전체와 같다.
  */
 
 interface Channel {
@@ -35,7 +38,7 @@ const CHANNELS: Channel[] = [
 ];
 
 const TILE =
-  "border-subtle bg-surface flex h-full min-h-[148px] flex-col justify-between gap-6 rounded-2xl border p-6 md:p-7";
+  "bg-band flex h-full min-h-[148px] flex-col justify-between gap-6 p-6 md:p-7";
 
 function Body({ channel, live }: { channel: Channel; live: boolean }) {
   return (
@@ -61,10 +64,9 @@ function Body({ channel, live }: { channel: Channel; live: boolean }) {
 export function Connect() {
   return (
     <section aria-labelledby="connect-heading" className="mx-auto max-w-[1320px] px-5 py-24 md:px-15 md:py-32">
-      <Eyebrow>CONTACT</Eyebrow>
       <h2
         id="connect-heading"
-        className="font-display text-primary leading-display tracking-display mt-3 text-3xl md:text-4xl"
+        className="font-display text-primary leading-display tracking-display text-3xl md:text-4xl"
       >
         문의 · 채널
       </h2>
@@ -83,7 +85,7 @@ export function Connect() {
                   href={channel.href ?? undefined}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`group ease-fluid hover:border-accent hover:shadow-soft transition-all duration-500 ${TILE}`}
+                  className={`group ease-fluid hover:bg-accent-tint transition-colors duration-500 ${TILE}`}
                 >
                   <Body channel={channel} live />
                   <span className="sr-only">(새 창)</span>
@@ -91,7 +93,7 @@ export function Connect() {
               ) : (
                 <Link
                   href={channel.href ?? "/"}
-                  className={`group ease-fluid hover:border-accent hover:shadow-soft transition-all duration-500 ${TILE}`}
+                  className={`group ease-fluid hover:bg-accent-tint transition-colors duration-500 ${TILE}`}
                 >
                   <Body channel={channel} live />
                 </Link>

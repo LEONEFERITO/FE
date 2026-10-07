@@ -175,7 +175,7 @@ export function CheckoutForm() {
     return (
       <div className="flex flex-col items-start gap-4">
         <Notice tone="error">{load.message}</Notice>
-        <Link href="/cart/" className="text-accent text-sm underline underline-offset-4">
+        <Link href="/cart/" className="text-accent inline-flex min-h-11 items-center text-sm underline underline-offset-4">
           장바구니로
         </Link>
       </div>
@@ -306,6 +306,7 @@ export function CheckoutForm() {
           <button
             type="submit"
             disabled={pending}
+            data-quick-avoid=""
             className="bg-accent text-on-accent hover:bg-accent-hover shadow-button ease-fluid flex min-h-14 items-center justify-center gap-2 rounded-full text-sm transition-colors duration-300 disabled:cursor-wait disabled:opacity-60"
           >
             <LockSimple size={14} weight="light" aria-hidden="true" />

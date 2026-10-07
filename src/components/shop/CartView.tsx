@@ -211,6 +211,7 @@ export function CartView({ empty }: { empty: React.ReactNode }) {
         {orderable.length > 0 && cart.shippingPolicyReady ? (
           <Link
             href={checkoutHref}
+            data-quick-avoid=""
             className="bg-accent text-on-accent hover:bg-accent-hover ease-fluid mt-6 flex min-h-14 items-center justify-center gap-2 rounded-full text-sm transition-colors duration-300"
           >
             주문하기

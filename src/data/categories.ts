@@ -84,8 +84,11 @@ export const categoryHref = (slug: string) => `/category/${slug}/`;
 /**
  * 분류 안의 세부 메뉴 (2026-10-06 구조표). 카테고리 페이지의 칩과 헤더 드롭다운이 같은 목록을 본다.
  *
- * 셔츠 · 자켓 · 수트의 Classic / Athletic 은 **라인**으로 거른다 — 레오네가 클래식, 페리토가 애슬레틱이다.
  * 트라우저 핏 · 신발 종류는 상품의 **세부 분류**(style)로 거른다. 관리자가 상품마다 고른다.
+ *
+ * 2026-10-07: 셔츠 · 자켓 · 수트의 Classic / Athletic(라인으로 거르던 세부 메뉴)은 쓰지 않기로 해서 뺐다 —
+ * "그냥 셔츠로 사용하자". 그 세 분류는 세부 메뉴 없이 분류 페이지 하나다(헤더 드롭다운 · 칩도 안 나온다).
+ * `line` 거르기 자체는 남겨 둔다 — 다시 쓰게 되면 항목만 되살리면 된다.
  * 표기는 구조표 그대로 두되 철자만 바로잡았다(구조표의 "Atheletic" → Athletic).
  */
 export interface CategorySub {
@@ -99,22 +102,10 @@ export interface CategorySub {
 }
 
 export const CATEGORY_SUBS: Partial<Record<Category, CategorySub[]>> = {
-  SHIRT: [
-    { slug: "classic", label: "Classic Fit Shirts", description: "클래식핏 셔츠류", line: "LEONE" },
-    { slug: "athletic", label: "Athletic Fit Shirts", description: "애슬레틱핏 셔츠류", line: "FERITO" },
-  ],
   TROUSERS: [
     { slug: "regular", label: "Regular Fit", description: "레귤러핏 트라우저류", style: "REGULAR" },
     { slug: "straight", label: "Straight Fit", description: "스트레이트핏 트라우저류", style: "STRAIGHT" },
     { slug: "flare", label: "Flare Fit", description: "플레어핏 트라우저류", style: "FLARE" },
-  ],
-  JACKET: [
-    { slug: "classic", label: "Classic Fit Jacket", description: "클래식핏 자켓류", line: "LEONE" },
-    { slug: "athletic", label: "Athletic Fit Jacket", description: "애슬레틱핏 자켓류", line: "FERITO" },
-  ],
-  SUIT: [
-    { slug: "classic", label: "Classic Fit Suit", description: "클래식핏 수트류", line: "LEONE" },
-    { slug: "athletic", label: "Athletic Fit Suit", description: "애슬레틱 수트류", line: "FERITO" },
   ],
   SHOES: [
     { slug: "oxfords", label: "Oxfords", description: "옥스퍼드 구두류", style: "OXFORD" },

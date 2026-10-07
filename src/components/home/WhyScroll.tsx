@@ -68,7 +68,9 @@ export function WhyScroll({
     const update = () => {
       frame = 0;
       const rect = el.getBoundingClientRect();
-      const range = rect.height - window.innerHeight;
+      // 무대(sticky) 높이로 잰다 — innerHeight 는 모바일 주소창이 접힐 때마다 바뀐다
+      const stageH = (el.firstElementChild as HTMLElement | null)?.offsetHeight || window.innerHeight;
+      const range = rect.height - stageH;
       if (range <= 0) return;
       const progress = Math.min(1, Math.max(0, -rect.top / range));
       setActive(Math.min(items.length - 1, Math.floor(progress * items.length)));

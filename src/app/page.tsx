@@ -126,7 +126,8 @@ export default async function Home() {
         <div className="on-cream on-white">
           <FeaturedProducts products={FEATURED} />
         </div>
-        <div className="on-cream">
+        {/* 문의 · 채널 · 매장은 흰 바탕 (2026-10-07 고객 요청) */}
+        <div className="on-cream on-white">
           <Connect />
           {/* 매장 사진은 관리자가 올린 것(/admin/display/offline). 아직 없으면 기본 사진 */}
           <OfflineShop

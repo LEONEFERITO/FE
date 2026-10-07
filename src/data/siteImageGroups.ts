@@ -81,14 +81,14 @@ export const SITE_IMAGE_GROUPS: SiteImageGroup[] = [
     columns: 2,
     sections: [
       {
-        title: "LEONE CLASSIC COLLECTION",
+        title: "LEONE COLLECTION",
         slots: [
           { slot: "LOOKBOOK_LEONE_1", label: "1번 컷 (넓은 칸)", aspect: "wide" },
           { slot: "LOOKBOOK_LEONE_2", label: "2번 컷", aspect: "wide" },
         ],
       },
       {
-        title: "FERITO ATHLETIC COLLECTION",
+        title: "FERITO COLLECTION",
         slots: [
           { slot: "LOOKBOOK_FERITO_1", label: "1번 컷", aspect: "wide" },
           { slot: "LOOKBOOK_FERITO_2", label: "2번 컷 (넓은 칸)", aspect: "wide" },

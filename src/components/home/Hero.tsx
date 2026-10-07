@@ -58,8 +58,8 @@ const STAGE_AT = [0.12];
  *
  * img 에 block 이 없으면 inline 이라 baseline 아래 여백이 생겨 발 선이 어긋난다.
  *
- * 높이 단위는 **dvh** 다. 바깥 무대는 min-h-[100dvh] 인데 인물만 vh 를 쓰면,
- * 주소창이 펼쳐진 모바일에서 vh(큰 뷰포트) > dvh(작은 뷰포트) 라 인물이
+ * 높이 단위는 **svh** 다(2026-10-07 dvh→svh: dvh 는 주소창이 접힐 때 바뀌어 튄다). 바깥 무대는 min-h-[100svh] 인데 인물만 vh 를 쓰면,
+ * 주소창이 펼쳐진 모바일에서 vh(큰 뷰포트) > svh(작은 뷰포트) 라 인물이
  * 무대보다 커진다. overflow-hidden 이 그 차이만큼 발을 잘라낸다.
  */
 function Cutout({
@@ -77,7 +77,7 @@ function Cutout({
 }) {
   return (
     <div
-      className="stage-in relative h-[44dvh] max-h-[460px] shrink-0 md:h-[70dvh] md:max-h-[720px]"
+      className="stage-in relative h-[44svh] max-h-[460px] shrink-0 md:h-[70svh] md:max-h-[720px]"
       data-staged={staged}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -186,8 +186,8 @@ export function Hero() {
         />
       ))}
 
-      {/* 100vh 가 아니라 100dvh — iOS 사파리는 주소창이 접히며 vh 가 바뀌어 화면이 튄다 */}
-      <div className="bg-velvet sticky top-0 flex min-h-[100dvh] flex-col justify-center overflow-hidden px-5 pb-[4vh] pt-[96px] md:px-10 md:pb-[2vh] md:pt-[104px]">
+      {/* 100vh · 100dvh 가 아니라 100svh — 주소창이 접혀도 높이가 바뀌지 않는다 */}
+      <div className="bg-velvet sticky top-0 flex min-h-[100svh] flex-col justify-center overflow-hidden px-5 pb-[4vh] pt-[96px] md:px-10 md:pb-[2vh] md:pt-[104px]">
         {/*
           무대광 — 워드마크 뒤에서 오는 빛. 중심을 인물 쪽(46%)에 둔다.
           인물은 빛을 받고, 그 아래 글자는 빛을 등진 실루엣으로 읽힌다.

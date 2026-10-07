@@ -60,12 +60,12 @@ const BRAND_GROUPS: NavGroup[] = [
     description: "브랜드가 추구하는 스타일링 룩북 모음집",
     children: [
       {
-        label: "LEONE CLASSIC COLLECTION",
+        label: "LEONE COLLECTION",
         href: "/lookbook/#leone",
         description: "전통적인 남성 포멀웨어의 기준과 클래식한 실루엣을 중심으로 한 라인",
       },
       {
-        label: "FERITO ATHLETIC COLLECTION",
+        label: "FERITO COLLECTION",
         href: "/lookbook/#ferito",
         description: "발달된 체형과 남성적인 실루엣을 강조하는 애슬레틱 포멀웨어 라인",
       },

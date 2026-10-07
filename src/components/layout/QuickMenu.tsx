@@ -20,6 +20,11 @@ import { CALL_NUMBER, KAKAO_CHANNEL } from "@/data/business";
  * 항목은 아래에서 하나씩 올라온다(위쪽 항목이 조금 늦게). 모노그램은 돌면서 X 로 바뀐다.
  * transform · opacity 만 쓰고, 움직임을 줄인 사용자에게는 globals.css 의 전역 규칙이 전환을 끈다.
  * 닫힌 동안 항목은 invisible 이라 Tab 으로 들어가지 않는다.
+ *
+ * ── 중요한 버튼과 겹칠 때 (모바일) ──────────────────────
+ * 폰에서는 이 버튼이 화면 아래쪽의 주 버튼(배너의 "전체 제품", 상세의 "장바구니 담기", 결제하기 등)을 덮는다
+ * (2026-10-07 모바일 점검). `data-quick-avoid` 표시가 있는 요소나 본문의 제출 버튼이 화면 아래 띠(버튼이 떠 있는 높이)에
+ * 들어와 있는 동안만 버튼을 아래로 걷어 둔다. 지나가면 다시 나온다. 데스크톱은 여백이 넓어 걷지 않는다.
  */
 export function QuickMenu() {
   const pathname = usePathname();
@@ -28,6 +33,48 @@ export function QuickMenu() {
   const rootRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const listId = useId();
+  // 비켜 선 페이지. 다른 페이지로 가면 자연히 어긋나 다시 보인다(렌더 중 비교 — effect 로 되돌리지 않는다).
+  const [hiddenOn, setHiddenOn] = useState<string | null>(null);
+  const overHero = hiddenOn === pathname;
+
+  useEffect(() => {
+    const narrow = window.matchMedia("(max-width: 767px)");
+    if (!narrow.matches) return;
+    // 화면 아래 띠 — 버튼(56px) + 아래 여백 + 숨 쉴 틈
+    const band = 104;
+    const seen = new Set<Element>();
+    const hits = new Set<Element>();
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) hits.add(e.target);
+          else hits.delete(e.target);
+        }
+        setHiddenOn(hits.size > 0 ? pathname : null);
+      },
+      { rootMargin: `-${Math.max(0, window.innerHeight - band)}px 0px 0px 0px` },
+    );
+    // 버튼은 데이터를 받은 뒤에 그려지기도 한다(장바구니 · 주문서) — 새로 생기면 마저 지켜본다
+    let queued = 0;
+    const scan = () => {
+      queued = 0;
+      document.querySelectorAll('[data-quick-avoid], main button[type="submit"]').forEach((el) => {
+        if (seen.has(el)) return;
+        seen.add(el);
+        io.observe(el);
+      });
+    };
+    scan();
+    const mo = new MutationObserver(() => {
+      if (!queued) queued = requestAnimationFrame(scan);
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      io.disconnect();
+      mo.disconnect();
+      if (queued) cancelAnimationFrame(queued);
+    };
+  }, [pathname]);
 
   // 페이지가 바뀌면 닫는다 — effect 대신 렌더 중에 맞춘다
   if (open && openedAt !== pathname) {
@@ -87,7 +134,9 @@ export function QuickMenu() {
   return (
     <div
       ref={rootRef}
-      className="fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 flex flex-col items-end gap-3 md:right-6 md:bottom-6"
+      className={`ease-fluid fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 flex flex-col items-end gap-3 transition-[transform,opacity] duration-500 md:right-6 md:bottom-6 ${
+        overHero && !open ? "pointer-events-none invisible translate-y-4 opacity-0" : ""
+      }`}
     >
       <ul id={listId} aria-label="빠른 문의" className={`flex flex-col items-end gap-2.5 ${open ? "" : "invisible"}`}>
         {items.map((item, i) => {

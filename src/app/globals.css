@@ -198,6 +198,34 @@
   --bg-subtle: #f6f3ef; /* 밴드 · 칩 바탕 — 흰 바탕에서 한 단 내려간 면 */
 }
 
+/* ── 검정 구간 — 상단 GNB · 드롭다운 · 모바일 메뉴 (2026-10-07 고객 요청 "메뉴바 블랙") ──
+ * 라인 페이지 · 메인 두 라인 구간과 같은 순검정(#000) 위에 기본(어두운) 테마의 글자 · 골드를 얹는다.
+ * 와인 바닥(#170A0E)이 아니라 검정이라 경계선 · 면만 무채색으로 다시 정한다. 글자 대비는 와인 바닥보다 오른다
+ * (크림 18.3:1 · 보조 11.0 · 흐림 7.6 · 골드 9.8). .on-cream 안에 놓여도 이 값으로 덮도록 토큰을 전부 적는다. */
+.on-black {
+  --bg-base: #000000;
+  --bg-surface: #0f0f0f;
+  --bg-subtle: #161616;
+
+  --text-primary: #f7f1ea;
+  --text-secondary: #cdbab0;
+  --text-muted: #ad9a91;
+  --text-on-accent: #170a0e;
+
+  --accent-base: #d5ae57;
+  --accent-deep: #e6c578;
+  --accent-hover: #e6c578;
+  --accent-tint: #2a2416;
+
+  --border-subtle: #2a2a2a;
+  --border-strong: #444444;
+  --border-interactive: #8a8a8a;
+  --focus-ring: #d5ae57;
+
+  background: var(--bg-base);
+  color: var(--text-primary);
+}
+
 /* 초점링 후광도 그 구간의 바닥색을 따라간다 */
 .on-cream :focus-visible {
   box-shadow: 0 0 0 3px var(--bg-base);
@@ -421,10 +449,11 @@ html[data-motion="on"] .why-pin {
   height: calc(var(--why-steps, 4) * 100vh);
 }
 
+/* svh — 모바일 주소창이 접혀도 바뀌지 않는 높이. dvh 는 스크롤 중에 값이 바뀌어 무대가 다시 그려지며 튄다 (2026-10-07) */
 html[data-motion="on"] .why-stage {
   position: sticky;
   top: 0;
-  height: 100dvh;
+  height: 100svh;
 }
 
 /* 배경 — 켜진 항목의 사진만. 움직임이 없을 때는 첫 장. */
@@ -649,17 +678,22 @@ html[data-motion="on"] .hero-reveal-cue {
 
 .scene-stage {
   position: relative;
-  min-height: 100dvh;
+  min-height: 100svh;
 }
 
 html[data-motion="on"] .scene[data-pin] {
   height: var(--scene-h, 200vh);
 }
 
+/*
+ * 무대 높이는 svh(주소창이 펼쳐진 작은 화면 기준)다. dvh 는 모바일에서 손가락으로 스크롤하는 순간 주소창이 접히며
+ * 값이 바뀌고, 무대 · 인물 사진이 그 높이로 다시 계산돼 "작았다가 갑자기 커지고" 끊긴다 (2026-10-07 모바일 제보).
+ * 주소창이 접힌 동안 무대 아래로 남는 띠는 같은 바탕이라 보이지 않는다.
+ */
 html[data-motion="on"] .scene[data-pin] > .scene-stage {
   position: sticky;
   top: 0;
-  height: 100dvh;
+  height: 100svh;
 }
 
 /* 진행 눈금 — 핀 장면 오른쪽 아래의 가는 선. 금색이 진행도만큼 찬다. 좁은 화면에서는 뺀다 */
@@ -1035,8 +1069,8 @@ html[data-motion="on"] .brand-row-b {
 
 html[data-motion="on"] .brand-float {
   --lp: clamp(0, calc((var(--p) - var(--from)) / (var(--to) - var(--from))), 1);
-  transform: perspective(1200px) translate3d(0, calc((var(--p) - 0.5) * var(--dy)), 0)
-    rotateY(calc((0.5 - var(--p)) * var(--tilt))); /* 3d */
+  transform: perspective(1200px) translate3d(0, calc((var(--p) - 0.5) * var(--dy) * var(--dy-k, 1)), 0)
+    rotateY(calc((0.5 - var(--p)) * var(--tilt) * var(--dy-k, 1))); /* 3d */
   will-change: transform;
 }
 
@@ -1195,5 +1229,30 @@ html[data-motion="on"] .brand-line {
     opacity: 1;
     transform: none;
     filter: none;
+  }
+}
+
+/* ── 터치 기기 — 스크롤마다 다시 그려야 하는 비싼 효과는 뺀다 (2026-10-07 모바일 끊김 제보) ──
+ * 흐림(filter: blur)은 프레임마다 그 영역을 통째로 다시 그린다. 낱말 수십 개 · 큰 판에 걸리면 휴대폰 GPU 가 못 따라가
+ * 스크롤이 뚝뚝 끊긴다. 글자 간격(letter-spacing)을 스크롤에 묶으면 매 프레임 줄바꿈부터 다시 계산한다.
+ * 움직임(transform · opacity)은 그대로 둔다 — 연출의 뼈대는 남기고 무게만 덜어낸다. */
+@media (hover: none) and (pointer: coarse) {
+  html[data-motion="on"] .reveal,
+  html[data-motion="on"] .brand-word,
+  html[data-motion="on"] .brand-surface {
+    filter: none;
+  }
+
+  html[data-motion="on"] .brand-surface-text {
+    letter-spacing: var(--ls-display);
+  }
+}
+
+/* ── 좁은 화면 — 브랜드 페이지 사진 (2026-10-07 모바일 점검) ──
+ * 데스크톱은 사진 셋이 엇갈린 격자라 서로 다른 속도로 떠다녀도 빈 곳이 생기지 않는다. 폰에서는 한 줄로 쌓여서
+ * 최대 150px 씩 위아래로 밀리면 사진 사이에 화면 반만 한 빈 틈이 생긴다 — 이동 폭과 기울기를 1/5 로 줄인다. */
+@media (max-width: 767px) {
+  .brand-float {
+    --dy-k: 0.2;
   }
 }

@@ -30,6 +30,12 @@ import { KAKAO_CHANNEL, OFFLINE_SHOP } from "@/data/business";
  * 원본 비율 그대로 위에 쌓는다. 1200px 이상은 지도 칸을 넓혀(3:2) 거의 원본 비율로 둔다(1024 에서 나란히 두면 둘 다 잘렸다).
  * 제목 뒤 가림막은 왼쪽 아래 모서리에만 깐다 — 오른쪽 아래의 핀을 덮지 않는다.
  * TODO 캡처가 897px 이라 큰 화면에서 조금 흐리다 — 고해상도로 다시 캡처하면 같은 파일명으로 바꾼다.
+ *
+ * ── 메인의 안내 상자 (2026-10-07 고객 요청 — 기존 몰 캡처 "그냥 이렇게") ──
+ * 구간 바탕은 흰색(page.tsx), 오른쪽 상자는 베이지(#F7F1EA — 사이트의 크림, 같은 날 회색에서 바꿈), 제목은 진한 글자 · 본문은 회색.
+ * 버튼은 캡처의 갈색 VIEW MORE 하나 — 구글 지도에서 매장 위치를 연다(브랜드 페이지 지도와 같은 주소).
+ * 흰 글자 대비 7.4:1. 같은 날 검정 상자 · 금색 글자를 잠깐 썼다가 이 모양으로 되돌렸다.
+ * 브랜드 페이지의 지도판은 요청 범위가 아니라 그대로 둔다(지도 자체가 링크라 버튼은 방문 문의).
  */
 export function OfflineShop({
   image = null,
@@ -57,7 +63,9 @@ export function OfflineShop({
         {/* 사진 면은 버건디 — 토큰을 뒤집지 않는 면이다(globals.css .on-cream 주석). 글자는 고정 크림 */}
         <div
           className={`bg-velvet relative overflow-hidden ${
-            map ? "aspect-[897/594] min-[1200px]:aspect-auto min-[1200px]:min-h-[600px]" : "aspect-[4/3] md:aspect-auto md:min-h-[520px]"
+            map
+              ? "aspect-[897/594] min-[1200px]:aspect-auto min-[1200px]:min-h-[600px]"
+              : "aspect-[4/3] md:aspect-auto md:min-h-[520px]"
           }`}
         >
           {map && (
@@ -112,7 +120,9 @@ export function OfflineShop({
           </h2>
         </div>
 
-        <div className={`flex flex-col justify-center gap-10 p-7 md:p-16 ${map ? "min-[1200px]:px-20" : ""}`}>
+        <div
+          className={`flex flex-col justify-center gap-10 p-7 md:p-16 ${map ? "min-[1200px]:px-20" : "bg-[#f7f1ea]"}`}
+        >
           <dl className="flex flex-col gap-9">
             <div>
               <dt className="text-primary text-sm font-semibold">주소</dt>
@@ -130,30 +140,44 @@ export function OfflineShop({
           </dl>
 
           {/* 버튼도 직각이다 (머리말 "각진 직사각형이다"). 채운 것이 주 동선, 테두리만 있는 것이 부 동선 */}
-          <div className="flex flex-wrap gap-3">
-            {OFFLINE_SHOP.mapUrl && (
+          {!map ? (
+            <div>
               <a
-                href={OFFLINE_SHOP.mapUrl}
+                href={`https://www.google.com/maps/search/?api=1&query=${q}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-accent text-on-accent hover:bg-accent-hover ease-fluid tracking-button inline-flex min-h-11 items-center px-9 text-xs transition-colors duration-500"
+                className="ease-fluid tracking-button inline-flex min-h-11 items-center bg-[#7b4a1e] px-9 text-xs text-white transition-colors duration-500 hover:bg-[#5f3815]"
               >
-                VIEW MORE<span className="sr-only">(지도, 새 창)</span>
+                VIEW MORE
+                <span className="sr-only">(구글 지도에서 매장 위치, 새 창)</span>
               </a>
-            )}
-            <a
-              href={KAKAO_CHANNEL.chat}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`ease-fluid tracking-button inline-flex min-h-11 items-center px-9 text-xs transition-colors duration-500 ${
-                OFFLINE_SHOP.mapUrl
-                  ? "border-interactive text-accent hover:border-accent hover:bg-accent-tint border"
-                  : "bg-accent text-on-accent hover:bg-accent-hover"
-              }`}
-            >
-              방문 문의<span className="sr-only">(카카오톡 채널, 새 창)</span>
-            </a>
-          </div>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-3">
+              {OFFLINE_SHOP.mapUrl && (
+                <a
+                  href={OFFLINE_SHOP.mapUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-accent text-on-accent hover:bg-accent-hover ease-fluid tracking-button inline-flex min-h-11 items-center px-9 text-xs transition-colors duration-500"
+                >
+                  VIEW MORE<span className="sr-only">(지도, 새 창)</span>
+                </a>
+              )}
+              <a
+                href={KAKAO_CHANNEL.chat}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`ease-fluid tracking-button inline-flex min-h-11 items-center px-9 text-xs transition-colors duration-500 ${
+                  OFFLINE_SHOP.mapUrl
+                    ? "border-interactive text-accent hover:border-accent hover:bg-accent-tint border"
+                    : "bg-accent text-on-accent hover:bg-accent-hover"
+                }`}
+              >
+                방문 문의<span className="sr-only">(카카오톡 채널, 새 창)</span>
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </section>

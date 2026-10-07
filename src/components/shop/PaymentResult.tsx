@@ -89,7 +89,7 @@ export function PaymentSuccess() {
           드립니다.
           {state.orderId && <span className="text-muted block mt-2 text-2xs">주문번호 {state.orderId}</span>}
         </p>
-        <Link href="/cart/" className="text-accent w-fit text-sm underline underline-offset-4">
+        <Link href="/cart/" className="text-accent inline-flex min-h-11 w-fit items-center text-sm underline underline-offset-4">
           장바구니로
         </Link>
       </div>

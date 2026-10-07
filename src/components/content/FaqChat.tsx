@@ -180,6 +180,7 @@ export function FaqChat({ fallback }: { fallback: { q: string; a: React.ReactNod
                 href={KAKAO_CHANNEL.chat}
                 target="_blank"
                 rel="noopener noreferrer"
+                data-quick-avoid=""
                 className="ease-fluid inline-flex min-h-11 items-center gap-1.5 bg-[#FEE500] px-4 text-xs font-medium text-[#191919] transition-colors duration-300 hover:bg-[#F5DC00]"
               >
                 <ChatCircle size={14} weight="fill" aria-hidden="true" />

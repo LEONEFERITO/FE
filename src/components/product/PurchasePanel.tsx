@@ -172,7 +172,8 @@ export function PurchasePanel({ product }: { product: Product }) {
 
         D1(판매 범위) 미확정 — 커머스 기준이다. 카탈로그로 확정되면 라벨만 바뀐다.
       */}
-      <div className="mt-3 flex flex-col gap-2.5">
+      {/* data-quick-avoid — 모바일에서 이 버튼들이 오른쪽 아래에 오면 퀵메뉴가 잠시 비킨다 (QuickMenu) */}
+      <div data-quick-avoid="" className="mt-3 flex flex-col gap-2.5">
         <button
           type="button"
           disabled={!selectedSize || pending !== null}

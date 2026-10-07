@@ -66,7 +66,7 @@ import { ABOUT_GROUPS, ABOUT_LABEL, CATEGORY_GROUPS, type NavLink } from "@/data
  * 드롭다운은 hover 와 키보드 초점(focus-within) 둘 다로 열린다. 마우스가 없는 사람도 Tab 으로 하위 메뉴에 닿는다.
  */
 
-/** 헤더 한 줄의 링크 모양 — 흰 GNB 위 진한 글자(기존 몰과 같은 #1A1A1A 계열), 강조는 와인 */
+/** 헤더 한 줄의 링크 모양 — 글자색은 헤더의 색 묶음을 따른다(검정 GNB 위 크림 · 배너 위 투명일 때 진한 글자), 강조는 accent */
 const navLinkClass = () =>
   "text-2xs tracking-label ease-fluid inline-flex min-h-11 items-center whitespace-nowrap text-primary transition-colors duration-700 hover:text-accent group-focus-within/nav:text-accent group-hover/nav:text-accent";
 
@@ -122,9 +122,12 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
      * 그 선을 넘어가는 순간 교차가 끊긴다 = 벨벳 구간이 끝났다는 뜻이다.
      * 히어로 높이를 가정하지 않으므로 연출 길이를 바꿔도 헤더를 고칠 필요가 없다.
      */
+    // 붙잡힌 무대(data-hero="pin")는 화면 맨 아래 한 줄로 본다 — 무대 바닥이 화면 바닥 위로 올라오는 순간
+    // (= 무대가 풀려 위로 빠지기 시작) 헤더가 원래 색으로 돌아온다. 투명한 채 남으면 빠져나가는 사진 위에 로고가 겹친다.
+    const pinned = hero.getAttribute("data-hero") === "pin";
     const io = new IntersectionObserver(
       ([entry]) => setOnHero(entry.isIntersecting),
-      { rootMargin: "-80px 0px 0px 0px", threshold: 0 },
+      { rootMargin: pinned ? "-99% 0px 0px 0px" : "-80px 0px 0px 0px", threshold: 0 },
     );
 
     io.observe(hero);
@@ -168,12 +171,15 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
         GNB 색 — 2026-10-06 고객 요청("상단 GNB 컬러 확인"): 기존 몰(leoneferito.kr)처럼 **흰 바탕 · 진한 글자 ·
         아래 얇은 선**. on-cream on-white 로 이 안의 토큰만 밝은 쪽으로 뒤집는다(드롭다운 · ABOUT 판도 같이).
         반투명(bg-base/85)을 쓰지 않는다 — 반투명이면 뒤 페이지 색이 비쳐 흰 페이지 위에서 회갈색으로 탁해졌다.
-        히어로 위에서는 바탕 · 선을 비워 투명하고, 히어로 배너를 지나면 원래 색(흰 GNB)으로 굳는다(2026-10-06 요청 — PC · 모바일 모두).
+        히어로 위에서는 바탕 · 선을 비워 투명하고, 히어로 배너를 지나면 원래 색으로 굳는다(2026-10-06 요청 — PC · 모바일 모두).
+
+        2026-10-07 고객 요청으로 "원래 색" 이 **검정**이 됐다(on-black — 크림 글자 · 골드 로고). 메인 배너는 밝은 종이라
+        투명한 동안에는 진한 글자가 필요하다 — 그때만 on-cream on-white 묶음을 쓰고, 배너를 지나면 on-black 으로 바뀐다.
       */}
       <header
-        className={`on-cream on-white ease-fluid sticky top-0 z-40 w-full border-b transition-colors duration-700 ${
-          // .on-cream 이 background 를 직접 깔아서(레이어 밖 CSS) 유틸리티보다 세다 — 투명은 ! 로 이긴다
-          light ? "border-transparent bg-transparent!" : "border-subtle bg-base"
+        className={`ease-fluid sticky top-0 z-40 w-full border-b transition-colors duration-700 ${
+          // 색 묶음 클래스가 background 를 직접 깔아서(레이어 밖 CSS) 유틸리티보다 세다 — 투명은 ! 로 이긴다
+          light ? "on-cream on-white border-transparent bg-transparent!" : "on-black border-subtle bg-base"
         }`}
       >
         <div className="relative flex h-14 w-full items-center justify-between px-5 md:h-18 md:px-10">
@@ -216,7 +222,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
                   {ABOUT_LABEL}
                 </Link>
                 <div className="invisible absolute inset-x-0 top-full z-50 pt-0 opacity-0 transition-[opacity,visibility] duration-300 ease-out group-focus-within/nav:visible group-focus-within/nav:opacity-100 group-hover/nav:visible group-hover/nav:opacity-100">
-                  <div className="bg-base border-subtle shadow-lift border-y">
+                  <div className="on-black bg-base border-subtle shadow-lift border-y">
                     <div className="mx-auto grid max-w-[1180px] grid-cols-4 gap-8 px-10 py-8">
                       {ABOUT_GROUPS.map((group) => (
                         <div key={group.label} className="min-w-0">
@@ -253,7 +259,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
                   </Link>
                   {group.children.length > 0 && (
                     <div className="invisible absolute left-1/2 top-full z-50 -translate-x-1/2 pt-3 opacity-0 transition-[opacity,visibility] duration-300 ease-out group-focus-within/nav:visible group-focus-within/nav:opacity-100 group-hover/nav:visible group-hover/nav:opacity-100">
-                      <div className="bg-base border-subtle shadow-lift w-64 border p-2">
+                      <div className="on-black bg-base border-subtle shadow-lift w-64 border p-2">
                         <p className="text-muted text-2xs px-3 pb-2 pt-2">{group.description}</p>
                         <ul>
                           {group.children.map((child) => (
@@ -322,7 +328,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
       <div
         id="mobile-menu"
         hidden={!open}
-        className="on-cream on-white bg-base fixed inset-0 z-30 lg:hidden"
+        className="on-black bg-base fixed inset-0 z-30 lg:hidden"
       >
         <nav
           aria-label="모바일 메뉴"
@@ -334,8 +340,9 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
           className="flex h-full flex-col overflow-y-auto px-8 pb-10 pt-24"
         >
           {/*
-            상위 메뉴마다 펼침(<details>) — 열고 닫기 · 키보드 · 스크린리더를 브라우저가 해 준다.
-            열 개를 다 펼쳐 두면 한 화면이 세 번 넘게 넘친다. 하위 메뉴가 없는 ACCESSORIES 는 바로 링크다.
+            상품 분류(SHIRTS … ACCESSORIES)는 펼치지 않고 바로 그 분류 페이지로 간다 — 2026-10-07 고객 요청으로
+            모바일 메뉴의 하위 항목(전체 보기 · Classic Fit … )을 뺐다. 세부 분류는 분류 페이지 위의 칩으로 고른다.
+            ABOUT 묶음(THE MAISON …)만 펼침(<details>)이다 — 열고 닫기 · 키보드 · 스크린리더를 브라우저가 해 준다.
           */}
           <ul className="flex flex-col">
             {[...CATEGORY_GROUPS, ...ABOUT_GROUPS].map((group, i) => (
@@ -350,7 +357,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
                   transform: open ? "none" : "translateY(1.25rem)",
                 }}
               >
-                {group.children.length === 0 ? (
+                {group.children.length === 0 || i < CATEGORY_GROUPS.length ? (
                   <Link
                     href={group.href}
                     onClick={() => setOpen(false)}
