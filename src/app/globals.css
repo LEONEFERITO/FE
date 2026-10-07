@@ -449,11 +449,49 @@ html[data-motion="on"] .why-pin {
   height: calc(var(--why-steps, 4) * 100vh);
 }
 
+/* 폰에서는 항목당 반 화면만 붙잡는다 (2026-10-07 모바일 리디자인 A안) — 한 화면씩이면 글자만 바뀌는 동안 멈춘 느낌이다.
+ * 진행도는 래퍼 높이로 계산하므로(WhyScroll.update) 높이만 줄이면 된다. */
+@media (max-width: 767px) {
+  html[data-motion="on"] .why-pin {
+    height: calc(100svh + (var(--why-steps, 4) - 1) * 50svh);
+  }
+}
+
 /* svh — 모바일 주소창이 접혀도 바뀌지 않는 높이. dvh 는 스크롤 중에 값이 바뀌어 무대가 다시 그려지며 튄다 (2026-10-07) */
 html[data-motion="on"] .why-stage {
   position: sticky;
   top: 0;
   height: 100svh;
+}
+
+/* B안 — 폰에서는 붙잡지 않고 항목을 차례로 쌓는다 (2026-10-07 모바일 리디자인, WhyScroll mobile="stack").
+ * 핀 · 무대 고정을 풀고, 설명은 전부 펼친 채 둔다. 데스크톱은 그대로 핀 구간이다. */
+@media (max-width: 767px) {
+  html[data-motion="on"] .why-pin.why-stack {
+    height: auto;
+  }
+
+  html[data-motion="on"] .why-pin.why-stack > .why-stage {
+    position: static;
+    height: auto;
+  }
+
+  .why-stack .why-body {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+}
+
+/* C안(어둡게) — 폰에서 사진을 화면 전체에 깔고 아래를 와인으로 눌러 크림 글자를 올린다 (mobile="cover-dark").
+ * 판은 .on-cream 안에 있지만 이 묶음이 글자 · 강조 · 선 토큰을 어두운 쪽으로 되돌린다 — 폰에서만. */
+@media (max-width: 767px) {
+  .why-cover-dark {
+    --text-primary: #f7f1ea;
+    --text-secondary: #cdbab0;
+    --text-muted: #ad9a91;
+    --accent-base: #d5ae57;
+    --border-subtle: rgba(247, 241, 234, 0.22);
+  }
 }
 
 /* 배경 — 켜진 항목의 사진만. 움직임이 없을 때는 첫 장. */

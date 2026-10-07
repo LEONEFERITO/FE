@@ -35,18 +35,31 @@ import type { WhyContent } from "@/lib/why";
  *   · 헤더 높이만큼 끌어올려 첫 화면이 정확히 한 화면이 되게 한다. data-hero 표식도 붙인다.
  * 사진은 관리자가 WHY 항목마다 올리는 배경이다(V18) — 단체 사진을 올리면 그대로 히어로 사진이 된다.
  * TODO(고객확인) 히어로용 모델 단체 사진.
+ *
+ * ── 폰 구성 (`mobile`, 2026-10-07 모바일 리디자인) ──────────
+ *   "pin"   : A안. 데스크톱과 같은 핀 구간 — 사진을 위 52% 에 고정하고 아래를 판 색으로 녹인다.
+ *   "stack" : B안. 붙잡지 않고 잡지처럼 내려 읽는다 — 항목마다 그 항목의 사진(4:5 그대로, 자르지 않음) 아래
+ *             번호 · 제목 · 설명이 차례로 쌓인다. 설명은 전부 펼친 채고 제목 버튼은 눌러도 움직이지 않는다.
+ *             (globals.css .why-stack — 폰에서만 핀을 풀고 설명을 편다)
+ *   "cover-dark" / "cover-light" : C안(고객 레퍼런스 RiZen). 핀 구간인데 사진이 화면 **전체**에 깔리고 글자가 그 위에
+ *             얹힌다 — 4:5 사진은 폰 화면에 위아래가 다 들어가서 머리가 안 잘린다. 아래쪽 가림막이 글자를 지킨다:
+ *             dark 는 와인으로 눌러 크림 글자(globals.css .why-cover-dark), light 는 크림으로 흐려 진한 글자.
+ * 데스크톱(md 이상)은 전부 같다.
  */
 export function WhyScroll({
   content,
   fallbackImage,
   hero = false,
   panel = false,
+  mobile = "pin",
 }: {
   content: WhyContent;
   /** 사진이 없는 항목에 쓸 기본 배경. 파일이 없으면 null — 바탕색만 남는다. */
   fallbackImage: string | null;
   /** 메인의 첫 화면으로 쓴다 (위 머리말). 제목이 h1 이 되고 헤더 밑으로 끌어올린다. 판 모양은 따라온다. */
   hero?: boolean;
+  /** 폰 구성 — "pin"(A안 · 기본) 또는 "stack"(B안). 머리말 "폰 구성" 참고 */
+  mobile?: "pin" | "stack" | "cover-dark" | "cover-light";
   /**
    * 글자를 **불투명한 판**에 담는다 — 가이드가 그린 "사진 위 크림 사각형" 모양.
    * 첫 화면이 아니어도 이 모양만 쓸 수 있다: 2026-10-05 에 첫 화면은 배너(HeroReveal)로 정해졌고,
@@ -101,15 +114,26 @@ export function WhyScroll({
   function jumpTo(index: number) {
     const el = sectionRef.current;
     if (!el) return;
-    const top = el.getBoundingClientRect().top + window.scrollY;
+    const rect = el.getBoundingClientRect();
+    // 폰 B안처럼 핀이 풀려 있으면 갈 자리가 없다 — 설명이 이미 다 펼쳐져 있다
+    if (getComputedStyle(el.firstElementChild as HTMLElement).position !== "sticky") return;
+    const top = rect.top + window.scrollY;
+    // 한 항목의 스크롤 길이 = (래퍼 − 무대) ÷ 항목 수. 폰은 래퍼가 짧아(globals.css) 한 화면이 아니다
+    const stageH = (el.firstElementChild as HTMLElement | null)?.offsetHeight || window.innerHeight;
+    const step = (rect.height - stageH) / items.length;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    window.scrollTo({ top: top + index * window.innerHeight + 1, behavior: reduce ? "auto" : "smooth" });
+    window.scrollTo({ top: top + index * step + 1, behavior: reduce ? "auto" : "smooth" });
   }
 
   // 태그만 바뀐다. 히어로일 때 이 제목이 페이지의 h1 이다.
   const Heading = hero ? "h1" : "h2";
   // 판 모양인가. 히어로는 언제나 판이고, 판은 히어로가 아니어도 된다.
   const boxed = hero || panel;
+  const stack = mobile === "stack";
+  const cover = mobile === "cover-dark" || mobile === "cover-light";
+  const coverDark = mobile === "cover-dark";
+  // 폰에서 사진을 위 52% 칸에 가두는 건 A안(pin)뿐 — B · C 는 화면 전체(B 는 폰에서 숨긴다)
+  const topBox = boxed && !stack && !cover;
 
   return (
     <section
@@ -120,12 +144,21 @@ export function WhyScroll({
         히어로일 때의 음수 마진은 헤더 높이(h-14 / md:h-18)다. 헤더가 sticky(= 흐름 안)라 그냥 두면
         첫 화면이 "헤더 + 한 화면" 이 되어 글자 판의 아래가 잘린 채 시작한다.
       */
-      className={`why-pin bg-band border-subtle border-y ${hero ? "-mt-14 md:-mt-18" : ""}`}
+      className={`why-pin bg-band border-subtle border-y ${hero ? "-mt-14 md:-mt-18" : ""} ${stack ? "why-stack" : ""}`}
       style={{ "--why-steps": items.length + 1 } as React.CSSProperties}
     >
       <div className="why-stage relative overflow-hidden">
-        {/* 배경 — 항목마다 한 장, 켜진 것만 보인다. 장식이라 alt 는 비운다(글자가 내용을 전한다). */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        {/*
+          배경 — 항목마다 한 장, 켜진 것만 보인다. 장식이라 alt 는 비운다(글자가 내용을 전한다).
+          판 모양(boxed)의 폰: 사진을 화면 위 52% 에 **고정**하고(폰마다 같은 비율로 보인다) 아래 1/3 을 판 색으로 녹인다 —
+          사진과 판이 칼같이 잘리던 이음매를 없앤다 (2026-10-07 모바일 리디자인 A안). 데스크톱은 그대로 화면 전체.
+        */}
+        <div
+          aria-hidden="true"
+          className={`pointer-events-none absolute ${topBox ? "inset-x-0 top-0 h-[52svh] md:inset-0 md:h-auto" : "inset-0"} ${
+            stack ? "hidden md:block" : ""
+          }`}
+        >
           {items.map((item, i) => {
             const src = item.imageUrl ?? fallbackImage;
             if (!src) return null;
@@ -145,12 +178,33 @@ export function WhyScroll({
                     기본 사진(테일러링 컷)은 인물이 오른쪽 끝에 있다 — 좁은 화면에서 가운데를 자르면 빈 벽만 남는다
                     (히어로로 올린 직후 실제로 그랬다). 그래서 좁은 화면에서는 오른쪽을 본다.
                     관리자가 올린 사진은 히어로일 때 가운데를 본다 — 인물이 가운데 모인 단체 컷을 전제로 한다.
+                    폰의 판 모양은 사진 칸이 거의 정사각형(위 52%)이라 세로 사진의 위아래가 잘린다 — 머리가 남게 맨 위를 본다.
                   */
-                  boxed && item.imageUrl ? "object-center" : "object-right md:object-center"
+                  boxed && item.imageUrl ? (topBox ? "object-top md:object-center" : "object-center") : "object-right md:object-center"
                 }`}
               />
             );
           })}
+          {/* C안 가림막 — 아래 60% 를 눌러 글자를 지킨다. 어둡게(와인) 또는 밝게(크림) */}
+          {cover && (
+            <div
+              className="absolute inset-0 md:hidden"
+              style={{
+                background: coverDark
+                  ? "linear-gradient(to top, rgba(23,10,14,0.94) 0%, rgba(23,10,14,0.86) 38%, rgba(23,10,14,0.5) 62%, rgba(23,10,14,0.12) 82%, transparent 100%)"
+                  : "linear-gradient(to top, var(--bg-subtle) 0%, var(--bg-subtle) 36%, color-mix(in srgb, var(--bg-subtle) 82%, transparent) 58%, color-mix(in srgb, var(--bg-subtle) 35%, transparent) 78%, transparent 100%)",
+              }}
+            />
+          )}
+          {topBox && (
+            <div
+              className="absolute inset-x-0 bottom-0 h-[38%] md:hidden"
+              style={{
+                background:
+                  "linear-gradient(to bottom, transparent 0%, color-mix(in srgb, var(--bg-subtle) 35%, transparent) 40%, color-mix(in srgb, var(--bg-subtle) 85%, transparent) 75%, var(--bg-subtle) 100%)",
+              }}
+            />
+          )}
           {/* 가림막 — 글자 쪽을 바탕색으로 지킨다. 판 모양은 불투명한 판이 그 일을 하므로 걷는다. */}
           {!boxed && (
             <>
@@ -173,9 +227,12 @@ export function WhyScroll({
         </div>
 
         <div
-          className={`relative mx-auto flex h-full max-w-[1320px] flex-col justify-end px-5 pt-[96px] md:justify-center md:px-15 md:pb-16 md:pt-[104px] ${
+          className={`relative mx-auto flex max-w-[1320px] flex-col px-5 md:h-full md:justify-center md:px-15 md:pb-16 md:pt-[104px] ${
             // 판 모양: 모바일에서 판이 화면 바닥까지 닿는다 — 판 아래로 사진 띠가 남으면 판이 떠 보인다
             boxed ? "pb-0" : "pb-12"
+          } ${
+            // 폰: 핀(A안)은 한 화면을 채우고 판을 바닥에 붙인다, 쌓기(B안)는 위에서부터 흐른다
+            stack ? "pt-12" : "h-full justify-end pt-[96px]"
           }`}
         >
           {/*
@@ -185,7 +242,10 @@ export function WhyScroll({
           <div
             className={
               boxed
-                ? "bg-band -mx-5 px-5 pb-10 pt-7 md:mx-0 md:max-w-[600px] md:px-11 md:py-11 md:shadow-lift"
+                ? `bg-band -mx-5 px-5 pb-10 md:mx-0 md:max-w-[600px] md:px-11 md:py-11 md:shadow-lift ${stack ? "pt-0" : "pt-2"} ${
+                    // C안: 폰에서는 판이 없다 — 사진 위 가림막이 판 노릇을 한다
+                    cover ? "max-md:bg-transparent" : ""
+                  } ${coverDark ? "why-cover-dark" : ""}`
                 : "md:max-w-[520px]"
             }
           >
@@ -201,24 +261,39 @@ export function WhyScroll({
               {content.intro}
             </p>
 
-            <ol className="mt-8 flex flex-col md:mt-12">
+            <ol className={`flex flex-col md:mt-12 ${stack ? "mt-10 gap-10 md:gap-0" : "mt-8"}`}>
               {items.map((item, i) => {
                 const on = i === active;
+                const src = item.imageUrl ?? fallbackImage;
                 return (
-                  <li key={i} data-active={on} className="why-item border-subtle border-t">
+                  <li key={i} data-active={on} className={`why-item border-subtle ${stack ? "md:border-t" : "border-t"}`}>
+                    {/* B안 폰: 항목 사진. 올린 사진이 4:5 라 그 비율 그대로 — 자르지 않는다. 좌우 끝까지 */}
+                    {stack && src && (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={src}
+                        alt=""
+                        loading={i === 0 ? "eager" : "lazy"}
+                        className="-mx-5 mb-5 block aspect-[4/5] w-[calc(100%+2.5rem)] max-w-none object-cover md:hidden"
+                      />
+                    )}
                     <button
                       type="button"
                       onClick={() => jumpTo(i)}
                       aria-current={on ? "step" : undefined}
                       className="ease-fluid flex min-h-12 w-full items-baseline gap-5 py-3 text-left transition-colors duration-500 md:py-4"
                     >
-                      <span className={`text-2xs tracking-label tabular-nums ${on ? "text-accent" : "text-muted"}`}>
+                      <span
+                        className={`text-2xs tracking-label tabular-nums ${on ? "text-accent" : "text-muted"} ${
+                          stack ? "max-md:text-accent" : ""
+                        }`}
+                      >
                         {String(i + 1).padStart(2, "0")}
                       </span>
                       <span
                         className={`font-display ease-fluid transition-[color,opacity] duration-500 ${
                           on ? "text-primary text-xl md:text-2xl" : "text-primary/55 text-lg md:text-xl"
-                        }`}
+                        } ${stack ? "max-md:text-primary max-md:text-xl" : ""}`}
                       >
                         {item.title}
                       </span>

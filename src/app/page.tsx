@@ -110,7 +110,8 @@ export default async function Home() {
               그대로 서되 제목은 h2 다. h1 은 배너가 갖는다.
             */}
             <div className="on-cream">
-              <WhyScroll panel content={why} fallbackImage={background} />
+              {/* 폰 구성: cover-dark 로 확정 (2026-10-07 — 사진 전체에 와인 가림막 · 크림 글자). pin · stack · cover-light 도 남아 있다 */}
+              <WhyScroll panel mobile="cover-dark" content={why} fallbackImage={background} />
             </div>
           </>
         )}
