@@ -1374,3 +1374,11 @@ html[data-motion="on"] .brand-line {
     animation: none;
   }
 }
+
+/* ── 제목 글꼴은 전부 굵게 (2026-10-08 고객 요청) ─────────
+ * font-display 를 쓰는 곳(페이지 · 구간 제목, 상품명 표제, 라인 이름 등)이 전부 700 이 된다.
+ * Playfair Display 는 700 을 따로 내려받는다(layout.tsx) — 없으면 브라우저가 가짜로 두껍게 그려 번진다.
+ * 한글(Noto Sans KR)도 700 이 있다. @layer 밖이라 유틸리티(font-medium 등)보다 세다 — 제목은 예외 없이 굵다. */
+.font-display {
+  font-weight: 700;
+}

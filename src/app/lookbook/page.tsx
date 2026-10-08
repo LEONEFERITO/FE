@@ -94,21 +94,22 @@ const LOOK_CATEGORIES: { category: Category; label: string }[] = [
  */
 function LookCategories({ links, tone }: { links: { label: string; href: string }[]; tone: "overlay" | "below" }) {
   return (
-    <ul className={tone === "overlay" ? "flex w-36 flex-col gap-2.5 md:w-40" : "mt-3 flex flex-wrap gap-2"}>
+    // below(폰): 다섯 개를 한 줄에 — 같은 폭의 칸 다섯, 글자 · 화살표를 줄여 넣는다 (2026-10-08 고객 요청)
+    <ul className={tone === "overlay" ? "flex w-36 flex-col gap-2.5 md:w-40" : "mt-3 grid grid-cols-5 gap-1.5"}>
       {links.map((l) => (
-        <li key={l.label}>
+        <li key={l.label} className="min-w-0">
           <Link
             href={l.href}
-            className={`ease-fluid group/item flex min-h-11 items-center justify-center gap-4 rounded-[6px] border px-4 transition-colors duration-300 ${
+            className={`ease-fluid group/item flex min-h-11 items-center justify-center rounded-[6px] border transition-colors duration-300 ${
               tone === "overlay"
-                ? "border-[#B0505C]/55 bg-[rgba(110,18,30,0.72)] text-[#F1DFB0] hover:border-[#D0707A]/80 hover:bg-[rgba(140,26,40,0.85)]"
-                : "border-interactive text-secondary hover:border-accent hover:text-accent"
+                ? "gap-4 border-[#B0505C]/55 bg-[rgba(110,18,30,0.72)] px-4 text-[#F1DFB0] hover:border-[#D0707A]/80 hover:bg-[rgba(140,26,40,0.85)]"
+                : "border-interactive text-secondary hover:border-accent hover:text-accent gap-1 px-1.5"
             }`}
           >
-            <span className="text-sm">{l.label}</span>
+            <span className={tone === "overlay" ? "text-sm" : "text-xs"}>{l.label}</span>
             {/* 글리프(⟶)는 폴백 글꼴에서 색을 잃어 아이콘으로 그린다 — 글자색(currentColor)을 그대로 따른다 */}
             <ArrowRight
-              size={18}
+              size={tone === "overlay" ? 18 : 12}
               weight="light"
               aria-hidden="true"
               className="ease-fluid shrink-0 transition-transform duration-300 group-hover/item:translate-x-1"
@@ -186,7 +187,8 @@ export default async function LookbookPage() {
                   {col.cuts.map((c, i) => {
                     const links = lookLinks(c, col.key);
                     return (
-                      <li key={c.src} className={`min-w-0 ${c.span}`}>
+                      // 폰에서는 컬렉션마다 첫 컷 하나만 보인다 (2026-10-08 고객 요청) — PC 는 전부
+                      <li key={c.src} className={`min-w-0 ${c.span} ${i > 0 ? "hidden md:block" : ""}`}>
                         <Reveal delay={i * 60}>
                           <div className="group/look bg-velvet-deep relative aspect-[4/5] overflow-hidden md:aspect-[4/3]">
                             {/* eslint-disable-next-line @next/next/no-img-element */}

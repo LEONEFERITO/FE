@@ -18,10 +18,10 @@ import { SITE_URL } from "@/lib/site";
  * 서브셋은 next/font/google 의 font-data.json 에서 직접 확인했다.
  */
 
-/** 표제용. 로고가 고대비 Didone 세리프라 같은 계열로 맞췄다. 라틴 전용. */
+/** 표제용. 로고가 고대비 Didone 세리프라 같은 계열로 맞췄다. 라틴 전용. 700 은 제목 전부 굵게(2026-10-08 고객 요청) */
 const display = Playfair_Display({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-display-latin",
   display: "swap",
 });
