@@ -105,8 +105,19 @@ export default async function Home() {
             ) : (
               <HeroSplit products={FEATURED} />
             )}
+
+            {/* 두 라인 → 제품 격자 — 배너 바로 다음 (2026-10-08 고객 요청 "역시 제품이 먼저 보여야지") */}
+            {/* 카드 사진은 관리자 사진 → 룩북 대표 컷 → 그 라인의 첫 상품 사진 (LineChooser) */}
+            <LineChooser
+              products={catalog}
+              covers={{ LEONE: siteImages.MAIN_LINE_LEONE, FERITO: siteImages.MAIN_LINE_FERITO }}
+            />
+            <div className="on-cream on-white">
+              <FeaturedProducts products={FEATURED} />
+            </div>
+
             {/*
-              가이드의 첫 화면 — 배너를 쓰는 변형에서는 배너 바로 아래다. 가이드가 그린 모양(사진 위 크림 판)
+              가이드의 첫 화면 — 배너를 쓰는 변형에서는 제품 격자 다음이다. 가이드가 그린 모양(사진 위 크림 판)
               그대로 서되 제목은 h2 다. h1 은 배너가 갖는다.
             */}
             <div className="on-cream">
@@ -117,16 +128,7 @@ export default async function Home() {
         )}
 
         <BrandManual />
-        {/* 카드 사진은 그 라인의 첫 상품 사진 — 촬영본이 있는 것만이 아니라 전체 카탈로그에서 찾는다 */}
-        <LineChooser
-          products={catalog}
-          covers={{ LEONE: siteImages.MAIN_LINE_LEONE, FERITO: siteImages.MAIN_LINE_FERITO }}
-        />
 
-        {/* 제품 구간은 흰 바탕 — 분류 페이지 · 전체 제품과 같은 면(2026-10-06 요청) */}
-        <div className="on-cream on-white">
-          <FeaturedProducts products={FEATURED} />
-        </div>
         {/* 문의 · 채널 · 매장은 흰 바탕 (2026-10-07 고객 요청) */}
         <div className="on-cream on-white">
           <Connect />

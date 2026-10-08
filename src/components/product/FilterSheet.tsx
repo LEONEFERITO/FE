@@ -36,6 +36,10 @@ interface Props {
   onCancel: () => void;
   onReset: () => void;
   children: React.ReactNode;
+  /** 여는 버튼 글자 (기본 "거르기"). 도구 줄에서는 "FILTER" */
+  label?: string;
+  /** 여는 버튼 모양 — 도구 줄의 한 칸을 채울 때 넘긴다 */
+  triggerClassName?: string;
 }
 
 export function FilterSheet({
@@ -46,6 +50,8 @@ export function FilterSheet({
   onCancel,
   onReset,
   children,
+  label = "거르기",
+  triggerClassName,
 }: Props) {
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -74,10 +80,13 @@ export function FilterSheet({
       <button
         type="button"
         onClick={openSheet}
-        className="border-interactive text-primary hover:border-accent hover:text-accent ease-fluid text-2xs inline-flex min-h-11 items-center gap-2 rounded-full border px-5 transition-all duration-300 md:hidden"
+        className={
+          triggerClassName ??
+          "border-interactive text-primary hover:border-accent hover:text-accent ease-fluid text-2xs inline-flex min-h-11 items-center gap-2 rounded-full border px-5 transition-all duration-300 md:hidden"
+        }
       >
-        <FunnelSimple size={14} weight="light" aria-hidden="true" />
-        거르기
+        {!triggerClassName && <FunnelSimple size={14} weight="light" aria-hidden="true" />}
+        {label}
         {activeCount > 0 && (
           /*
             숫자만으로 알리지 않는다. 색이 안 보이는 사람에게도 "2개 적용됨" 이 전달되게

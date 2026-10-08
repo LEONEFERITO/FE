@@ -54,10 +54,11 @@ export function FeaturedProducts({ products }: { products: Product[] }) {
         </Link>
       </div>
 
-      <ul className="mt-12 grid grid-cols-2 gap-x-5 gap-y-12 md:grid-cols-4">
+      {/* 2026-10-08 고객 요청: 폰에서 카드 사이를 조금만(4px) 띄운다 — 목록 페이지(ProductBrowser)와 같다. 글자는 카드 안에서 조금 들인다(ProductCard inset) */}
+      <ul className="mt-12 grid grid-cols-2 gap-x-1 gap-y-10 md:grid-cols-4 md:gap-x-5 md:gap-y-12">
         {products.map((p) => (
-          <li key={p.slug}>
-            <ProductCard product={p} />
+          <li key={p.slug} className="min-w-0">
+            <ProductCard product={p} inset />
           </li>
         ))}
       </ul>

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
@@ -17,6 +16,9 @@ import { CATEGORY_LABEL } from "@/types/product";
  * "이 셔츠 카테고리 누르면 해당 링크 페이지처럼 화면 구성 부탁드립니다. 슈즈, 자켓, 수트 카테고리 등등
  * 모두 동일 레이아웃으로 구성해주세요" — 기준은 기존 몰의 분류 페이지다(leoneferito.kr/category/Shirts/45/):
  * 위치 표시(홈 / Shirts) → 가운데 제목 → 총 N개 · 정렬 → 상품 격자. 여섯 분류가 전부 이 한 파일로 그려진다.
+ *
+ * 2026-10-08 고객 요청(레퍼런스 LYFT)으로 다시 바뀌었다: 위치 표시 없이 **가운데 제목**, 그 아래 화면 끝까지 닿는
+ * 도구 줄(칸 수 · 정렬), PC 는 왼쪽에 글자 거르기, 폰은 FILTER 시트. 격자는 카드 사이를 조금만 띄운다(ProductBrowser).
  *
  * ── /products?category= 와의 관계 ────────────────────────
  * 전체 제품 목록(/products)의 분류 필터는 그대로 있다. 그쪽은 핏 · 사이즈 · 재고까지 겹쳐 고르는 화면이고,
@@ -57,33 +59,15 @@ export default async function CategoryPage({ params }: PageProps<"/category/[cat
       <Header />
 
       <main id="main" className="on-cream on-white flex-1">
-        <div className="mx-auto max-w-[1320px] px-5 pb-24 md:px-15 md:pb-32">
-          {/* 위치 표시 — 왼쪽 정렬(2026-10-06). 현재 위치는 링크가 아니다 */}
-          <nav aria-label="현재 위치" className="flex justify-start pt-6">
-            <ol className="text-muted flex items-center gap-2 text-xs">
-              <li>
-                {/* min-w-6: "홈" 한 글자는 폭이 12px 라 표적 기준(24×24)에 못 미친다 — QA 에서 잡혔다. 높이만 채워서는 모자라다 */}
-                <Link href="/" className="hover:text-primary ease-fluid inline-flex min-h-11 min-w-6 items-center justify-center transition-colors duration-300">
-                  홈
-                </Link>
-              </li>
-              <li aria-hidden="true">&gt;</li>
-              <li aria-current="page" className="text-secondary">
-                {entry.title}
-              </li>
-            </ol>
-          </nav>
+        {/* 가운데 제목 (2026-10-08 LYFT 구성) — 영문 분류명은 넓은 자간 · 대문자, 아래 한글 */}
+        <header className="px-5 py-10 text-center md:py-14">
+          <h1 className="font-display text-primary tracking-[0.18em] text-2xl uppercase md:text-3xl">{entry.title}</h1>
+          <p className="text-secondary mt-2 text-sm">{ko}</p>
+        </header>
 
-          {/* 2026-10-06 고객 요청: 왼쪽 정렬 · 흰 바탕 (기존 몰 분류 페이지와 같게) */}
-          <header className="py-10 text-left md:py-14">
-            <h1 className="font-display text-primary leading-display tracking-display text-4xl md:text-(length:--fs-hero)">
-              {entry.title}
-            </h1>
-            <p className="text-secondary mt-3 text-sm">{ko}</p>
-          </header>
-
-          {/* 카드의 상품명이 h3 이라 그 위 단계를 둔다 — 화면에는 보이지 않는다 */}
-          <h2 className="sr-only">{ko} 상품 목록</h2>
+        {/* 카드의 상품명이 h3 이라 그 위 단계를 둔다 — 화면에는 보이지 않는다 */}
+        <h2 className="sr-only">{ko} 상품 목록</h2>
+        <div className="pb-24 md:pb-32">
           {/* 세부 메뉴(?sub=)는 브라우저에서 읽는다. 빌드 HTML 에는 분류 전체가 나간다 */}
           <Suspense fallback={<CategoryProducts products={products} />}>
             <CategoryProductsFromUrl products={products} categorySlug={entry.slug} subs={CATEGORY_SUBS[entry.category] ?? []} />

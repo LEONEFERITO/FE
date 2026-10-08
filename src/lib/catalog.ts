@@ -229,6 +229,7 @@ export async function getCatalogProduct(slug: string): Promise<Product | undefin
 export function filterOptions(products: Product[]) {
   return {
     categories: [...new Set(products.map((p) => p.category))].sort(),
-    sizes: [...new Set(products.flatMap((p) => p.skus.map((s) => s.size)))].sort(),
+    // 숫자 사이즈는 숫자 순으로 (문자열 정렬이면 100 · 105 · 110 · 95 가 된다)
+    sizes: [...new Set(products.flatMap((p) => p.skus.map((s) => s.size)))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true })),
   };
 }

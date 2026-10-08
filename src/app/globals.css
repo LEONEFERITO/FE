@@ -156,9 +156,15 @@
  *    사진이라, 그 위의 글자는 항상 크림이다 (ProductCard 주석 참고).
  * ──────────────────────────────────────────────────────── */
 .on-cream {
-  --bg-base: #f7f1ea; /* 크림 바닥 */
-  --bg-surface: #fffcf8; /* 카드·패널 — 크림보다 한 단 밝은 면 */
-  --bg-subtle: #efe4d8; /* 밴드 */
+  /*
+   * 2026-10-08 고객 요청: 밝은 구간의 바닥은 **흰색**이다 (전에는 크림 #F7F1EA · 면 #FFFCF8 · 밴드 #EFE4D8).
+   * 이름은 on-cream 그대로 둔다 — 글자 · 강조 · 선 토큰(아래)은 그대로고 바닥 · 면만 흰 쪽으로 옮긴 것이라,
+   * 쓰는 곳 수십 군데를 바꾸는 것보다 값 하나를 바꾸는 쪽이 맞다. .on-cream.on-white 는 이제 같은 값이다.
+   * 밴드(판 · 칩 바탕)만 아주 옅은 베이지로 남겨 흰 바탕 위에서 한 단 구분된다.
+   */
+  --bg-base: #ffffff;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f6f3ef; /* 밴드 · 칩 바탕 — 흰 바탕에서 한 단 내려간 면 */
 
   --text-primary: #170a0e; /* 17.24:1 on 크림 — 딥 와인. 순검정을 쓰지 않는다 */
   --text-secondary: #443d38; /*  9.50:1 */
@@ -1292,5 +1298,79 @@ html[data-motion="on"] .brand-line {
 @media (max-width: 767px) {
   .brand-float {
     --dy-k: 0.2;
+  }
+}
+
+/* ── 빠른 보기 팝업 — <dialog class="quick"> (components/product/QuickView) ─────
+ * 판과 배경은 흐려졌다 또렷해진다. 사진이 카드 자리에서 날아오는 것은 JS(Web Animations)가 한다 — 여기서 판을
+ * 움직이면 그 좌표 계산이 어긋난다. 정보 칸(.quick-info)만 살짝 늦게 오른쪽에서 들어온다.
+ * display · overlay 를 allow-discrete 로 전환 대상에 넣어 닫히는 동안 요소를 살려 둔다(필터 시트와 같은 방식). */
+.quick {
+  opacity: 0;
+  transition:
+    opacity 0.2s linear,
+    overlay 0.2s allow-discrete,
+    display 0.2s allow-discrete;
+}
+
+.quick[open] {
+  opacity: 1;
+  transition:
+    opacity 0.24s linear,
+    overlay 0.24s allow-discrete,
+    display 0.24s allow-discrete;
+}
+
+@starting-style {
+  .quick[open] {
+    opacity: 0;
+  }
+}
+
+.quick::backdrop {
+  background: rgb(0 0 0 / 0);
+  backdrop-filter: blur(0);
+  transition:
+    background 0.24s linear,
+    backdrop-filter 0.24s linear,
+    overlay 0.24s allow-discrete,
+    display 0.24s allow-discrete;
+}
+
+.quick[open]::backdrop {
+  background: rgb(0 0 0 / 0.55);
+  backdrop-filter: blur(6px);
+}
+
+@starting-style {
+  .quick[open]::backdrop {
+    background: rgb(0 0 0 / 0);
+    backdrop-filter: blur(0);
+  }
+}
+
+@keyframes quick-info-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.quick[open] .quick-info {
+  animation: quick-info-in 0.4s var(--ease-fluid) 0.15s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quick::backdrop,
+  .quick[open]::backdrop {
+    backdrop-filter: none;
+  }
+
+  .quick[open] .quick-info {
+    animation: none;
   }
 }

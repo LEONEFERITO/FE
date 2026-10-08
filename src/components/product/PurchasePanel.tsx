@@ -2,15 +2,12 @@
 
 import { ArrowDown, ArrowUpRight, InstagramLogo } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { loginUrl } from "@/lib/auth";
-import { SHOP_CONNECTED, ShopError, addToCart } from "@/lib/shop";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { pendingLabel } from "@/lib/pending";
 
 import { LineSummary } from "@/components/product/LineBadge";
 import { SizeSelector } from "@/components/product/SizeSelector";
+import { usePurchase } from "@/components/product/usePurchase";
 import { CATEGORY_LABEL } from "@/types/product";
 import type { Product } from "@/types/product";
 
@@ -34,44 +31,8 @@ function formatKrw(value: number | null): string | null {
 }
 
 export function PurchasePanel({ product }: { product: Product }) {
-  // 기본 선택은 주문 가능한 첫 사이즈. 주문 가능한 사이즈가 없으면 선택하지 않는다.
-  const [selectedSize, setSelectedSize] = useState<string | null>(
-    product.skus.find((s) => s.orderable)?.size ?? null,
-  );
-  const router = useRouter();
-  const [pending, setPending] = useState<"cart" | "buy" | null>(null);
-  const [notice, setNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
-
-  /*
-    담기 · 바로 구매. 회원만 주문한다(D1) — 로그인이 필요하면 로그인 화면으로 보냈다가
-    이 상품으로 다시 돌아오게 한다. 바로 구매는 담은 그 한 줄만 주문서로 가져간다.
-  */
-  async function put(mode: "cart" | "buy") {
-    if (!selectedSize) return;
-    if (!SHOP_CONNECTED) {
-      setNotice({ tone: "error", text: "화면 확인 단계입니다. 주문 서버가 아직 연결되지 않았습니다." });
-      return;
-    }
-    setPending(mode);
-    setNotice(null);
-    try {
-      const cart = await addToCart(product.slug, selectedSize, 1);
-      if (mode === "buy") {
-        const line = cart.items.find((l) => l.slug === product.slug && l.size === selectedSize);
-        router.push(line ? `/checkout/?items=${encodeURIComponent(line.id)}` : "/cart/");
-        return;
-      }
-      setNotice({ tone: "ok", text: `${selectedSize} 사이즈를 장바구니에 담았습니다.` });
-    } catch (e) {
-      if (e instanceof ShopError && e.needsLogin) {
-        window.location.href = loginUrl();
-        return;
-      }
-      setNotice({ tone: "error", text: e instanceof ShopError ? e.message : "담지 못했습니다." });
-    } finally {
-      setPending(null);
-    }
-  }
+  // 담기 · 바로 구매 · 사이즈 선택 — 빠른 보기 팝업(QuickView)과 같은 규칙 (usePurchase)
+  const { selectedSize, setSelectedSize, pending, notice, put } = usePurchase(product);
 
   const price = formatKrw(product.priceKrw);
   const listPrice = formatKrw(product.listPriceKrw);

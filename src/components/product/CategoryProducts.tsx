@@ -1,47 +1,31 @@
 "use client";
 
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useId, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 
-import { ProductCard } from "@/components/product/ProductCard";
+import { ProductBrowser, type Facet, type Selection } from "@/components/product/ProductBrowser";
 import { matchesSub, subHref, type CategorySub } from "@/data/categories";
-import type { Product } from "@/types/product";
+import { LINE_LABEL, type Product, type ProductLine } from "@/types/product";
 
 /**
- * 카테고리 페이지의 상품 줄 — "총 N개의 상품" · 정렬 · 격자 (2026-10-05 고객 디자인 가이드).
+ * 분류 페이지의 상품 — 세부 분류 · 라인 · 사이즈 · 재고로 거르고 정렬한다. 틀은 ProductBrowser (2026-10-08 LYFT 구성).
  *
- * 기준은 기존 몰의 분류 페이지다(leoneferito.kr/category/Shirts/45/): 왼쪽에 개수, 오른쪽에 정렬,
- * 그 아래 격자. 정렬만 브라우저에서 돈다 — 상품 정보 자체는 서버 컴포넌트가 HTML 에 박아 내보낸다
- * (이 컴포넌트도 첫 화면은 정적 HTML 로 나간다. 검색엔진은 JS 없이 상품명을 읽는다).
+ * 세부 분류(?sub=)는 헤더 드롭다운이 거는 **공유되는 주소**다 — 고르면 주소도 같이 맞춘다(replaceState).
+ * 정적 내보내기라 쿼리는 브라우저에서만 읽힌다. 그래서 페이지는 CategoryProductsFromUrl 을 Suspense 로 감싸고,
+ * 빌드 HTML(= 대체 화면)에는 분류 전체를 그린다 — 검색엔진과 JS 없는 환경에는 전체 목록이 보인다.
  *
  * 카드는 목록 · 메인과 **같은 카드**다. 분류 페이지 전용 카드를 만들면 실측 표기가 세 군데로 갈라진다.
- *
- * 정렬 선택지는 기존 몰에서 우리가 값을 가진 것만 옮겼다(신상품 · 상품명 · 낮은가격 · 높은가격).
- * 제조사 · 사용후기순은 그 값이 없어 뺐다 — 눌러도 안 바뀌는 선택지는 고장으로 읽힌다.
  */
 
-type Sort = "new" | "name" | "price-asc" | "price-desc";
+const LINES: ProductLine[] = ["LEONE", "FERITO"];
 
-const SORTS: { value: Sort; label: string }[] = [
-  { value: "new", label: "신상품" },
-  { value: "name", label: "상품명" },
-  { value: "price-asc", label: "낮은가격" },
-  { value: "price-desc", label: "높은가격" },
-];
-
-/**
- * 주소의 ?sub= 를 읽어 세부 메뉴를 고른다 (2026-10-06 구조표 — 헤더 드롭다운의 Classic Fit · Flare Fit · Loafers 등).
- * 정적 내보내기라 쿼리는 브라우저에서만 읽힌다. 그래서 페이지는 이 컴포넌트를 Suspense 로 감싸고,
- * 빌드 HTML(= 대체 화면)에는 분류 전체를 그린다 — 검색엔진과 JS 없는 환경에는 전체 목록이 보인다.
- */
 export function CategoryProductsFromUrl(props: { products: Product[]; categorySlug: string; subs: CategorySub[] }) {
   const sub = useSearchParams().get("sub");
   return <CategoryProducts {...props} activeSub={props.subs.some((s) => s.slug === sub) ? sub : null} />;
 }
 
 export function CategoryProducts({
-  products: all,
+  products,
   categorySlug,
   subs = [],
   activeSub = null,
@@ -51,117 +35,50 @@ export function CategoryProducts({
   subs?: CategorySub[];
   activeSub?: string | null;
 }) {
-  const [sort, setSort] = useState<Sort>("new");
-  const selectId = useId();
-  const current = subs.find((s) => s.slug === activeSub) ?? null;
-  const products = useMemo(() => (current ? all.filter((p) => matchesSub(p, current)) : all), [all, current]);
+  const sizes = useMemo(() => [...new Set(products.flatMap((p) => p.skus.map((s) => s.size)))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true })), [products]);
 
-  const sorted = useMemo(() => {
-    // "신상품" 은 서버가 준 순서 그대로다(관리자가 정한 진열 순서).
-    if (sort === "new") return products;
-    const list = [...products];
-    if (sort === "name") {
-      // 이름이 아직 없는 상품은 뒤로. 이름끼리는 한글 사전순.
-      list.sort((a, b) => {
-        if (a.name === null || b.name === null) return a.name === b.name ? 0 : a.name === null ? 1 : -1;
-        return a.name.localeCompare(b.name, "ko");
-      });
-    } else {
-      // 가격 문의(= null) 상품은 어느 방향이든 뒤로 — "낮은가격" 맨 앞에 가격 없는 상품이 오면 틀린 답이다.
-      const dir = sort === "price-asc" ? 1 : -1;
-      list.sort((a, b) => {
-        if (a.priceKrw === null || b.priceKrw === null) {
-          return a.priceKrw === b.priceKrw ? 0 : a.priceKrw === null ? 1 : -1;
-        }
-        return (a.priceKrw - b.priceKrw) * dir;
+  const facets = useMemo<Facet[]>(() => {
+    const list: Facet[] = [];
+    if (subs.length > 0) {
+      list.push({
+        key: "sub",
+        label: "세부 분류",
+        options: subs.map((s) => ({ value: s.slug, label: s.label, test: (p) => matchesSub(p, s) })),
       });
     }
+    list.push(
+      {
+        key: "line",
+        label: "라인",
+        options: LINES.map((l) => ({ value: l, label: LINE_LABEL[l].ko, test: (p) => p.line === l })),
+      },
+      {
+        key: "size",
+        label: "사이즈",
+        options: sizes.map((s) => ({ value: s, label: s, test: (p) => p.skus.some((k) => k.size === s) })),
+      },
+      {
+        key: "stock",
+        label: "재고",
+        options: [
+          { value: "in", label: "재고 있음", test: (p) => p.skus.some((k) => k.orderable) },
+          { value: "out", label: "품절", test: (p) => p.skus.length > 0 && p.skus.every((k) => !k.orderable) },
+        ],
+      },
+    );
     return list;
-  }, [products, sort]);
+  }, [subs, sizes]);
+
+  // 세부 분류만 주소에 쓴다 — 나머지 조건은 이 화면 안의 것이다
+  const urlFor = useCallback(
+    (sel: Selection) => {
+      if (!categorySlug) return undefined;
+      return sel.sub ? subHref(categorySlug, sel.sub) : `/category/${categorySlug}/`;
+    },
+    [categorySlug],
+  );
 
   return (
-    <div>
-      {/* 세부 메뉴 칩 — 링크라서 주소가 바뀌고, 그 주소를 공유하면 같은 목록이 열린다 */}
-      {subs.length > 0 && categorySlug && (
-        <nav aria-label="세부 분류" className="mb-6">
-          <ul className="flex flex-wrap gap-2">
-            {[{ slug: null as string | null, label: "전체" }, ...subs].map((s) => {
-              const on = s.slug === (current?.slug ?? null);
-              return (
-                <li key={s.slug ?? "all"}>
-                  <Link
-                    href={s.slug ? subHref(categorySlug, s.slug) : `/category/${categorySlug}/`}
-                    replace
-                    scroll={false}
-                    aria-current={on ? "page" : undefined}
-                    className={`ease-fluid tracking-label inline-flex min-h-11 items-center border px-5 text-xs transition-colors duration-300 ${
-                      on
-                        ? "border-accent bg-accent text-on-accent"
-                        : "border-interactive text-secondary hover:border-accent hover:text-accent"
-                    }`}
-                  >
-                    {s.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-          {current && <p className="text-muted mt-3 text-xs">{current.description}</p>}
-        </nav>
-      )}
-
-      <div className="border-subtle flex flex-wrap items-center justify-between gap-4 border-b pb-4">
-        <p className="text-secondary text-sm">
-          총 <strong className="text-primary font-semibold tabular-nums">{products.length}</strong>개의 상품
-        </p>
-
-        {/* 상품이 하나뿐이면 정렬할 것이 없다 */}
-        {products.length > 1 && (
-          <div className="flex items-center gap-3">
-            <label htmlFor={selectId} className="text-muted text-xs">
-              정렬
-            </label>
-            <select
-              id={selectId}
-              value={sort}
-              onChange={(e) => setSort(e.target.value as Sort)}
-              className="border-interactive bg-surface text-primary min-h-11 rounded-full border px-4 text-xs"
-            >
-              {SORTS.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-      </div>
-
-      {sorted.length > 0 ? (
-        <ul className="mt-10 grid grid-cols-2 gap-x-5 gap-y-12 md:grid-cols-3">
-          {sorted.map((p) => (
-            <li key={p.slug}>
-              <ProductCard product={p} />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        /*
-          상품이 없는 분류. 같은 레이아웃(제목 · 개수 줄)은 그대로 두고 격자 자리에만 안내를 둔다.
-          "준비 중" 딱지 대신 갈 곳을 준다 — 빈 화면에서 끝나면 뒤로 가기밖에 할 것이 없다.
-        */
-        <div className="flex flex-col items-center gap-5 py-24 text-center">
-          <p className="text-secondary text-sm">
-            {current ? `${current.label} 상품을 준비하고 있습니다.` : "이 분류의 상품을 준비하고 있습니다."}
-          </p>
-          <Link
-            href="/products/"
-            className="border-interactive text-accent hover:border-accent hover:bg-accent-tint ease-fluid tracking-button inline-flex min-h-11 items-center rounded-full border px-6 text-xs transition-all duration-500"
-          >
-            전체 제품 보기
-          </Link>
-        </div>
-      )}
-    </div>
+    <ProductBrowser key={activeSub ?? ""} products={products} facets={facets} initial={{ sub: activeSub }} urlFor={urlFor} />
   );
 }
