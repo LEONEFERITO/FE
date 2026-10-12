@@ -5,13 +5,14 @@ import { BrandManual } from "@/components/home/BrandManual";
 import { Connect } from "@/components/home/Connect";
 import { FeaturedProducts } from "@/components/home/FeaturedProducts";
 import { Hero } from "@/components/home/Hero";
-import { HeroReveal } from "@/components/home/HeroReveal";
+import { HeroReveal, pickHeroSlide } from "@/components/home/HeroReveal";
 import { HeroSplit } from "@/components/home/HeroSplit";
 import { LineChooser } from "@/components/home/LineChooser";
 import { OfflineShop } from "@/components/home/OfflineShop";
 import { WhyScroll } from "@/components/home/WhyScroll";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import { getHero } from "@/lib/hero";
 import { getWhy } from "@/lib/why";
 import { getCatalog } from "@/lib/catalog";
 import { getSiteImages } from "@/lib/siteImages";
@@ -80,6 +81,8 @@ export default async function Home() {
   const background = whyBackground();
   /** 관리자가 올린 사진 칸(매장 사진 등). 빌드 때 받는다 — 칸이 비어 있으면 아래에서 기본 사진으로 메운다. */
   const siteImages = await getSiteImages();
+  /** 메인 배너 — 관리자 "메인 배너" 설정(자동 · 상품 지정 · 직접 올리기)대로. 고를 것이 없으면 자동 */
+  const heroSlide = pickHeroSlide(await getHero(), catalog, FEATURED, siteImages);
 
   return (
     <>
@@ -97,9 +100,9 @@ export default async function Home() {
           </div>
         ) : (
           <>
-            {HERO_VARIANT === "reveal" && FEATURED[0] ? (
-              /* reveal 은 한 룩만 보여준다. 촬영본이 있는 제품이 하나도 없으면 분할형으로 — 빈 무대를 내보내지 않는다 */
-              <HeroReveal product={FEATURED[0]} />
+            {HERO_VARIANT === "reveal" && heroSlide ? (
+              /* reveal 은 한 장면만 보여준다. 그릴 것이 하나도 없으면 분할형으로 — 빈 무대를 내보내지 않는다 */
+              <HeroReveal slide={heroSlide} />
             ) : HERO_VARIANT === "stage" ? (
               <Hero />
             ) : (

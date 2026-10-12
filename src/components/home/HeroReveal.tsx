@@ -3,6 +3,8 @@ import Link from "next/link";
 
 import { Logo } from "@/components/brand/Logo";
 import { Scene } from "@/components/motion/Scene";
+import type { HeroConfig } from "@/lib/hero";
+import type { SiteImages } from "@/lib/siteImages";
 import { CATEGORY_LABEL, LINE_LABEL, type Product, type ProductPhoto } from "@/types/product";
 
 /**
@@ -34,6 +36,13 @@ import { CATEGORY_LABEL, LINE_LABEL, type Product, type ProductPhoto } from "@/t
  * ── JS 가 없거나 움직임을 줄인 사용자 ───────────────────
  * 핀을 걸지 않고 액자 둘 다 제자리에 있는 **완성된 한 화면**이다. 콘텐츠가 사라지는 연출은 없다.
  *
+ * ── 무엇을 그리나 (2026-10-12 메인 배너 관리) ──────────────
+ * 이 컴포넌트는 "장면(HeroSlide)" 하나만 받는다. 장면은 관리자 "메인 배너" 설정으로 정해진다(pickHeroSlide):
+ *   자동     진열 순서 맨 앞 상품 — 상품의 누끼샷 · 착용샷 · 디테일컷 · 이름 · 가격
+ *   상품 지정 관리자가 고른 상품 — 같은 모양
+ *   직접 올리기 관리자가 올린 인물 · 액자 사진(사이트 사진 칸 HERO_*)과 문구 · 버튼
+ * 고른 상품이 없거나 직접 올리기인데 인물 사진이 없으면 자동으로 돌아간다. 모양 · 움직임은 셋 다 같다.
+ *
  * ── 넘기기(‹ ›)는 없다 ──────────────────────────────────
  * 분할형의 제품 넘기기는 여기 두지 않는다. 스크롤로 사진이 들어오는 도중에 제품이 바뀌면
  * 어느 사진이 어느 제품인지 흐트러진다. 한 룩을 보여주는 배너다 — 나머지 제품은 바로 아래 격자에 있다.
@@ -49,6 +58,21 @@ interface DetailCut {
   position: string;
 }
 
+/** 배너 한 장면 — 그림과 글자. 상품에서 만들거나(slideFromProduct) 직접 올린 사진에서 만든다(slideFromCustom). */
+export interface HeroSlide {
+  figure: { src: string; alt: string } | null;
+  frames: [DetailCut, DetailCut];
+  /** 이름 위 작은 줄 (예: SHIRT · 레오네 라인). 비면 그리지 않는다 */
+  eyebrow: string;
+  /** 큰 이름 */
+  title: string;
+  /** 이름 아래 줄 (가격 등). 비면 그리지 않는다 */
+  subtitle: string;
+  primary: { label: string; href: string };
+  /** 오른쪽 아래 캡션의 둘째 줄. null 이면 LEONE FERITO 한 줄만 */
+  captionSub: string | null;
+}
+
 function detailCuts(product: Product): [DetailCut, DetailCut] {
   const name = product.name ?? "제품";
   const [main, second, third] = product.images as (ProductPhoto | undefined)[];
@@ -62,6 +86,67 @@ function detailCuts(product: Product): [DetailCut, DetailCut] {
     : { src: fallback, alt: `${name} 디테일 — 소매와 허리선`, position: "50% 46%" };
 
   return [left, right];
+}
+
+export function slideFromProduct(product: Product): HeroSlide {
+  const name = product.name ?? "제품명 확인 중";
+  const fit = LINE_LABEL[product.line];
+  const figure = product.cutout ?? product.images[0]?.url ?? null;
+  return {
+    figure: figure ? { src: figure, alt: `${name} 착용 컷` } : null,
+    frames: detailCuts(product),
+    eyebrow: `${CATEGORY_LABEL[product.category].en} · ${fit.ko}`,
+    title: name,
+    subtitle: product.priceKrw !== null ? `${KRW.format(product.priceKrw)}원` : "가격 문의",
+    primary: { label: "자세히 보기", href: `/products/${product.slug}` },
+    // fit.ko 가 이미 "페리토 라인" 이다 — 뒤에 "라인" 을 또 붙이면 "라인 라인" 이 된다
+    captionSub: `${fit.ko} · ${fit.kind}`,
+  };
+}
+
+/** 직접 올리기 — 인물 사진이 없으면 null(자동으로 돌아간다). 액자를 비우면 인물 사진을 잘라 쓴다. */
+export function slideFromCustom(config: HeroConfig, images: SiteImages): HeroSlide | null {
+  const figure = images.HERO_FIGURE;
+  if (!figure) return null;
+  const crop = (alt: string, position: string): DetailCut => ({ src: figure.url, alt, position });
+  return {
+    figure: { src: figure.url, alt: figure.alt || config.title || "메인 배너" },
+    frames: [
+      images.HERO_FRAME_LEFT
+        ? { src: images.HERO_FRAME_LEFT.url, alt: images.HERO_FRAME_LEFT.alt, position: "50% 50%" }
+        : crop("", "50% 14%"),
+      images.HERO_FRAME_RIGHT
+        ? { src: images.HERO_FRAME_RIGHT.url, alt: images.HERO_FRAME_RIGHT.alt, position: "50% 50%" }
+        : crop("", "50% 46%"),
+    ],
+    eyebrow: config.eyebrow,
+    title: config.title,
+    subtitle: config.subtitle,
+    primary: { label: config.ctaLabel || "자세히 보기", href: config.ctaUrl || "/products/" },
+    captionSub: null,
+  };
+}
+
+/**
+ * 관리자 설정대로 장면을 고른다. 고를 것이 없으면 자동(진열 순서 맨 앞 상품) — 그것도 없으면 null(배너 없음).
+ *   직접 올리기 → 인물 사진이 있으면 그 장면
+ *   상품 지정   → 그 상품이 공개 카탈로그에 있고 사진이 있으면 그 상품
+ */
+export function pickHeroSlide(
+  config: HeroConfig,
+  catalog: Product[],
+  featured: Product[],
+  images: SiteImages,
+): HeroSlide | null {
+  if (config.mode === "CUSTOM") {
+    const custom = slideFromCustom(config, images);
+    if (custom) return custom;
+  }
+  if (config.mode === "PRODUCT" && config.productSlug) {
+    const chosen = catalog.find((p) => p.slug === config.productSlug && p.images.length > 0);
+    if (chosen) return slideFromProduct(chosen);
+  }
+  return featured[0] ? slideFromProduct(featured[0]) : null;
 }
 
 function Frame({ cut, side, className }: { cut: DetailCut; side: "l" | "r"; className: string }) {
@@ -81,11 +166,22 @@ function Frame({ cut, side, className }: { cut: DetailCut; side: "l" | "r"; clas
   );
 }
 
-export function HeroReveal({ product }: { product: Product }) {
-  const name = product.name ?? "제품명 확인 중";
-  const fit = LINE_LABEL[product.line];
-  const figure = product.cutout ?? product.images[0]?.url;
-  const [left, right] = detailCuts(product);
+/** 사이트 밖 주소(https://…)는 새 창으로 — 둘러보던 사람이 사이트를 잃지 않게 */
+function Primary({ href, className, children }: { href: string; className: string; children: React.ReactNode }) {
+  return /^https?:\/\//.test(href) ? (
+    <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+      {children}
+      <span className="sr-only">(새 창)</span>
+    </a>
+  ) : (
+    <Link href={href} className={className}>
+      {children}
+    </Link>
+  );
+}
+
+export function HeroReveal({ slide }: { slide: HeroSlide }) {
+  const [left, right] = slide.frames;
 
   return (
     /*
@@ -125,17 +221,15 @@ export function HeroReveal({ product }: { product: Product }) {
             데스크톱은 무대 왼쪽 중단 — 레퍼런스의 "사구싶은 가격" 자리. 인물과 액자 사이 여백이 넓다.
           */}
           <div className="relative z-10 mt-4 text-center md:absolute md:left-10 md:top-1/2 md:mt-0 md:max-w-[320px] md:-translate-y-[62%] md:text-left lg:left-[7%]">
-            <p className="text-accent text-2xs tracking-label">
-              {CATEGORY_LABEL[product.category].en}
-              <span aria-hidden="true"> · </span>
-              {fit.ko}
-            </p>
-            <p className="font-display text-primary leading-display tracking-display mt-2 line-clamp-2 text-xl md:mt-3 md:text-3xl lg:text-4xl">
-              {name}
-            </p>
-            <p className="text-secondary mt-1.5 text-sm tabular-nums md:mt-3 md:text-lg">
-              {product.priceKrw !== null ? <>{KRW.format(product.priceKrw)}원</> : "가격 문의"}
-            </p>
+            {slide.eyebrow && <p className="text-accent text-2xs tracking-label">{slide.eyebrow}</p>}
+            {slide.title && (
+              <p className="font-display text-primary leading-display tracking-display mt-2 line-clamp-2 text-xl md:mt-3 md:text-3xl lg:text-4xl">
+                {slide.title}
+              </p>
+            )}
+            {slide.subtitle && (
+              <p className="text-secondary mt-1.5 text-sm tabular-nums md:mt-3 md:text-lg">{slide.subtitle}</p>
+            )}
           </div>
 
           {/* ── 무대. 인물 + 액자 둘. 남는 높이를 전부 쓴다 ──────────── */}
@@ -143,11 +237,11 @@ export function HeroReveal({ product }: { product: Product }) {
             {/* 인물 — 처음부터 있다. 그림자 · 발밑 타원은 걷었다(2026-10-06 그림자 전부 제거) */}
             <div className="absolute inset-x-0 bottom-0 flex h-full justify-center">
               <div className="relative h-full">
-                {figure && (
+                {slide.figure && (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img
-                    src={figure}
-                    alt={`${name} 착용 컷`}
+                    src={slide.figure.src}
+                    alt={slide.figure.alt}
                     loading="eager"
                     // 첫 화면의 가장 큰 그림 = LCP 후보. CSS 뒤로 밀리지 않게 우선순위를 올린다.
                     fetchPriority="high"
@@ -165,22 +259,21 @@ export function HeroReveal({ product }: { product: Product }) {
             {/* 오른쪽 아래 캡션 — 레퍼런스의 "26FW 가을 아우터". 좁은 화면에서는 신발과 겹쳐 뺀다 */}
             <p className="text-secondary absolute bottom-0 right-0 hidden text-right text-xs leading-relaxed md:block lg:right-[4%]">
               <span className="font-display text-primary block text-lg">LEONE FERITO</span>
-              {/* fit.ko 가 이미 "페리토 라인" 이다 — 뒤에 "라인" 을 또 붙이면 "라인 라인" 이 된다 */}
-              {fit.ko} · {fit.kind}
+              {slide.captionSub}
             </p>
           </div>
 
           {/* 문 두 개. 모바일은 무대 아래 가운데, 데스크톱은 이름 블록 아래 왼쪽. 높이를 같게 고정한다(2026-10-06 요청 — 원형 화살표 때문에 왼쪽이 더 컸다) */}
           <div data-quick-avoid="" className="relative z-10 mt-5 flex flex-wrap items-center justify-center gap-3 md:absolute md:bottom-10 md:left-10 md:mt-0 md:justify-start lg:left-[7%]">
-            <Link
-              href={`/products/${product.slug}`}
+            <Primary
+              href={slide.primary.href}
               className="group bg-accent text-on-accent hover:bg-accent-hover shadow-button hover:shadow-button-hover tracking-button ease-fluid inline-flex h-11 items-center gap-2 rounded-full pl-5 pr-1.5 text-xs transition-all duration-500 hover:-translate-y-px active:scale-[0.98] md:h-12 md:gap-3 md:pl-6 md:pr-2 md:text-sm"
             >
-              자세히 보기
+              {slide.primary.label}
               <span className="bg-on-accent/12 ease-fluid flex h-7 w-7 items-center justify-center rounded-full transition-transform duration-500 group-hover:-translate-y-px group-hover:translate-x-1 group-hover:scale-105 md:h-8 md:w-8">
                 <ArrowUpRight size={11} weight="light" aria-hidden="true" />
               </span>
-            </Link>
+            </Primary>
             <Link
               href="/products"
               className="tracking-button ease-fluid border-strong hover:border-accent hover:text-accent hover:shadow-soft inline-flex h-11 items-center rounded-full border px-5 text-xs text-primary transition-all duration-500 active:scale-[0.98] md:h-12 md:px-6 md:text-sm"

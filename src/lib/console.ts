@@ -154,7 +154,8 @@ export type SiteImageSlot =
   | "LINE_FERITO_1" | "LINE_FERITO_2" | "LINE_FERITO_3" | "LINE_FERITO_4" | "LINE_FERITO_5"
   | "MAIN_LINE_LEONE" | "MAIN_LINE_FERITO"
   | "LOOKBOOK_LEONE_1" | "LOOKBOOK_LEONE_2" | "LOOKBOOK_FERITO_1" | "LOOKBOOK_FERITO_2"
-  | "BRAND_HERO" | "BRAND_PHOTO_1" | "BRAND_PHOTO_2" | "BRAND_PHOTO_3" | "BRAND_IMPRESSION";
+  | "BRAND_HERO" | "BRAND_PHOTO_1" | "BRAND_PHOTO_2" | "BRAND_PHOTO_3" | "BRAND_IMPRESSION"
+  | "HERO_FIGURE" | "HERO_FRAME_LEFT" | "HERO_FRAME_RIGHT";
 
 export interface SiteImageAdminView {
   slot: SiteImageSlot;
@@ -170,6 +171,31 @@ export const adminSiteImages = () => request<SiteImageAdminView[]>("GET", "/api/
 /** mediaId 가 null 이면 사진을 비운다 — 손님 화면은 기본 사진으로 돌아간다. */
 export const saveSiteImage = (slot: SiteImageSlot, input: { mediaId: string | null; alt: string }) =>
   request<SiteImageAdminView>("PUT", `/api/admin/site-images/${slot}`, input);
+
+// ── 메인 배너 (서버 hero_config, V24) ─────────────────────────
+
+/** AUTO 진열 순서 맨 앞 상품 · PRODUCT 고른 상품 · CUSTOM 직접 올린 사진(사이트 사진 칸 HERO_*)과 문구 */
+export type HeroMode = "AUTO" | "PRODUCT" | "CUSTOM";
+
+export interface HeroAdminView {
+  mode: HeroMode;
+  productId: string | null;
+  productSlug: string | null;
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  ctaLabel: string;
+  ctaUrl: string;
+}
+
+/** 서버 hero_config 의 CHECK 와 같다 */
+export const HERO_LIMITS = { eyebrow: 40, title: 60, subtitle: 80, ctaLabel: 20, ctaUrl: 300 } as const;
+/** 서버와 같은 규칙: 비우거나, 사이트 안 주소(/…, // 는 안 됨) 또는 https 주소 */
+export const HERO_CTA_URL = /^$|^\/(?!\/)\S*$|^https:\/\/\S+$/;
+
+export const adminHero = () => request<HeroAdminView>("GET", "/api/admin/hero");
+export const saveHero = (input: Omit<HeroAdminView, "productSlug">) =>
+  request<HeroAdminView>("PUT", "/api/admin/hero", input);
 
 // ── 진열 순서 (메인 구성) ────────────────────────────────────
 

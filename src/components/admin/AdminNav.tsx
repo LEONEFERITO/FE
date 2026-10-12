@@ -9,7 +9,7 @@ import { signOut } from "@/lib/auth";
 /**
  * 관리자 메뉴 — 왼쪽 세로 메뉴 (2026-10-06 고객 요청: "옆에 메뉴 있고 이런 식으로").
  *
- * 매일 여는 순서대로: 대시보드 · 주문 · 교환/반품 · 상품 · 메인 구성 · 사이트 사진(하위 다섯) · WHY 구간 · 회원,
+ * 매일 여는 순서대로: 대시보드 · 주문 · 교환/반품 · 상품 · 메인 배너 · 메인 구성 · 사이트 사진(하위 다섯) · WHY 구간 · 회원,
  * 그다음 가끔 여는 것: 통계 · 공지 · FAQ. 지금 있는 곳은 주소(pathname)로 알아내 aria-current 로 알린다 —
  * 페이지마다 section 을 넘기지 않아도 된다.
  *
@@ -20,6 +20,7 @@ const ITEMS = [
   { key: "orders", href: "/admin/orders/", label: "주문 관리" },
   { key: "returns", href: "/admin/returns/", label: "취소 · 반품 · 교환" },
   { key: "products", href: "/admin/products/", label: "상품 관리" },
+  { key: "banner", href: "/admin/display/banner/", label: "메인 배너" },
   { key: "display", href: "/admin/display/", label: "메인 구성" },
   {
     key: "images",
