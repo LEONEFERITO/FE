@@ -42,6 +42,10 @@ export const lineSlots = (images: SiteImages, line: "LEONE" | "FERITO"): (SiteIm
   ([1, 2, 3, 4, 5] as const).map((i) => images[`LINE_${line}_${i}` as SiteImageSlot]);
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
+// 빌드 때 받아 오는 주소. 서버의 빌더(BE deploy/front-builder)는 API_BUILD_BASE 로 내부 주소(http://api:8080)를 준다 —
+// 바깥 도메인을 돌지 않고, DNS · 인증서가 준비되기 전에도 빌드된다. 없으면 브라우저와 같은 주소를 쓴다.
+// NEXT_PUBLIC_ 이 아니라서 결과물에 박히지 않는다.
+const FETCH_BASE = process.env.API_BUILD_BASE || API_BASE;
 
 interface ApiSiteImage {
   slot: string;
@@ -50,7 +54,7 @@ interface ApiSiteImage {
 }
 
 async function load(): Promise<SiteImages> {
-  const res = await fetch(`${API_BASE}/api/site-images`);
+  const res = await fetch(`${FETCH_BASE}/api/site-images`);
   if (!res.ok) {
     throw new Error(`사이트 사진 API 응답 실패: ${res.status}`);
   }

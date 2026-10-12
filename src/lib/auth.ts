@@ -16,7 +16,7 @@
  *
  * ── 도메인 전제 ─────────────────────────────────────────
  * 화면과 API 가 **같은 상위 도메인** 아래 있어야 한다.
- * 예: 화면 leoneferito.com · API api.leoneferito.com.
+ * 예: 화면 leoneferito.kr · API api.leoneferito.kr.
  * 서로 다른 사이트면 브라우저가 SameSite=None 을 요구하고, 그건 CSRF 방어를
  * 스스로 낮추는 선택이다. BE 의 SecurityConfig 도 같은 전제 위에 서 있다.
  *

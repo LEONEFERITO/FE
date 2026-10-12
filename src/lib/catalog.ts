@@ -30,6 +30,11 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
 /** 서버에서 받는가. false 면 임시 카탈로그다. */
 export const CATALOG_FROM_API = API_BASE.length > 0;
 
+// 빌드 때 받아 오는 주소. 서버의 빌더(BE deploy/front-builder)는 API_BUILD_BASE 로 내부 주소(http://api:8080)를 준다 —
+// 바깥 도메인을 돌지 않고, DNS · 인증서가 준비되기 전에도 빌드된다. 없으면 브라우저와 같은 주소를 쓴다.
+// NEXT_PUBLIC_ 이 아니라서 결과물에 박히지 않는다.
+const FETCH_BASE = process.env.API_BUILD_BASE || API_BASE;
+
 // ── 서버 응답 모양 (BE ProductResponse) ─────────────────────
 
 interface ApiImage {
@@ -191,7 +196,7 @@ function toProduct(d: ApiDetail): Product {
 // ── 불러오기 ────────────────────────────────────────────────
 
 async function getJson<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`);
+  const res = await fetch(`${FETCH_BASE}${path}`);
   if (!res.ok) {
     // 빌드를 멈춘다. 위 머리말 "서버가 없으면" 참고.
     throw new Error(`상품 API 응답 실패: ${path} → ${res.status}`);

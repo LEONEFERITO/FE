@@ -1,5 +1,5 @@
 /**
- * 사이트 정식 주소 (예: https://leoneferito.com). 도메인이 정해지면 Vercel 환경변수로 넣는다.
+ * 사이트 정식 주소 (예: https://leoneferito.kr). 운영 서버에서는 빌더가 SITE_DOMAIN 으로 넣는다(BE docker-compose.prod.yml).
  * TODO(고객확인) G-1 도메인.
  *
  * 비어 있으면 metadataBase · sitemap 을 만들지 않는다 — 틀린 절대 주소가 공유 미리보기와
