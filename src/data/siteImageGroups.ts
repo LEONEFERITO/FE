@@ -44,26 +44,6 @@ const line5 = (line: "LEONE" | "FERITO"): SiteImageSlotSpec[] =>
 
 export const SITE_IMAGE_GROUPS: SiteImageGroup[] = [
   {
-    // 메인 배너 "직접 올리기"(V24) 사진 — 관리자 "메인 배너" 화면 아래쪽에 붙는다(사이트 사진 메뉴에는 없다)
-    key: "banner",
-    href: "/admin/display/banner/",
-    title: "메인 배너 사진",
-    description: "배너 방식을 '직접 올리기'로 고르면 이 사진들이 나갑니다. 인물 사진이 없으면 배너는 자동(진열 순서 맨 앞 상품)으로 돌아갑니다.",
-    previewHref: "/",
-    columns: 3,
-    sections: [
-      {
-        title: "직접 올리기 사진",
-        description: "액자를 비우면 인물 사진을 잘라서 씁니다",
-        slots: [
-          { slot: "HERO_FIGURE", label: "가운데 인물", hint: "배경을 지운 인물 사진(PNG · WebP 투명 배경)이 가장 잘 어울립니다. 세로로 깁니다.", aspect: "portrait" },
-          { slot: "HERO_FRAME_LEFT", label: "왼쪽 아래 액자", hint: "세로 4:5. 스크롤하면 아래에서 올라옵니다.", aspect: "portrait" },
-          { slot: "HERO_FRAME_RIGHT", label: "오른쪽 위 액자", hint: "세로 4:5.", aspect: "portrait" },
-        ],
-      },
-    ],
-  },
-  {
     key: "main-lines",
     href: "/admin/display/main-lines/",
     title: "메인 라인 카드",

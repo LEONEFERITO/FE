@@ -1,8 +1,8 @@
 /**
  * 사이트 사진 칸 — **빌드할 때** 서버에서 받는다 (lib/why.ts · lib/catalog.ts 와 같은 규칙).
  *
- * 상품 사진이 아닌 사진이 놓이는 자리다. 매장(V20) · 라인 페이지 10칸(V22) · 메인 라인 카드 2 · 룩북 4 · 브랜드 5(V23)
- * · 메인 배너 직접 올리기 3(V24).
+ * 상품 사진이 아닌 사진이 놓이는 자리다. 매장(V20) · 라인 페이지 10칸(V22) · 메인 라인 카드 2 · 룩북 4 · 브랜드 5(V23).
+ * 메인 배너 사진은 여기 없다 — 배너마다 사진이 달라 배너가 직접 가진다(lib/hero.ts, V25).
  * 관리자가 /admin/display/offline 에서 올리고(서버 site_image, V20), 저장하면 서버가 손님 화면을 다시 만든다.
  *
  * 칸에 사진이 없으면 null 이다 — 쓰는 쪽이 코드의 기본 사진으로 메운다.
@@ -19,8 +19,7 @@ export type SiteImageSlot =
   | "LINE_FERITO_1" | "LINE_FERITO_2" | "LINE_FERITO_3" | "LINE_FERITO_4" | "LINE_FERITO_5"
   | "MAIN_LINE_LEONE" | "MAIN_LINE_FERITO"
   | "LOOKBOOK_LEONE_1" | "LOOKBOOK_LEONE_2" | "LOOKBOOK_FERITO_1" | "LOOKBOOK_FERITO_2"
-  | "BRAND_HERO" | "BRAND_PHOTO_1" | "BRAND_PHOTO_2" | "BRAND_PHOTO_3" | "BRAND_IMPRESSION"
-  | "HERO_FIGURE" | "HERO_FRAME_LEFT" | "HERO_FRAME_RIGHT";
+  | "BRAND_HERO" | "BRAND_PHOTO_1" | "BRAND_PHOTO_2" | "BRAND_PHOTO_3" | "BRAND_IMPRESSION";
 
 export interface SiteImage {
   url: string;
@@ -37,7 +36,6 @@ const EMPTY: SiteImages = {
   MAIN_LINE_LEONE: null, MAIN_LINE_FERITO: null,
   LOOKBOOK_LEONE_1: null, LOOKBOOK_LEONE_2: null, LOOKBOOK_FERITO_1: null, LOOKBOOK_FERITO_2: null,
   BRAND_HERO: null, BRAND_PHOTO_1: null, BRAND_PHOTO_2: null, BRAND_PHOTO_3: null, BRAND_IMPRESSION: null,
-  HERO_FIGURE: null, HERO_FRAME_LEFT: null, HERO_FRAME_RIGHT: null,
 };
 
 /** 라인 페이지 다섯 칸 — 왼쪽부터. 사진이 없는 칸은 null. */

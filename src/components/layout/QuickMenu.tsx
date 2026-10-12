@@ -100,7 +100,8 @@ export function QuickMenu() {
     };
   }, [open]);
 
-  if (pathname?.startsWith("/admin")) return null;
+  // 관리자 화면과 관리자의 배너 미리보기 창에는 띄우지 않는다
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/banner-preview")) return null;
 
   const close = () => setOpen(false);
   const items = [

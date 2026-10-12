@@ -654,6 +654,22 @@ html[data-motion="on"] .hero-reveal-cue {
   }
 }
 
+/* ── 관리자 배너 미리보기 창 (components/admin/BannerPreviewCanvas) ──
+ * 스크롤 대신 관리자가 고른 진행도로 그린다 — 0 처음 화면, 1 액자까지 다 나온 화면.
+ * Scene 이 인라인으로 쓰는 --p 를 이긴다(!important). 창 안은 스크롤하지 않는다. */
+html[data-banner-preview] {
+  overflow: hidden;
+}
+
+html[data-banner-preview] .scene {
+  --p: var(--preview-p, 1) !important;
+}
+
+html[data-banner-preview] .hero-reveal-card,
+html[data-banner-preview] .hero-reveal-card img {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 /* ── FAQ 채팅 (components/content/FaqChat) ───────────────
  * 말풍선은 아래에서 살짝 올라오며 맺히고, 입력 중 점 셋은 차례로 떠오른다.
  * 움직임을 줄인 사용자는 아래 전역 규칙(prefers-reduced-motion)이 애니메이션을 끈다. */

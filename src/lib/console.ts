@@ -154,8 +154,7 @@ export type SiteImageSlot =
   | "LINE_FERITO_1" | "LINE_FERITO_2" | "LINE_FERITO_3" | "LINE_FERITO_4" | "LINE_FERITO_5"
   | "MAIN_LINE_LEONE" | "MAIN_LINE_FERITO"
   | "LOOKBOOK_LEONE_1" | "LOOKBOOK_LEONE_2" | "LOOKBOOK_FERITO_1" | "LOOKBOOK_FERITO_2"
-  | "BRAND_HERO" | "BRAND_PHOTO_1" | "BRAND_PHOTO_2" | "BRAND_PHOTO_3" | "BRAND_IMPRESSION"
-  | "HERO_FIGURE" | "HERO_FRAME_LEFT" | "HERO_FRAME_RIGHT";
+  | "BRAND_HERO" | "BRAND_PHOTO_1" | "BRAND_PHOTO_2" | "BRAND_PHOTO_3" | "BRAND_IMPRESSION";
 
 export interface SiteImageAdminView {
   slot: SiteImageSlot;
@@ -172,13 +171,20 @@ export const adminSiteImages = () => request<SiteImageAdminView[]>("GET", "/api/
 export const saveSiteImage = (slot: SiteImageSlot, input: { mediaId: string | null; alt: string }) =>
   request<SiteImageAdminView>("PUT", `/api/admin/site-images/${slot}`, input);
 
-// ── 메인 배너 (서버 hero_config, V24) ─────────────────────────
+// ── 메인 배너 목록 (서버 hero_banner, V25) ────────────────────
 
-/** AUTO 진열 순서 맨 앞 상품 · PRODUCT 고른 상품 · CUSTOM 직접 올린 사진(사이트 사진 칸 HERO_*)과 문구 */
-export type HeroMode = "AUTO" | "PRODUCT" | "CUSTOM";
+/** PRODUCT 상품 정보 가져오기 · CUSTOM 직접 등록 */
+export type HeroBannerKind = "PRODUCT" | "CUSTOM";
 
-export interface HeroAdminView {
-  mode: HeroMode;
+export interface HeroBannerPhoto {
+  mediaId: string;
+  url: string;
+  alt: string;
+}
+
+export interface HeroBannerAdmin {
+  id: string;
+  kind: HeroBannerKind;
   productId: string | null;
   productSlug: string | null;
   eyebrow: string;
@@ -186,16 +192,47 @@ export interface HeroAdminView {
   subtitle: string;
   ctaLabel: string;
   ctaUrl: string;
+  figure: HeroBannerPhoto | null;
+  frameLeft: HeroBannerPhoto | null;
+  frameRight: HeroBannerPhoto | null;
+  /** 관리자가 켜 두었는가 */
+  visible: boolean;
+  /** 손님 화면에 실제로 나가는가 — 켜 두었고 상품이 공개 중이거나 인물 사진이 있다 */
+  shown: boolean;
+  updatedAt: string;
 }
 
-/** 서버 hero_config 의 CHECK 와 같다 */
-export const HERO_LIMITS = { eyebrow: 40, title: 60, subtitle: 80, ctaLabel: 20, ctaUrl: 300 } as const;
+export interface HeroBannerInput {
+  kind: HeroBannerKind;
+  productId: string | null;
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  ctaLabel: string;
+  ctaUrl: string;
+  figure: { mediaId: string; alt: string } | null;
+  frameLeft: { mediaId: string; alt: string } | null;
+  frameRight: { mediaId: string; alt: string } | null;
+  visible: boolean;
+}
+
+/** 서버 hero_banner 의 CHECK 와 같다 */
+export const HERO_LIMITS = { eyebrow: 40, title: 60, subtitle: 80, ctaLabel: 20, ctaUrl: 300, alt: 200 } as const;
+/** 서버 SiteImageService.MAX_BANNERS 와 같다 */
+export const MAX_HERO_BANNERS = 10;
 /** 서버와 같은 규칙: 비우거나, 사이트 안 주소(/…, // 는 안 됨) 또는 https 주소 */
 export const HERO_CTA_URL = /^$|^\/(?!\/)\S*$|^https:\/\/\S+$/;
 
-export const adminHero = () => request<HeroAdminView>("GET", "/api/admin/hero");
-export const saveHero = (input: Omit<HeroAdminView, "productSlug">) =>
-  request<HeroAdminView>("PUT", "/api/admin/hero", input);
+export const adminHeroBanners = () => request<HeroBannerAdmin[]>("GET", "/api/admin/hero-banners");
+export const createHeroBanner = (input: HeroBannerInput) =>
+  request<HeroBannerAdmin>("POST", "/api/admin/hero-banners", input);
+export const updateHeroBanner = (id: string, input: HeroBannerInput) =>
+  request<HeroBannerAdmin>("PUT", `/api/admin/hero-banners/${encodeURIComponent(id)}`, input);
+export const deleteHeroBanner = (id: string) =>
+  request<void>("DELETE", `/api/admin/hero-banners/${encodeURIComponent(id)}`);
+/** 지금 있는 배너 전부의 id 를 보여 줄 순서대로. 그 사이 목록이 바뀌었으면 409 — 다시 불러온다. */
+export const reorderHeroBanners = (ids: string[]) =>
+  request<HeroBannerAdmin[]>("PUT", "/api/admin/hero-banners/order", { ids });
 
 // ── 진열 순서 (메인 구성) ────────────────────────────────────
 

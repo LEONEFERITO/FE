@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { AdminHeroEditor } from "@/components/admin/AdminHeroEditor";
+import { AdminHeroBanners } from "@/components/admin/AdminHeroBanners";
 import { AdminPage } from "@/components/admin/AdminPage";
 
 export const metadata: Metadata = {
@@ -12,9 +12,9 @@ export default function Page() {
   return (
     <AdminPage
       title="메인 배너"
-      description="메인 첫 화면의 배너를 무엇으로 채울지 고릅니다. 자동 · 상품 지정 · 직접 올리기 중 하나를 저장하면 1~3분 뒤 손님 화면에 반영됩니다."
+      description="메인 첫 화면의 배너를 등록합니다. 노출 중인 배너가 위에서부터 순서대로 넘어가고, 저장하면 1~3분 뒤 손님 화면에 반영됩니다."
     >
-      <AdminHeroEditor />
+      <AdminHeroBanners />
     </AdminPage>
   );
 }
