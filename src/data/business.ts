@@ -39,8 +39,8 @@ export const BUSINESS: BusinessInfo = {
   phone: "010-2434-7794 · 010-9291-0518",
   email: "sport0308@naver.com",
   privacyOfficer: null,
-  // 서버를 정한 뒤 채운다 (FE 는 Vercel, API 는 미정).
-  hosting: null,
+  // 2026-10-12 서버 확정 — AWS Lightsail 서울 리전 한 대에 사이트 · API · DB (PG 심사 때 하단 표기를 본다)
+  hosting: "Amazon Web Services (서울)",
 };
 
 /**

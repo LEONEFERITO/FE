@@ -11,7 +11,6 @@ import { searchAddress } from "@/lib/postcode";
 import {
   SHOP_CONNECTED,
   ShopError,
-  TOSS_CLIENT_KEY,
   createOrder,
   getCart,
   openPaymentWindow,
@@ -19,6 +18,7 @@ import {
   quoteOrder,
   won,
   type CartLine,
+  type PaymentReadiness,
   type Quote,
 } from "@/lib/shop";
 
@@ -27,15 +27,16 @@ import {
  *
  * ── 순서 ───────────────────────────────────────────────
  * 상품 · 금액(서버 계산) → 받는 분 · 주소 → 결제 전 확인 → 결제하기.
- * "결제하기" 를 누르면 서버가 주문서를 만들고(금액 확정), 그 금액으로 토스 결제창을 연다.
- * 결제창에서 돌아오면 /order/success 가 서버에 승인을 요청한다.
+ * "결제하기" 를 누르면 서버가 주문서를 만들고(금액 확정), 그 금액으로 결제창을 연다(결제사는 서버가 정한다 — 나이스페이).
+ * 누를 때마다 새 주문번호다 — 나이스페이는 같은 주문번호로 두 번 결제받지 않는다.
+ * 결제가 끝나면 서버가 승인하고 /order/success · /order/fail 로 돌려보낸다.
  *
  * ── 결제 전 확인 ────────────────────────────────────────
  * 주문 상품 · 금액 · 제작 기간 · 교환/반품 조건을 결제 직전에 보여 주고 확인을 받는다
  * (전자상거래법 제8조, 약관 제9조). 서버가 확인 시각을 주문에 남긴다.
  *
  * ── 결제를 열지 않는 경우 ───────────────────────────────
- * 토스 클라이언트 키가 없거나(빌드), 서버가 준비되지 않았으면(시크릿 키 · 배송비 정책) 버튼을 닫고
+ * 결제창 공개 키가 없거나, 서버가 준비되지 않았으면(비밀 키 · 배송비 정책) 버튼을 닫고
  * "결제 준비 중" 이라고 말한다. 눌렀다가 실패하는 것보다 낫다.
  *
  * 주소는 카카오 우편번호 검색으로 채운다(lib/postcode.ts). 검색이 막혀도 직접 입력할 수 있다.
@@ -45,7 +46,7 @@ type Load =
   | { kind: "offline" }
   | { kind: "loading" }
   | { kind: "error"; message: string }
-  | { kind: "ready"; lines: CartLine[]; quote: Quote; paymentReady: boolean };
+  | { kind: "ready"; lines: CartLine[]; quote: Quote; readiness: PaymentReadiness };
 
 export function CheckoutForm() {
   // undefined = 아직 주소를 안 읽음(정적 HTML), "" = 없음
@@ -96,7 +97,7 @@ export function CheckoutForm() {
           quoteOrder(lines.map((l) => l.id)),
           paymentReadiness(),
         ]);
-        if (alive) setLoad({ kind: "ready", lines, quote, paymentReady: readiness.paymentReady });
+        if (alive) setLoad({ kind: "ready", lines, quote, readiness });
         // 받는 분 기본값은 내 정보. 다른 사람에게 보내면 고치면 된다.
         const profile = await fetchProfile().catch(() => null);
         if (alive && profile) {
@@ -124,7 +125,6 @@ export function CheckoutForm() {
   if (!address1.trim()) errors.address1 = "주소를 입력해 주세요.";
   if (!agree) errors.agree = "결제 전 확인 사항에 동의해 주세요.";
 
-  const clientReady = TOSS_CLIENT_KEY.length > 0;
 
   async function pay(e: React.FormEvent) {
     e.preventDefault();
@@ -146,9 +146,10 @@ export function CheckoutForm() {
         agree,
       });
       // 결제창으로 넘어간다. 돌아오는 곳은 /order/success · /order/fail 이다.
-      await openPaymentWindow(order, phone);
+      // 결제창을 닫으면 여기서 알린다 — 주문서는 결제 대기로 남고, 다시 누르면 새 주문서로 다시 연다.
+      await openPaymentWindow(order, phone, load.readiness, (message) => setError(message));
     } catch (err) {
-      // 결제창을 닫은 경우도 여기로 온다(토스 SDK 가 오류로 알린다). 주문서는 결제 대기로 남고 다시 시도할 수 있다.
+      // 결제창을 열지 못했거나 (토스) 결제창을 닫은 경우. 주문서는 결제 대기로 남고 다시 시도할 수 있다.
       setError(
         err instanceof ShopError
           ? err.message
@@ -182,8 +183,8 @@ export function CheckoutForm() {
     );
   }
 
-  const { lines, quote, paymentReady } = load;
-  const canPay = paymentReady && clientReady;
+  const { lines, quote, readiness } = load;
+  const canPay = readiness.paymentReady && readiness.clientKey.length > 0;
   const show = (k: string) => (submitted ? errors[k] : undefined);
 
   return (

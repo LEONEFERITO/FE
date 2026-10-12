@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { PaymentFail } from "@/components/shop/PaymentResult";
 import { ShopPage } from "@/components/shop/ShopPage";
 
-/** 토스 결제창 failUrl. 결제창을 닫았거나 결제가 거절된 경우. */
+/** 결제 미완료 화면. 결제가 거절됐거나 확인하지 못한 경우 — 돈은 움직이지 않았다. */
 
 export const metadata: Metadata = {
   title: "결제 미완료",

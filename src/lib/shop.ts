@@ -5,15 +5,15 @@
  * **금액은 서버가 계산한다.** 이 파일은 서버가 준 금액을 결제창에 그대로 넘길 뿐,
  * 합계를 스스로 더하지 않는다. 서버도 승인 직전에 저장된 금액과 다시 대조한다.
  *
- * 결제창은 토스페이먼츠 공식 SDK(@tosspayments/tosspayments-sdk)로 연다.
- * 클라이언트 키(test_ck_ / live_ck_)는 공개 값이라 빌드에 박혀도 된다. 시크릿 키는 서버에만 있다.
+ * 결제창 — 결제사는 서버가 정한다(/api/orders/readiness 의 provider · clientKey). 2026-10-12 나이스페이(포스타트)로 시작.
+ *   nicepay  나이스페이 JS SDK(pay.nicepay.co.kr/v1/js/). 결제창이 API 로 바로 돌아가 서버가 승인한다.
+ *   toss     토스페이먼츠 공식 SDK. 화면의 /order/success 가 승인을 요청한다.
+ * 공개 키는 서버가 준다 — 결제사나 키를 바꿔도 화면을 다시 빌드하지 않는다. 비밀 키는 서버에만 있다.
  */
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
 export const SHOP_CONNECTED = API_BASE.length > 0;
 
-/** 토스 클라이언트 키. 비어 있으면 결제 버튼을 열지 않는다(결제 준비 중). */
-export const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY ?? "";
 
 export class ShopError extends Error {
   constructor(
@@ -232,8 +232,17 @@ export interface Quote {
 export const quoteOrder = (cartItemIds: string[]) =>
   request<Quote>("POST", "/api/orders/quote", { cartItemIds });
 
-export const paymentReadiness = () =>
-  request<{ paymentReady: boolean }>("GET", "/api/orders/readiness");
+export type PaymentProvider = "nicepay" | "toss";
+
+export interface PaymentReadiness {
+  /** 결제사 키 · 배송비 정책이 다 있다 */
+  paymentReady: boolean;
+  provider: PaymentProvider;
+  /** 결제창 공개 키(나이스 clientId · 토스 클라이언트 키). 비어 있으면 결제를 열지 않는다 */
+  clientKey: string;
+}
+
+export const paymentReadiness = () => request<PaymentReadiness>("GET", "/api/orders/readiness");
 export const createOrder = (input: CreateOrderInput) =>
   request<CreatedOrder>("POST", "/api/orders", input);
 export const confirmOrder = (orderNumber: string, paymentKey: string, amount: number) =>
@@ -248,14 +257,45 @@ export const myOrder = (orderNumber: string) =>
   request<OrderDetail>("GET", `/api/orders/${encodeURIComponent(orderNumber)}`);
 
 /**
- * 토스 결제창을 연다. 성공하면 토스가 /order/success/ 로, 실패·취소하면 /order/fail/ 로 보낸다
- * (주소에 paymentKey · orderId · amount 또는 code · message 가 붙는다).
+ * 결제창을 연다. 어느 결제사인지는 서버가 정한다(readiness).
+ *
+ * 나이스페이 — 결제가 끝나면 나이스페이가 손님 브라우저를 API(/api/payments/nicepay/return)로 보내고, 서버가 서명을
+ * 확인해 승인한 뒤 /order/success/?orderNumber=… 또는 /order/fail/?code=…&message=… 로 돌려보낸다.
+ * PC 는 화면 위에 결제창이 뜨고, 모바일은 결제창 페이지로 넘어간다(SDK 가 알아서 고른다).
+ * 손님이 결제창을 닫으면 onClosed 로 알린다 — 주문서는 결제 대기로 남고 다시 시도할 수 있다.
+ *
+ * 토스 — 성공하면 /order/success/ 로(paymentKey · orderId · amount), 실패 · 취소하면 /order/fail/ 로.
  *
  * SDK 는 이 함수를 부를 때만 불러온다 — 결제하지 않는 화면에 결제 스크립트를 싣지 않는다.
  */
-export async function openPaymentWindow(order: CreatedOrder, phone: string): Promise<void> {
+export async function openPaymentWindow(
+  order: CreatedOrder,
+  phone: string,
+  readiness: PaymentReadiness,
+  onClosed: (message: string) => void,
+): Promise<void> {
+  if (readiness.provider === "nicepay") {
+    await loadScript(NICEPAY_SDK);
+    const sdk = (window as unknown as { AUTHNICE?: NicePaySdk }).AUTHNICE;
+    if (!sdk) throw new ShopError("NETWORK", "결제창을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
+    sdk.requestPay({
+      clientId: readiness.clientKey,
+      method: "card",
+      orderId: order.orderNumber,
+      amount: order.amount,
+      // 나이스페이 상품명은 40자까지
+      goodsName: [...order.orderName].slice(0, 40).join(""),
+      returnUrl: `${API_BASE}/api/payments/nicepay/return`,
+      buyerName: [...order.customerName].slice(0, 30).join(""),
+      buyerEmail: order.customerEmail,
+      buyerTel: phone.replace(/[^0-9]/g, ""),
+      fnError: (result) => onClosed(result?.errorMsg || "결제가 완료되지 않았습니다."),
+    });
+    return;
+  }
+
   const { loadTossPayments } = await import("@tosspayments/tosspayments-sdk");
-  const toss = await loadTossPayments(TOSS_CLIENT_KEY);
+  const toss = await loadTossPayments(readiness.clientKey);
   const payment = toss.payment({ customerKey: order.customerKey });
   const origin = window.location.origin;
   await payment.requestPayment({
@@ -269,6 +309,46 @@ export async function openPaymentWindow(order: CreatedOrder, phone: string): Pro
     customerEmail: order.customerEmail,
     customerMobilePhone: phone.replace(/[^0-9]/g, "") || null,
   });
+}
+
+/** 나이스페이 JS SDK — PC · 모바일 같은 주소(샌드박스와 운영도 같다. 어느 상점인지는 clientId 가 정한다). */
+const NICEPAY_SDK = "https://pay.nicepay.co.kr/v1/js/";
+
+interface NicePaySdk {
+  requestPay(options: {
+    clientId: string;
+    method: string;
+    orderId: string;
+    amount: number;
+    goodsName: string;
+    returnUrl: string;
+    buyerName?: string;
+    buyerEmail?: string;
+    buyerTel?: string;
+    fnError?: (result: { errorMsg?: string } | undefined) => void;
+  }): void;
+}
+
+/** 스크립트를 한 번만 싣는다. 실패하면 다음에 다시 시도할 수 있게 지운다. */
+const scripts = new Map<string, Promise<void>>();
+function loadScript(src: string): Promise<void> {
+  let p = scripts.get(src);
+  if (!p) {
+    p = new Promise<void>((resolve, reject) => {
+      const el = document.createElement("script");
+      el.src = src;
+      el.async = true;
+      el.onload = () => resolve();
+      el.onerror = () => {
+        scripts.delete(src);
+        el.remove();
+        reject(new ShopError("NETWORK", "결제창을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."));
+      };
+      document.head.appendChild(el);
+    });
+    scripts.set(src, p);
+  }
+  return p;
 }
 
 // ── 교환 · 반품 ────────────────────────────────────────────

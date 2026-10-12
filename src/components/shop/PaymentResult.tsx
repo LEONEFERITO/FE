@@ -4,12 +4,15 @@ import { CheckCircle, Warning } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
-import { ShopError, confirmOrder, won, type OrderDetail } from "@/lib/shop";
+import { ShopError, confirmOrder, myOrder, won, type OrderDetail } from "@/lib/shop";
 
 /**
- * 결제 결과 — 토스 결제창이 돌려보낸 화면.
+ * 결제 결과 — 결제창이 돌려보낸 화면.
  *
- * 성공(/order/success): 주소에 paymentKey · orderId · amount 가 붙어 온다. 서버에 승인을 요청한다.
+ * 나이스페이(기본): 서버가 이미 승인을 마치고 보낸다 — 성공은 ?orderNumber=… 만 붙어 온다. 주문을 불러와 보여 준다.
+ * 실패는 ?code=…&message=…&orderNumber=… — 돈은 움직이지 않았다.
+ *
+ * 토스 성공(/order/success): 주소에 paymentKey · orderId · amount 가 붙어 온다. 서버에 승인을 요청한다.
  * 서버는 amount 를 믿지 않고 주문에 저장된 금액과 대조한다 — 여기서는 그대로 전달만 한다.
  *
  * 같은 결제로 승인 요청이 두 번 나가지 않게 한 번만 보낸다(개발 모드는 effect 를 두 번 돌린다).
@@ -44,6 +47,31 @@ export function PaymentSuccess() {
   useEffect(() => {
     if (!search) return;
     const q = new URLSearchParams(search);
+    const paidOrder = q.get("orderNumber");
+    if (paidOrder && !q.get("paymentKey")) {
+      // 나이스페이 — 서버가 승인을 마쳤다. 결제 완료인지 주문을 불러와 확인한다.
+      let alive = true;
+      myOrder(paidOrder)
+        .then((order) => {
+          if (!alive) return;
+          setState(
+            order.status === "PENDING_PAYMENT"
+              ? { kind: "error", message: "결제가 확인되지 않았습니다.", orderId: paidOrder }
+              : { kind: "done", order },
+          );
+        })
+        .catch((e) => {
+          if (!alive) return;
+          setState({
+            kind: "error",
+            message: e instanceof ShopError ? e.message : "주문을 불러오지 못했습니다.",
+            orderId: paidOrder,
+          });
+        });
+      return () => {
+        alive = false;
+      };
+    }
     const paymentKey = q.get("paymentKey");
     const orderId = q.get("orderId");
     const amount = Number(q.get("amount"));
