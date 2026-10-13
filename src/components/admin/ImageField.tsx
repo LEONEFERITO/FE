@@ -5,12 +5,12 @@ import { useEffect, useId, useRef, useState } from "react";
 
 import {
   ACCEPTED_IMAGE_TYPES,
-  MAX_IMAGE_BYTES,
   checkImageFile,
   formatBytes,
   uploadImage,
   type UploadedImage,
 } from "@/lib/admin";
+import { prepareImage } from "@/lib/imagePrep";
 
 /**
  * 이미지 한 칸 — 고르기 · 미리보기 · 올리기 · 지우기.
@@ -28,6 +28,10 @@ import {
  * ── 용량 · 형식은 두 겹이다 ──────────────────────────────
  * 여기서 먼저 걸러 주는 건 **편의**다 — 10MB 를 다 올리고 나서 거부당하지 않게.
  * 진짜 방어는 서버가 한다(매직바이트 판별). 화면 검사는 우회할 수 있다.
+ *
+ * ── 원본 그대로 올려도 된다 (2026-10-13) ──────────────────
+ * 촬영 원본(10~25MB)은 올리기 전에 브라우저가 긴 변 2400px 로 줄인다(lib/imagePrep). 줄였으면 "25.3MB → 0.8MB" 로 알린다.
+ * 파일을 칸 위로 끌어다 놓아도 된다.
  *
  * ── 비율을 고정한다 ─────────────────────────────────────
  * 미리보기 칸의 크기를 미리 잡아 둔다. 이미지가 도착하면서 칸이 커지면
@@ -71,6 +75,8 @@ export function ImageField({
 
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
   /** 올리는 동안 보여줄 로컬 미리보기. 업로드가 끝나면 서버 url 로 바뀐다. */
   const [localPreview, setLocalPreview] = useState<string | null>(null);
 
@@ -81,10 +87,14 @@ export function ImageField({
     };
   }, [localPreview]);
 
-  async function handleFile(file: File | undefined) {
-    if (!file) return;
+  async function handleFile(picked: File | undefined) {
+    if (!picked) return;
     setError(null);
+    setNote(null);
 
+    setPending(true);
+    const { file, shrunkFrom } = await prepareImage(picked);
+    setPending(false);
     const problem = checkImageFile(file);
     if (problem) {
       setError(problem);
@@ -107,6 +117,7 @@ export function ImageField({
         url: uploaded.url,
         filename: uploaded.filename,
       });
+      if (shrunkFrom) setNote(`화면용으로 줄여 올렸습니다 (${formatBytes(shrunkFrom)} → ${formatBytes(file.size)})`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "올리지 못했습니다.");
       // 실패했으면 미리보기도 걷는다 — 올라간 것처럼 보이면 안 된다.
@@ -126,6 +137,7 @@ export function ImageField({
       return null;
     });
     setError(null);
+    setNote(null);
     onChange(null);
   }
 
@@ -149,14 +161,29 @@ export function ImageField({
           좁으면 오른쪽 정렬로 접힌다.
         */}
         <span className="text-muted text-2xs text-right">
-          JPG · PNG · WebP · GIF · AVIF · BMP · 최대 {formatBytes(MAX_IMAGE_BYTES)}
+          JPG · PNG · WebP · GIF · AVIF · BMP · 원본 그대로 올려도 됩니다
         </span>
       </div>
 
       {hint && <p className="text-muted text-2xs leading-relaxed">{hint}</p>}
 
-      <div className="flex items-start gap-3">
-        {/* 미리보기 칸. 비율을 고정해 두어 이미지가 와도 아래가 밀리지 않는다. */}
+      <div
+        className={`ease-fluid -m-1.5 flex items-start gap-3 rounded-2xl p-1.5 transition-colors duration-300 ${
+          dragging ? "bg-accent-tint outline-accent outline-dashed outline-1" : ""
+        }`}
+        onDragOver={(e) => {
+          if (pending || !e.dataTransfer.types.includes("Files")) return;
+          e.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragging(false);
+          if (!pending) handleFile(e.dataTransfer.files?.[0]);
+        }}
+      >
+        {/* 미리보기 칸. 비율을 고정해 두어 이미지가 와도 아래가 밀리지 않는다. 파일을 끌어다 놓아도 된다 */}
         <div
           className={`border-subtle bg-band/60 relative w-24 shrink-0 overflow-hidden rounded-xl border ${ASPECT_CLASS[aspect]}`}
         >
@@ -225,6 +252,7 @@ export function ImageField({
         </div>
       </div>
 
+      {note && !error && <p className="text-muted text-2xs leading-relaxed">{note}</p>}
       {error && (
         <p
           id={errorId}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { AdminPage } from "@/components/admin/AdminPage";
-import { ProductForm } from "@/components/admin/ProductForm";
+import { NewProductForm } from "@/components/admin/NewProductForm";
 
 /**
  * 상품 등록.
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export default function AdminNewProductPage() {
   return (
     <AdminPage title="상품 등록" description="이미지는 고르는 즉시 미리보기가 나타납니다. 오른쪽에서 실제 화면에 어떻게 보이는지 PC · 모바일 폭으로 확인할 수 있습니다." back={{ href: "/admin/products/", label: "상품 목록" }}>
-      <ProductForm />
+      <NewProductForm />
     </AdminPage>
   );
 }

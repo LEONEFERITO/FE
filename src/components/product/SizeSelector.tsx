@@ -21,7 +21,10 @@ interface SizeSelectorProps {
 }
 
 export function SizeSelector({ skus, value, onChange }: SizeSelectorProps) {
-  const soldOut = skus.filter((s) => !s.orderable);
+  // 다 팔린 사이즈(재고 0, 서버 V30)와 만들 수 없는 사이즈를 다른 말로 알린다
+  const soldOut = skus.filter((s) => !s.orderable && s.soldOut);
+  const unavailable = skus.filter((s) => !s.orderable && !s.soldOut);
+  const selected = skus.find((s) => s.size === value);
 
   return (
     <div className="flex flex-col gap-3">
@@ -53,15 +56,24 @@ export function SizeSelector({ skus, value, onChange }: SizeSelectorProps) {
               ].join(" ")}
             >
               {sku.size}
-              {isSoldOut && <span className="sr-only"> 주문 불가</span>}
+              {isSoldOut && <span className="sr-only"> {sku.soldOut ? "품절" : "주문 불가"}</span>}
             </button>
           );
         })}
       </div>
 
+      {/* 고른 사이즈가 얼마 안 남았으면 — 5벌 이하일 때만 서버가 수량을 준다 */}
+      {selected?.orderable && selected.remaining != null && (
+        <p className="text-accent text-xs" aria-live="polite">
+          {selected.size} 사이즈 {selected.remaining}벌 남았습니다.
+        </p>
+      )}
       {soldOut.length > 0 && (
+        <p className="text-soldout text-xs">{soldOut.map((s) => s.size).join(", ")} 사이즈는 품절입니다.</p>
+      )}
+      {unavailable.length > 0 && (
         <p className="text-soldout text-xs">
-          {soldOut.map((s) => s.size).join(", ")} 사이즈는 지금 주문할 수 없습니다.
+          {unavailable.map((s) => s.size).join(", ")} 사이즈는 지금 주문할 수 없습니다.
         </p>
       )}
     </div>

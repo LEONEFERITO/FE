@@ -3,7 +3,8 @@
 import { ArrowDown, ArrowUp, Plus, Warning, X } from "@phosphor-icons/react/dist/ssr";
 import { useId, useState } from "react";
 
-import { AdminApiError, MAX_IMAGE_BYTES, ACCEPTED_IMAGE_TYPES, checkImageFile, formatBytes, uploadImage } from "@/lib/admin";
+import { AdminApiError, ACCEPTED_IMAGE_TYPES, checkImageFile, uploadImage } from "@/lib/admin";
+import { prepareImage } from "@/lib/imagePrep";
 
 /**
  * 상세 이미지 — 한국 쇼핑몰식 긴 상세페이지 이미지를 여러 장.
@@ -45,7 +46,9 @@ export function StoryImagesField({
     if (files.length > room) setError(`상세 이미지는 ${STORY_MAX}장까지 올릴 수 있습니다.`);
     let next = [...value];
     for (let k = 0; k < picked.length; k++) {
-      const file = picked[k];
+      setBusy(`${k + 1} / ${picked.length} 준비 중`);
+      // 촬영 원본도 그대로 — 올리기 전에 화면용 크기로 줄인다(lib/imagePrep)
+      const { file } = await prepareImage(picked[k]);
       const problem = checkImageFile(file);
       if (problem) {
         setError(`${file.name}: ${problem}`);
@@ -78,7 +81,7 @@ export function StoryImagesField({
         <p className="text-muted text-2xs leading-relaxed">
           위에서부터 이 순서대로 <b className="text-secondary">간격 없이</b> 이어 붙습니다. 가로 860px 로 만든 상세페이지를
           그대로 올리면 됩니다 — 한 장이 너무 길거나 무거우면 여러 장으로 잘라 올려도 이음매가 보이지 않습니다.
-          {" "}JPG · PNG · WebP · GIF · AVIF · BMP · 한 장 {formatBytes(MAX_IMAGE_BYTES)} · 최대 {STORY_MAX}장.
+          {" "}JPG · PNG · WebP · GIF · AVIF · BMP · 원본 그대로 올려도 됩니다(자동으로 줄임) · 최대 {STORY_MAX}장.
         </p>
 
         {value.length > 0 && (

@@ -77,6 +77,10 @@ interface ApiDetail {
   skus: {
     size: string;
     orderable: boolean;
+    /** 서버 V30 — 수량을 세는 사이즈가 0 */
+    soldOut?: boolean;
+    /** 5벌 이하로 남았을 때만 */
+    remaining?: number | null;
     measurements: { part: string; valueCm: number; toleranceCm: number | null }[];
   }[];
 }
@@ -155,7 +159,10 @@ function toProduct(d: ApiDetail): Product {
       id: `${d.slug}-${s.size}`,
       size: s.size,
       color: null,
-      orderable: s.orderable,
+      // 손님에게는 "지금 고를 수 있는가" 하나다 — 품절도 고를 수 없다. 이유(품절 · 주문 불가)는 soldOut 이 가른다
+      orderable: s.orderable && !s.soldOut,
+      soldOut: s.orderable && s.soldOut === true,
+      remaining: s.remaining ?? null,
     })),
     measurements: {
       fields,

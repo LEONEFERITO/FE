@@ -1,8 +1,8 @@
 "use client";
 
-import { Warning } from "@phosphor-icons/react/dist/ssr";
+import { Check, Circle, Copy, Warning } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { CountedField, countGraphemes } from "@/components/admin/CountedField";
 import {
@@ -14,6 +14,7 @@ import { StoryImagesField, type StoryImage } from "@/components/admin/StoryImage
 import {
   DEFAULT_SIZES,
   SizeListField,
+  stockValue,
   validateSizes,
   type SizeRow,
 } from "@/components/admin/SizeListField";
@@ -22,6 +23,7 @@ import {
   INSTAGRAM_URL_RE,
   AdminApiError,
   createProduct,
+  listProducts,
   updateProduct,
   ADMIN_CONNECTED,
   type AdminProductEdit,
@@ -36,6 +38,14 @@ import {
   type ProductLine,
   type ProductStyle,
 } from "@/types/product";
+import {
+  COLOR_CHOICES,
+  loadDefaults,
+  nameWithoutColor,
+  saveDefaults,
+  slugBase,
+  slugFor,
+} from "@/lib/productDefaults";
 
 /**
  * 상품 등록 폼.
@@ -54,6 +64,14 @@ import {
  * ── 등록 = 초안 ─────────────────────────────────────────
  * 저장한다고 손님에게 보이지 않는다. 공개는 따로 누른다. 문구를 고치는 중에
  * 반쪽짜리가 노출되지 않게 하기 위한 것이고, 서버도 같은 규칙이다.
+ *
+ * ── 쉽게 등록하기 (2026-10-13 "관리자가 진짜 쉽게 등록") ──────────────
+ * 복제 — 같은 옷의 다른 색은 `copyFrom` 으로 연다(목록 · 저장 완료 화면의 「다른 색 등록」). 가격 · 소재 · 세탁 · 사이즈 ·
+ *   고시 · 설명 · 상세 이미지 · 사이즈 차트가 그대로 오고, 색상 · 메인 사진 · 재고만 비운다.
+ * 색상 — 자주 쓰는 색을 버튼으로 고른다. 고르면 주소 앞머리(white-…)와 상품명 끝 "(화이트)" 가 같이 바뀐다.
+ * 주소 — 이미 있는 주소면 입력하는 자리에서 바로 알린다(관리자 목록과 대조).
+ * 지난번 값 — 새 상품은 마지막으로 등록한 제조자 · 제조국 · 제작 기간 · 라인으로 시작한다(이 브라우저에 기억, lib/productDefaults).
+ * 체크리스트 — 공개에 필요한 것(서버 Product.missingForPublish 와 같은 규칙)을 오른쪽 위에 늘 보인다.
  *
  * ── 수정 모드 (initial 이 있을 때) ──────────────────────
  * 서버는 받은 내용으로 이미지·사이즈를 **통째로 교체**한다. 이 폼에는 실측·모델 정보
@@ -115,55 +133,94 @@ interface Props {
   initial?: AdminProductEdit;
   /** 수정 저장이 끝난 뒤. 부모가 상태(공개 가능 여부 등)를 다시 읽는다. */
   onSaved?: () => void;
+  /** 새 상품을 이 상품에서 복제해 시작한다(같은 옷 다른 색). 색상 · 메인 사진 · 재고 · 주소의 색 앞머리는 비운다 */
+  copyFrom?: AdminProductEdit;
 }
 
-export function ProductForm({ initial, onSaved }: Props = {}) {
+export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
   const editing = initial !== undefined;
+  /** 칸을 채울 원본 — 수정이면 그 상품, 복제면 복제할 상품 */
+  const src = initial ?? copyFrom;
+  // 새 상품(복제 아님)은 지난번 값으로 시작한다. 이 폼은 브라우저에서만 그려진다(NewProductForm) — localStorage 를 읽어도 된다
+  const [defaults] = useState(() => (src ? {} : loadDefaults()));
 
-  const [slug, setSlug] = useState(initial?.slug ?? "");
-  const [name, setName] = useState(initial?.name ?? "");
-  const [summary, setSummary] = useState(initial?.summary ?? "");
+  const [slug, setSlug] = useState(
+    initial?.slug ?? (copyFrom ? slugBase(copyFrom.slug, copyFrom.color ?? "") : ""),
+  );
+  const [name, setName] = useState(initial?.name ?? (copyFrom ? nameWithoutColor(copyFrom.name ?? "") : ""));
+  const [summary, setSummary] = useState(src?.summary ?? "");
   const [category, setCategory] = useState<Category>(
-    (initial?.category as Category | undefined) ?? "SHIRT",
+    (src?.category as Category | undefined) ?? "SHIRT",
   );
   const [line, setLine] = useState<ProductLine>(
-    (initial?.line as ProductLine | undefined) ?? "LEONE",
+    (src?.line as ProductLine | undefined) ?? (defaults.line as ProductLine | undefined) ?? "LEONE",
   );
   // 세부 분류(트라우저 핏 · 신발 종류). 분류를 바꾸면 맞지 않는 값은 비운다 — 서버도 그 조합을 400 으로 막는다.
-  const [style, setStyle] = useState<ProductStyle | null>((initial?.style as ProductStyle | null | undefined) ?? null);
+  const [style, setStyle] = useState<ProductStyle | null>((src?.style as ProductStyle | null | undefined) ?? null);
   const styleChoices = stylesFor(category);
-  const [priceKrw, setPriceKrw] = useState(initial?.priceKrw?.toString() ?? "");
-  const [leadTimeDays, setLeadTimeDays] = useState(initial?.leadTimeDays?.toString() ?? "");
-  const [fabric, setFabric] = useState(initial?.fabric ?? "");
-  const [care, setCare] = useState(initial?.care ?? "");
+  const [priceKrw, setPriceKrw] = useState(src?.priceKrw?.toString() ?? "");
+  const [leadTimeDays, setLeadTimeDays] = useState(src?.leadTimeDays?.toString() ?? defaults.leadTimeDays ?? "");
+  const [fabric, setFabric] = useState(src?.fabric ?? "");
+  const [care, setCare] = useState(src?.care ?? "");
   const [color, setColor] = useState(initial?.color ?? "");
-  const [manufacturer, setManufacturer] = useState(initial?.manufacturer ?? "");
-  const [countryOfOrigin, setCountryOfOrigin] = useState(initial?.countryOfOrigin ?? "");
-  const [manufacturedOn, setManufacturedOn] = useState(initial?.manufacturedOn ?? "");
-  const [description, setDescription] = useState(initial?.description ?? "");
+  const [manufacturer, setManufacturer] = useState(src?.manufacturer ?? defaults.manufacturer ?? "");
+  const [countryOfOrigin, setCountryOfOrigin] = useState(src?.countryOfOrigin ?? defaults.countryOfOrigin ?? "");
+  const [manufacturedOn, setManufacturedOn] = useState(src?.manufacturedOn ?? "");
+  const [description, setDescription] = useState(src?.description ?? "");
   const [images, setImages] = useState<Images>(() => imagesFrom(initial));
   const [story, setStory] = useState<StoryImage[]>(() =>
-    (initial?.images ?? [])
+    (src?.images ?? [])
       .filter((img) => img.kind === "STORY")
       .sort((a, b) => a.sortOrder - b.sortOrder)
       .map((img) => ({ mediaId: img.mediaId, url: img.url, alt: img.alt })),
   );
   const [sizeChart, setSizeChart] = useState<ImageFieldValue | null>(
-    initial?.sizeChartMediaId && initial.sizeChartUrl
-      ? { mediaId: initial.sizeChartMediaId, url: initial.sizeChartUrl, filename: "등록된 차트" }
+    src?.sizeChartMediaId && src.sizeChartUrl
+      ? { mediaId: src.sizeChartMediaId, url: src.sizeChartUrl, filename: "등록된 차트" }
       : null,
   );
-  const [sizeChartAlt, setSizeChartAlt] = useState(initial?.sizeChartAlt ?? "");
+  const [sizeChartAlt, setSizeChartAlt] = useState(src?.sizeChartAlt ?? "");
   const [instagramUrl, setInstagramUrl] = useState(initial?.instagramUrl ?? "");
   /*
    * 사이즈. 새 상품은 브랜드 기본 전개(95~110)로 시작한다 — 빈 목록에서 넷을 치는 것보다
    * 넷에서 하나 지우는 편이 빠르고, 빠뜨릴 일이 없다. 수정이면 서버 값 그대로.
    */
   const [sizes, setSizes] = useState<SizeRow[]>(() =>
-    initial
-      ? initial.skus.map((s) => ({ size: s.size, orderable: s.orderable }))
+    src
+      ? src.skus.map((s) => ({
+          size: s.size,
+          orderable: s.orderable,
+          // 복제한 색의 재고는 새 색과 상관없다 — 비운다
+          stock: initial && s.stock != null ? String(s.stock) : "",
+        }))
       : DEFAULT_SIZES,
   );
+
+  /** 이미 쓰고 있는 주소들 — 새 상품의 주소가 겹치면 그 자리에서 알린다(서버도 막지만 저장 뒤에야 안다) */
+  const [takenSlugs, setTakenSlugs] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    if (editing || !ADMIN_CONNECTED) return;
+    let alive = true;
+    listProducts()
+      .then((rows) => alive && setTakenSlugs(new Set(rows.map((r) => r.slug))))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [editing]);
+
+  /** 색을 바꾸면 주소 앞머리와 상품명 끝 "(색)" 을 같이 바꾼다. 수정 화면에서는 주소를 바꿀 수 없으니 이름만 */
+  function changeColor(next: string) {
+    const before = color;
+    setColor(next);
+    if (!editing) setSlug((s) => slugFor(slugBase(s.trim(), before), next));
+    setName((n) => {
+      // 붙어 있던 "(이전 색)" 을 새 색으로. 색이 없었으면 끝에 붙인다. 이름을 직접 다르게 적어 두었으면 건드리지 않는다
+      const base = before && n.trim().endsWith(`(${before})`) ? nameWithoutColor(n) : !before ? n.trim() : null;
+      if (!base) return n;
+      return next.trim() ? `${base} (${next.trim()})` : base;
+    });
+  }
 
   const [submitted, setSubmitted] = useState(false);
   const [pending, setPending] = useState(false);
@@ -185,6 +242,8 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
     } else if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug.trim())) {
       // 서버와 같은 규칙이다. 여기서 먼저 알려줘야 저장 후에 되돌아오지 않는다.
       e.slug = "영문 소문자 · 숫자 · 하이픈만 사용할 수 있습니다.";
+    } else if (!editing && takenSlugs.has(slug.trim())) {
+      e.slug = "이미 있는 주소입니다. 색상이나 단어를 바꿔 주세요.";
     }
 
     if (countGraphemes(name) > LIMITS.name) e.name = `${LIMITS.name}자를 넘었습니다.`;
@@ -248,13 +307,13 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
       manufacturedOn: manufacturedOn.trim(),
       leadTimeDays: leadTimeDays ? Number(leadTimeDays) : null,
 
-      // ↓ 이 폼에 칸이 없는 값. 수정이면 원래 값을 그대로 돌려보낸다(위 주석 참고).
-      listPriceKrw: initial?.listPriceKrw ?? null,
-      intent: initial?.intent ?? "",
-      features: initial?.features ?? "",
-      modelHeightCm: initial?.modelHeightCm ?? null,
-      modelWeightKg: initial?.modelWeightKg ?? null,
-      modelSize: initial?.modelSize ?? "",
+      // ↓ 이 폼에 칸이 없는 값. 수정이면 원래 값을 그대로 돌려보낸다(위 주석 참고). 복제면 복제한 상품의 값.
+      listPriceKrw: src?.listPriceKrw ?? null,
+      intent: src?.intent ?? "",
+      features: src?.features ?? "",
+      modelHeightCm: src?.modelHeightCm ?? null,
+      modelWeightKg: src?.modelWeightKg ?? null,
+      modelSize: src?.modelSize ?? "",
       displayOrder: initial?.displayOrder,
       /*
        * 사이즈는 폼의 목록이 진실이다. 실측값은 폼에 칸이 없으므로, 수정이면 **같은 이름의**
@@ -263,10 +322,11 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
        */
       skus: sizes.map((s, i) => {
         const name = s.size.trim();
-        const before = initial?.skus.find((k) => k.size === name);
+        const before = src?.skus.find((k) => k.size === name);
         return {
           size: name,
           orderable: s.orderable,
+          stock: stockValue(s),
           sortOrder: i,
           measurements: before?.measurements ?? [],
         };
@@ -306,6 +366,18 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
     };
   }
 
+  /** 공개에 필요한 것 — 서버 Product.missingForPublish 와 같은 규칙(+ 사이즈). 입력하는 동안 늘 보인다 */
+  const noticeFilled = [fabric, care, color, manufacturer, countryOfOrigin, manufacturedOn].filter((v) => v.trim()).length;
+  const checklist = [
+    { label: "상품명", ok: name.trim() !== "" },
+    { label: "판매가", ok: /^\d+$/.test(priceKrw) },
+    { label: "제작 기간", ok: /^\d+$/.test(leadTimeDays) },
+    { label: "대표 이미지", ok: images.MAIN !== undefined },
+    { label: "사이즈", ok: sizes.length > 0 },
+    { label: `상품정보고시 ${noticeFilled}/6`, ok: noticeFilled === 6 },
+  ];
+  const ready = checklist.every((c) => c.ok);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitted(true);
@@ -327,6 +399,8 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
         onSaved?.();
       } else {
         setCreatedId(await createProduct(draft));
+        // 다음 상품을 이 값으로 시작한다 — 제조자 · 제조국 · 제작 기간 · 라인은 상품마다 거의 같다
+        saveDefaults({ manufacturer: manufacturer.trim(), countryOfOrigin: countryOfOrigin.trim(), leadTimeDays, line });
       }
     } catch (err) {
       setFormError(
@@ -356,6 +430,13 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
             className="bg-accent text-on-accent hover:bg-accent-hover ease-fluid inline-flex min-h-12 items-center rounded-full px-6 text-sm transition-colors duration-300"
           >
             이어서 편집 · 공개
+          </Link>
+          <Link
+            href={`/admin/products/new/?from=${encodeURIComponent(createdId)}`}
+            className="border-interactive text-primary hover:border-accent ease-fluid inline-flex min-h-12 items-center gap-2 rounded-full border px-6 text-sm transition-colors duration-300"
+          >
+            <Copy size={15} weight="light" aria-hidden="true" />
+            같은 옷 다른 색 등록
           </Link>
           <Link
             href="/admin/products"
@@ -402,6 +483,13 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
           )}
         </div>
 
+        {copyFrom && (
+          <p className="border-accent/30 bg-accent-tint text-primary text-2xs rounded-xl border px-4 py-3 leading-relaxed">
+            「{copyFrom.name ?? copyFrom.slug}」에서 복제했습니다 — 가격 · 소재 · 사이즈 · 고시 · 설명 · 상세 이미지는 그대로입니다.
+            <b> 색상을 고르고 메인 사진만 올리면</b> 됩니다. 재고는 비워 두었습니다.
+          </p>
+        )}
+
         {!ADMIN_CONNECTED && (
           <p className="border-subtle bg-band/60 text-muted text-2xs rounded-xl border px-4 py-3 leading-relaxed">
             화면 확인 단계입니다. 관리자 서버는 아직 연결되지 않았습니다.
@@ -415,11 +503,11 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
           max={LIMITS.slug}
           required={!editing}
           readOnly={editing}
-          placeholder="brown-shirt"
+          placeholder="spandex-shirt"
           hint={
             editing
               ? "주소는 바꿀 수 없습니다. 바꾸면 걸어 둔 링크가 전부 끊깁니다."
-              : "상품 주소가 됩니다 (/products/brown-shirt). 공개 후에는 바꿀 수 없습니다."
+              : "상품 주소가 됩니다 (/products/white-spandex-shirt). 영문 소문자 · 숫자 · 하이픈. 아래에서 색상을 고르면 앞에 색이 자동으로 붙습니다. 저장한 뒤에는 바꿀 수 없습니다."
           }
           error={submitted ? errors.slug : undefined}
         />
@@ -430,9 +518,40 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
           onChange={setName}
           max={LIMITS.name}
           placeholder="브라운 셔츠"
-          hint="목록 카드에서 두 줄까지 보입니다."
+          hint="목록 카드에서 두 줄까지 보입니다. 색상을 고르면 끝에 (색)이 붙습니다."
           error={submitted ? errors.name : undefined}
         />
+
+        {/* 색상 — 상품 하나가 색 하나다. 버튼으로 고르면 주소 · 상품명 · 상품정보고시의 색상이 함께 채워진다 */}
+        <div className="flex flex-col gap-3">
+          <CountedField
+            label="색상"
+            value={color}
+            onChange={changeColor}
+            max={LIMITS.notice}
+            placeholder="화이트"
+            hint="아래 버튼으로 고르거나 직접 적습니다. 상품정보고시의 색상으로도 나갑니다."
+            error={submitted ? errors.color : undefined}
+          />
+          <div role="group" aria-label="자주 쓰는 색" className="flex flex-wrap gap-2">
+            {COLOR_CHOICES.map((c) => {
+              const on = color.trim() === c.ko;
+              return (
+                <button
+                  key={c.ko}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => changeColor(on ? "" : c.ko)}
+                  className={`ease-fluid text-2xs inline-flex min-h-9 items-center rounded-full border px-3.5 transition-colors duration-300 ${
+                    on ? "border-accent bg-accent text-on-accent" : "border-interactive text-secondary hover:border-accent hover:text-accent"
+                  }`}
+                >
+                  {c.ko}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         <CountedField
           label="한 줄 설명"
@@ -581,8 +700,9 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
         <fieldset className="border-subtle flex flex-col gap-6 border-t pt-7">
           <legend className="text-primary text-sm font-medium">사이즈</legend>
           <p className="text-muted text-2xs -mt-4 leading-relaxed">
-            손님이 고르는 순서 그대로입니다. &lsquo;제작 가능&rsquo;을 끄면 그 사이즈는
-            취소선으로 보이고 고를 수 없습니다 — 재고가 아니라 만들 수 있는지의 문제입니다.
+            손님이 고르는 순서 그대로입니다. &lsquo;제작 가능&rsquo;을 끄면 그 사이즈는 「주문 불가」로 보입니다.
+            <b className="text-secondary"> 재고</b>를 비워 두면 수량을 세지 않고(주문 후 제작), 숫자를 넣으면 그만큼만 팔립니다 —
+            결제되면 줄고, 0 이 되면 「품절」, 5벌 이하면 「2벌 남음」처럼 보입니다.
           </p>
           {submitted && errors.sizes && (
             <p className="text-error text-2xs -mt-3 flex gap-1.5 leading-relaxed" role="alert">
@@ -689,15 +809,10 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
             placeholder="드라이클리닝 · 다림질은 천을 덧대 중온으로"
             error={submitted ? errors.care : undefined}
           />
+          <p className="text-secondary text-2xs">
+            색상: <b className="text-primary">{color.trim() || "위 「색상」에서 고르세요"}</b>
+          </p>
           <div className="grid gap-6 md:grid-cols-2">
-            <CountedField
-              label="색상"
-              value={color}
-              onChange={setColor}
-              max={LIMITS.notice}
-              placeholder="브라운"
-              error={submitted ? errors.color : undefined}
-            />
             <CountedField
               label="제조자 / 수입자"
               value={manufacturer}
@@ -755,7 +870,34 @@ export function ProductForm({ initial, onSaved }: Props = {}) {
         (상품 상세의 실측표와 같은 원인 — grid 자식의 기본 min-width 는 auto 다)
       */}
       <div className="order-1 min-w-0 lg:order-2">
-        <div className="lg:sticky lg:top-24">
+        <div className="flex flex-col gap-5 lg:sticky lg:top-24">
+          {/* 공개 체크리스트 — 무엇이 남았는지 늘 보인다. 다 차면 저장한 뒤 편집 화면에서 공개한다 */}
+          <section
+            aria-label="공개 준비"
+            className={`rounded-2xl border px-5 py-4 ${ready ? "border-success/40 bg-success/5" : "border-subtle bg-surface"}`}
+          >
+            <p className="text-primary text-xs font-medium">
+              {ready ? "공개할 준비가 됐습니다" : `공개 준비 ${checklist.filter((c) => c.ok).length} / ${checklist.length}`}
+            </p>
+            <ul className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5">
+              {checklist.map((c) => (
+                <li key={c.label} className={`text-2xs flex items-center gap-1.5 ${c.ok ? "text-success" : "text-muted"}`}>
+                  {c.ok ? (
+                    <Check size={12} weight="bold" aria-hidden="true" />
+                  ) : (
+                    <Circle size={12} weight="light" aria-hidden="true" />
+                  )}
+                  {c.label}
+                  <span className="sr-only">{c.ok ? " 완료" : " 남음"}</span>
+                </li>
+              ))}
+            </ul>
+            {!editing && (
+              <p className="text-muted text-2xs mt-3 leading-relaxed">
+                저장하면 초안이 됩니다. 공개는 저장 뒤 편집 화면에서 누릅니다.
+              </p>
+            )}
+          </section>
           <ProductPreview
             name={name}
             summary={summary}

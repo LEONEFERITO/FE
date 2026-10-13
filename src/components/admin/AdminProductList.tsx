@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Warning } from "@phosphor-icons/react/dist/ssr";
+import { Copy, Plus, Warning } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -165,7 +165,7 @@ function Rows({ rows, tab }: { rows: AdminProductRow[]; tab: Tab }) {
   return (
     <ul className="border-subtle divide-subtle divide-y border-y">
       {rows.map((r) => (
-        <li key={r.id}>
+        <li key={r.id} className="flex items-stretch">
           {/*
             줄 전체가 하나의 링크다. 이름만 링크로 두면 누를 곳이 좁고,
             줄 안에 버튼을 여럿 두면 공개처럼 되돌리기 번거로운 동작이 실수로 눌린다.
@@ -173,7 +173,7 @@ function Rows({ rows, tab }: { rows: AdminProductRow[]; tab: Tab }) {
           */}
           <Link
             href={`/admin/products/edit?id=${encodeURIComponent(r.id)}`}
-            className="group hover:bg-band/60 ease-fluid flex min-w-0 items-start gap-4 px-1 py-5 transition-colors duration-300 md:items-center md:gap-6 md:px-3"
+            className="group hover:bg-band/60 ease-fluid flex min-w-0 flex-1 items-start gap-4 px-1 py-5 transition-colors duration-300 md:items-center md:gap-6 md:px-3"
           >
             <div className="border-subtle bg-band/60 relative aspect-[3/4] w-14 shrink-0 overflow-hidden rounded-lg border md:w-16">
               {r.mainImageUrl ? (
@@ -230,6 +230,16 @@ function Rows({ rows, tab }: { rows: AdminProductRow[]; tab: Tab }) {
                 {when.format(new Date(r.updatedAt))}
               </p>
             </div>
+          </Link>
+          {/* 같은 옷 다른 색 — 이 상품의 가격 · 소재 · 사이즈 · 고시를 그대로 가져와 새 상품으로 (2026-10-13). 되돌릴 일이 없는 동작이라 줄 밖에 둔다 */}
+          <Link
+            href={`/admin/products/new/?from=${encodeURIComponent(r.id)}`}
+            aria-label={`${r.name ?? r.slug} 복제해서 다른 색 등록`}
+            title="복제해서 다른 색 등록"
+            className="text-muted hover:text-accent hover:bg-band/60 ease-fluid flex w-12 shrink-0 flex-col items-center justify-center gap-1 transition-colors duration-300 md:w-20"
+          >
+            <Copy size={16} weight="light" aria-hidden="true" />
+            <span className="text-2xs hidden md:block">다른 색</span>
           </Link>
         </li>
       ))}

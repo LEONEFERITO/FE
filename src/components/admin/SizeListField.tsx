@@ -9,9 +9,10 @@ import { LIMITS } from "@/lib/admin";
 /**
  * 사이즈 목록 — 상품이 어떤 사이즈로 만들어지는가.
  *
- * ── "제작 가능" 이지 "재고" 가 아니다 ────────────────────
- * 이 브랜드는 주문 후 제작이라 재고 개념이 없다. 체크를 끄면 손님에게 그 사이즈가
- * "만들 수 없음" 으로 보인다(취소선). 품절이 아니다 — 화면 문구도 그렇게 쓴다.
+ * ── "제작 가능" 과 "재고" (2026-10-13 사이즈별 재고, 서버 V30) ──────────
+ * 제작 가능 — 끄면 그 사이즈를 만들 수 없다는 뜻이다(손님 화면 "주문 불가").
+ * 재고 — 비워 두면 수량을 세지 않는다(주문 후 제작, 지금까지의 방식). 숫자를 넣으면 그만큼만 팔리고,
+ * 결제될 때 줄고 발송 전 취소면 돌아온다. 0 이면 손님 화면에 "품절", 5벌 이하면 "2벌 남음".
  *
  * ── 순서는 사람이 정한다 ────────────────────────────────
  * 문자열로 정렬하면 100 이 95 앞에 오고, 숫자로 바꾸면 S/M/L 이 들어오는 순간 깨진다.
@@ -25,13 +26,19 @@ import { LIMITS } from "@/lib/admin";
 export interface SizeRow {
   size: string;
   orderable: boolean;
+  /** 재고 칸에 적은 그대로. 빈칸 = 세지 않음 */
+  stock: string;
 }
 
 /** 새 상품의 기본 사이즈. 이 브랜드의 기본 전개 (BRAND_BRIEF 참고). 관리자가 지우거나 바꾼다. */
 export const DEFAULT_SIZES: SizeRow[] = ["95", "100", "105", "110"].map((size) => ({
   size,
   orderable: true,
+  stock: "",
 }));
+
+/** 재고 칸 → 서버 값. 빈칸이면 null(세지 않음) */
+export const stockValue = (row: SizeRow): number | null => (row.stock.trim() === "" ? null : Number(row.stock.trim()));
 
 interface Props {
   value: SizeRow[];
@@ -60,7 +67,7 @@ export function SizeListField({ value, onChange, errors = {} }: Props) {
   }
 
   function add() {
-    onChange([...value, { size: "", orderable: true }]);
+    onChange([...value, { size: "", orderable: true, stock: "" }]);
   }
 
   return (
@@ -107,6 +114,22 @@ export function SizeListField({ value, onChange, errors = {} }: Props) {
                       className="accent-[var(--accent-base)] h-4 w-4"
                     />
                     제작 가능
+                  </label>
+                  {/* 재고 — 비우면 세지 않는다. 숫자 키패드가 뜨게 */}
+                  <label className="text-secondary flex min-h-11 shrink-0 items-center gap-2 text-xs">
+                    재고
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={row.stock}
+                      onChange={(e) => update(i, { stock: e.target.value.replace(/[^0-9]/g, "") })}
+                      placeholder="무제한"
+                      aria-label={`${row.size || i + 1} 사이즈 재고 (비우면 수량을 세지 않음)`}
+                      className={`text-primary placeholder:text-muted/70 ease-fluid min-h-11 w-20 rounded-lg border bg-transparent px-2.5 text-right text-sm tabular-nums transition-colors duration-300 ${
+                        row.stock === "0" ? "border-error" : "border-interactive focus-visible:border-accent"
+                      }`}
+                    />
+                    {row.stock === "0" && <span className="text-error text-2xs">품절</span>}
                   </label>
                 </div>
 
@@ -193,6 +216,10 @@ export function validateSizes(rows: SizeRow[]): Record<number, string> {
     }
     if (countGraphemes(name) > LIMITS.size) {
       errors[i] = `${LIMITS.size}자를 넘었습니다.`;
+      return;
+    }
+    if (row.stock.trim() !== "" && !(Number(row.stock) >= 0 && Number(row.stock) <= 99999)) {
+      errors[i] = "재고는 0 ~ 99999 사이 숫자로 적거나 비워 두세요.";
       return;
     }
     const dup = seen.get(name);

@@ -146,7 +146,12 @@ export interface Sku {
   id: string;
   size: string;
   color: string | null;
+  /** 지금 주문할 수 있는가 — 제작 가능하고 품절이 아니다(서버 orderable && !soldOut) */
   orderable: boolean;
+  /** 수량을 세는 사이즈가 0 이 됐다(서버 V30). 화면은 "품절" — 아니면 "주문 불가"(만들 수 없는 사이즈) */
+  soldOut?: boolean;
+  /** 5벌 이하로 남았을 때만 그 수량. "2벌 남음" */
+  remaining?: number | null;
 }
 
 /** 상품 사진 한 장. 대체 텍스트는 관리자가 적는다 — 사진이 곧 "무엇을 파는가" 다. */

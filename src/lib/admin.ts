@@ -238,6 +238,8 @@ export interface ProductDraft {
   skus: {
     size: string;
     orderable: boolean;
+    /** 남은 수량(서버 V30). null 이면 세지 않는다(주문 후 제작) · 0 이면 품절 */
+    stock: number | null;
     sortOrder?: number;
     measurements?: { part: string; valueCm: number; toleranceCm: number | null }[];
   }[];
@@ -405,6 +407,8 @@ export interface AdminProductEdit {
     size: string;
     sortOrder: number;
     orderable: boolean;
+    /** 남은 수량(서버 V30). null 이면 세지 않음 */
+    stock: number | null;
     measurements: { part: string; valueCm: number; toleranceCm: number | null }[];
   }[];
 }
