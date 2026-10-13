@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Noto_Sans_KR, Playfair_Display, Spectral } from "next/font/google";
 import "./globals.css";
+import { CategoryOrderProvider } from "@/components/layout/CategoryOrder";
 import { QuickMenu } from "@/components/layout/QuickMenu";
+import { getCategoryOrder } from "@/lib/categoryOrder";
 import { BRAND_DESCRIPTION, openGraphBase } from "@/lib/metadata";
 import { SITE_URL } from "@/lib/site";
 
@@ -94,7 +96,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false, nocache: true },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  /** 분류 메뉴 순서 — 관리자 › 분류 순서. 빌드 때 받아 헤더(클라이언트)에 맥락으로 넘긴다 */
+  const categoryOrder = await getCategoryOrder();
   return (
     <html
       // 한국어 사이트다. lang 이 en 이면 스크린리더가 한글을 영어 발음으로 읽고
@@ -134,8 +138,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             __html: `document.documentElement.dataset.motion="on"`,
           }}
         />
-        {children}
-        <QuickMenu />
+        <CategoryOrderProvider order={categoryOrder}>
+          {children}
+          <QuickMenu />
+        </CategoryOrderProvider>
       </body>
     </html>
   );

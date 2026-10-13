@@ -22,6 +22,7 @@ const ITEMS = [
   { key: "products", href: "/admin/products/", label: "상품 관리" },
   { key: "banner", href: "/admin/display/banner/", label: "메인 배너" },
   { key: "display", href: "/admin/display/", label: "메인 구성" },
+  { key: "categories", href: "/admin/display/categories/", label: "분류 순서" },
   {
     key: "images",
     href: "/admin/display/main-lines/",

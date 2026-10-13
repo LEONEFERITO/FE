@@ -4,6 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { ProductList } from "@/components/product/ProductList";
 import { filterOptions, getCatalog } from "@/lib/catalog";
+import { byCategoryOrder, getCategoryOrder } from "@/lib/categoryOrder";
 import { shareMetadata } from "@/lib/metadata";
 
 /**
@@ -24,7 +25,10 @@ export const metadata: Metadata = shareMetadata({
 
 export default async function ProductsPage() {
   const products = await getCatalog();
-  const { categories, sizes } = filterOptions(products);
+  const options = filterOptions(products);
+  // 분류 필터도 헤더 메뉴와 같은 순서로 (관리자 › 분류 순서)
+  const categories = byCategoryOrder(options.categories, await getCategoryOrder(), (c) => c);
+  const { sizes } = options;
 
   return (
     <>

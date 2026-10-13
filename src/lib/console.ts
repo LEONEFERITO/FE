@@ -3,6 +3,7 @@
  * 요청 규칙은 lib/shop.ts 와 같다 — 쿠키 세션, CSRF, 서버 문구.
  */
 import { apiRequest as request } from "@/lib/shop";
+import type { Category } from "@/types/product";
 
 // ── 대시보드 ────────────────────────────────────────────────
 
@@ -236,6 +237,15 @@ export const deleteHeroBanner = (id: string) =>
 /** 지금 있는 배너 전부의 id 를 보여 줄 순서대로. 그 사이 목록이 바뀌었으면 409 — 다시 불러온다. */
 export const reorderHeroBanners = (ids: string[]) =>
   request<HeroBannerAdmin[]>("PUT", "/api/admin/hero-banners/order", { ids });
+
+// ── 분류 메뉴 순서 (서버 category_order, V27) ─────────────────
+
+/** 분류 전부를 앞에서부터. 헤더 · 모바일 메뉴 · 제품 목록 필터가 이 순서다 */
+export const adminCategoryOrder = () =>
+  request<{ categories: Category[] }>("GET", "/api/admin/products/category-order");
+/** 분류 전부를 한 번씩 담아야 한다(빠지거나 겹치면 409). 저장하면 손님 화면을 다시 만든다 */
+export const saveCategoryOrder = (categories: Category[]) =>
+  request<void>("PUT", "/api/admin/products/category-order", { categories });
 
 // ── 진열 순서 (메인 구성) ────────────────────────────────────
 

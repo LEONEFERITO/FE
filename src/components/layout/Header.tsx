@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { Logo } from "@/components/brand/Logo";
-import { ABOUT_GROUPS, ABOUT_LABEL, CATEGORY_GROUPS, type NavLink } from "@/data/siteNav";
+import { useCategoryGroups } from "@/components/layout/CategoryOrder";
+import { ABOUT_GROUPS, ABOUT_LABEL, type NavLink } from "@/data/siteNav";
 
 /**
  * 전역 헤더 — 화면 폭을 가득 채우는 배너.
@@ -102,6 +103,8 @@ const ACCOUNT_NAV = [
 
 export function Header({ overHero = false }: { overHero?: boolean }) {
   const [open, setOpen] = useState(false);
+  // 분류 메뉴 — 관리자 › 분류 순서대로(빌드 때 받은 값, components/layout/CategoryOrder)
+  const CATEGORY_GROUPS = useCategoryGroups();
   // 히어로 위에 떠 있는 동안 true. overHero 가 아니면 항상 false(=평소 모습).
   const [onHero, setOnHero] = useState(overHero);
   // 히어로의 지금 장면이 사진 한 장(어두운 바탕)인가 — HeroSlides 가 data-hero-tone 으로 알린다
