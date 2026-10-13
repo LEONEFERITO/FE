@@ -7,6 +7,7 @@ import { CATEGORY_LABEL, LINE_LABEL, type Product, type ProductPhoto } from "@/t
  *
  *   상품 정보 가져오기  상품의 누끼 · 착용 · 디테일 사진. 문구를 적은 줄만 상품 이름 · 가격 대신 그 문구
  *   직접 등록           올린 인물 · 액자 사진과 문구. 액자를 비우면 인물 사진을 잘라 쓴다
+ *   이미지 한 장        큰 사진이 히어로 화면 전체를 덮는다(layout "image"). 문구는 사진 위 아래쪽, 버튼은 원하는 주소
  */
 
 const KRW = new Intl.NumberFormat("ko-KR");
@@ -20,6 +21,10 @@ export interface DetailCut {
 }
 
 export interface HeroSlide {
+  /** cutout = 누끼(인물 + 액자 둘, 스크롤하면 액자가 올라온다) · image = 사진 한 장이 화면 전체를 덮는다 */
+  layout: "cutout" | "image";
+  /** layout image 의 사진. mobileSrc 가 있으면 휴대폰(768px 미만)에서 그 사진 */
+  cover: { src: string; mobileSrc: string | null; alt: string } | null;
   figure: { src: string; alt: string } | null;
   frames: [DetailCut, DetailCut];
   /** 이름 위 작은 줄 (예: SHIRT · 레오네 라인). 비면 그리지 않는다 */
@@ -71,6 +76,8 @@ export function slideFromProduct(product: SlideProduct, text?: BannerText): Hero
   const figure = product.cutout ?? product.images[0]?.url ?? null;
   const href = `/products/${product.slug}`;
   return {
+    layout: "cutout",
+    cover: null,
     figure: figure ? { src: figure, alt: `${name} 착용 컷` } : null,
     frames: detailCuts(product),
     eyebrow: text?.eyebrow || `${category?.en ?? product.category} · ${fit?.ko ?? ""}`,
@@ -91,8 +98,30 @@ export function slideFromCustom(
   const cut = (photo: BannerPhoto | null, position: string): DetailCut =>
     photo ? { src: photo.url, alt: photo.alt, position: "50% 50%" } : { src: figure.url, alt: "", position };
   return {
+    layout: "cutout",
+    cover: null,
     figure: { src: figure.url, alt: figure.alt || banner.title || "메인 배너" },
     frames: [cut(banner.frameLeft, "50% 14%"), cut(banner.frameRight, "50% 46%")],
+    eyebrow: banner.eyebrow,
+    title: banner.title,
+    subtitle: banner.subtitle,
+    primary: { label: banner.ctaLabel || "자세히 보기", href: safeHref(banner.ctaUrl, "/products/") },
+    captionSub: null,
+  };
+}
+
+/** 이미지 한 장 — 큰 사진이 없으면 null(그 배너는 건너뛴다). 버튼 주소를 비우면 전체 제품 */
+export function slideFromImage(
+  banner: BannerText & { figure: BannerPhoto | null; mobile: BannerPhoto | null },
+): HeroSlide | null {
+  const big = banner.figure;
+  if (!big) return null;
+  const crop: DetailCut = { src: big.url, alt: "", position: "50% 50%" };
+  return {
+    layout: "image",
+    cover: { src: big.url, mobileSrc: banner.mobile?.url ?? null, alt: big.alt || banner.title || "메인 배너" },
+    figure: null,
+    frames: [crop, crop],
     eyebrow: banner.eyebrow,
     title: banner.title,
     subtitle: banner.subtitle,
@@ -108,7 +137,10 @@ export function slideFromCustom(
 export function pickHeroSlides(banners: HeroBanner[], catalog: Product[], featured: Product[]): HeroSlide[] {
   const slides: HeroSlide[] = [];
   for (const b of banners) {
-    if (b.kind === "CUSTOM") {
+    if (b.kind === "IMAGE") {
+      const s = slideFromImage(b);
+      if (s) slides.push(s);
+    } else if (b.kind === "CUSTOM") {
       const s = slideFromCustom(b);
       if (s) slides.push(s);
     } else {

@@ -104,6 +104,7 @@ export function HeroBannerPreview({ slide, emptyText }: { slide: HeroSlide | nul
           <h2 className="text-primary text-base font-semibold">미리보기</h2>
           <p className="text-muted text-2xs mt-1">저장하기 전 모습입니다. 고치는 대로 바로 바뀝니다.</p>
         </div>
+        {slide?.layout !== "image" && (
         <div role="group" aria-label="미리볼 장면" className="border-subtle inline-flex border">
           <button type="button" aria-pressed={progress === 0} onClick={() => setProgress(0)} className={tab(progress === 0)}>
             처음 화면
@@ -112,6 +113,7 @@ export function HeroBannerPreview({ slide, emptyText }: { slide: HeroSlide | nul
             스크롤 뒤 (액자)
           </button>
         </div>
+        )}
       </div>
 
       {slide ? (

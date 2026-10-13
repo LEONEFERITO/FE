@@ -42,7 +42,8 @@ export function BannerPreviewCanvas() {
 
   return (
     <>
-      <Header overHero />
+      {/* 장면이 도착한 뒤에 헤더를 다시 붙인다 — 헤더는 붙을 때 히어로를 찾아 지켜본다(사진 장면이면 밝은 글자) */}
+      <Header key={slide ? "hero" : "empty"} overHero />
       <main className="flex-1">
         {slide ? (
           <HeroReveal slides={[slide]} autoplay={false} />

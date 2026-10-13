@@ -15,6 +15,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { HeroBannerPreview } from "@/components/admin/HeroBannerPreview";
 import { ImageField, type ImageFieldValue } from "@/components/admin/ImageField";
 import { ErrorNotice } from "@/components/admin/AdminProductList";
+import { CATEGORY_NAV, categoryHref } from "@/data/categories";
 import { getProduct, listProducts, type AdminProductEdit, type AdminProductRow } from "@/lib/admin";
 import {
   HERO_CTA_URL,
@@ -29,7 +30,7 @@ import {
   type HeroBannerInput,
   type HeroBannerKind,
 } from "@/lib/console";
-import { slideFromCustom, slideFromProduct, type HeroSlide, type SlideProduct } from "@/lib/heroSlide";
+import { slideFromCustom, slideFromImage, slideFromProduct, type HeroSlide, type SlideProduct } from "@/lib/heroSlide";
 import { SHOP_CONNECTED } from "@/lib/shop";
 import type { Product } from "@/types/product";
 
@@ -38,11 +39,27 @@ import type { Product } from "@/types/product";
  *
  *   목록   등록한 배너 전부. 켜 둔 배너가 위에서부터 순서대로 메인 첫 화면에서 넘어간다(6초마다, 맨 위에서만).
  *          순서(↑↓) · 노출 켜고 끄기 · 수정 · 삭제. 나가는 배너가 없으면 진열 순서 맨 앞 상품이 자동으로 나간다.
- *   등록   등록 방식을 고른다 — 상품 정보 가져오기(공개 상품의 사진 · 이름 · 가격) / 직접 등록(사진 · 문구 · 버튼).
+ *   등록   배너 모양을 고른다 (2026-10-13 "누끼 상품 등록 / 이미지 하나로 등록 구분"):
+ *            누끼 배너 — 상품 정보 가져오기(공개 상품의 사진 · 이름 · 가격) / 직접 등록(인물 · 액자 사진 · 문구 · 버튼)
+ *            이미지 한 장 — 사진 한 장이 히어로 화면 전체를 덮는다. 버튼은 원하는 상품 · 페이지 주소로(상품에서 고르면 주소가 채워진다)
  *          사진 · 문구 · 노출을 **한 번에** 저장한다. 아래 미리보기는 PC · 모바일 창으로 저장 전 모습을 보여 준다.
  *
  * 저장하면 손님 화면을 다시 만든다(1~3분, 서버 FrontRebuildTrigger).
  */
+
+/** 배너 모양 — 누끼(인물 + 액자) / 이미지 한 장(화면 전체) */
+const LAYOUT_OPTIONS: { value: "cutout" | "image"; title: string; desc: string }[] = [
+  {
+    value: "cutout",
+    title: "누끼 상품 등록",
+    desc: "배경을 지운 인물 사진이 가운데 서고, 스크롤하면 양옆 액자 사진이 올라옵니다. 지금 메인의 모양입니다.",
+  },
+  {
+    value: "image",
+    title: "이미지 하나로 등록",
+    desc: "사진 한 장이 첫 화면 전체를 덮습니다(헤더 아래까지). 시즌 화보 · 기획전 · 공지 배너에 맞습니다.",
+  },
+];
 
 const KIND_OPTIONS: { value: HeroBannerKind; title: string; desc: string }[] = [
   {
@@ -71,6 +88,9 @@ interface Form {
   frameLeftAlt: string;
   frameRight: ImageFieldValue | null;
   frameRightAlt: string;
+  /** 이미지 한 장 — 휴대폰용 세로 사진(선택) */
+  mobile: ImageFieldValue | null;
+  mobileAlt: string;
   visible: boolean;
 }
 
@@ -88,6 +108,8 @@ const EMPTY_FORM: Form = {
   frameLeftAlt: "",
   frameRight: null,
   frameRightAlt: "",
+  mobile: null,
+  mobileAlt: "",
   visible: true,
 };
 
@@ -109,13 +131,16 @@ function formOf(b: HeroBannerAdmin): Form {
     frameLeftAlt: b.frameLeft?.alt ?? "",
     frameRight: asField(b.frameRight),
     frameRightAlt: b.frameRight?.alt ?? "",
+    mobile: asField(b.mobile),
+    mobileAlt: b.mobile?.alt ?? "",
     visible: b.visible,
   };
 }
 
 function inputOf(f: Form): HeroBannerInput {
   const custom = f.kind === "CUSTOM";
-  const photo = (v: ImageFieldValue | null, alt: string) => (custom && v ? { mediaId: v.mediaId, alt: alt.trim() } : null);
+  const image = f.kind === "IMAGE";
+  const pick = (on: boolean, v: ImageFieldValue | null, alt: string) => (on && v ? { mediaId: v.mediaId, alt: alt.trim() } : null);
   return {
     kind: f.kind,
     productId: f.kind === "PRODUCT" ? f.productId || null : null,
@@ -124,9 +149,10 @@ function inputOf(f: Form): HeroBannerInput {
     subtitle: f.subtitle.trim(),
     ctaLabel: f.ctaLabel.trim(),
     ctaUrl: f.ctaUrl.trim(),
-    figure: photo(f.figure, f.figureAlt),
-    frameLeft: photo(f.frameLeft, f.frameLeftAlt),
-    frameRight: photo(f.frameRight, f.frameRightAlt),
+    figure: pick(custom || image, f.figure, f.figureAlt),
+    frameLeft: pick(custom, f.frameLeft, f.frameLeftAlt),
+    frameRight: pick(custom, f.frameRight, f.frameRightAlt),
+    mobile: pick(image, f.mobile, f.mobileAlt),
     visible: f.visible,
   };
 }
@@ -147,6 +173,17 @@ function slideProductOf(e: AdminProductEdit): SlideProduct {
       .map((i) => ({ url: i.url, alt: i.alt })),
   };
 }
+
+/** 버튼 주소 고르기의 페이지 — 분류는 헤더 내비와 같은 목록(data/categories)에서 온다 */
+const LINK_PAGES: { label: string; href: string }[] = [
+  { label: "전체 제품", href: "/products/" },
+  ...CATEGORY_NAV.map((c) => ({ label: `분류 · ${c.label}`, href: categoryHref(c.slug) })),
+  { label: "레오네 라인", href: "/line/leone/" },
+  { label: "페리토 라인", href: "/line/ferito/" },
+  { label: "룩북", href: "/lookbook/" },
+  { label: "브랜드", href: "/brand/" },
+  { label: "이용 안내", href: "/guide/" },
+];
 
 function errorText(e: unknown, fallback: string): string {
   return e instanceof Error && e.message ? e.message : fallback;
@@ -387,14 +424,19 @@ function BannerList({
         <ol className="border-subtle divide-subtle divide-y border">
           {banners.map((b, i) => {
             const product = b.productId ? productById.get(b.productId) : undefined;
-            const name = b.title || product?.name || (b.kind === "CUSTOM" ? "제목 없는 배너" : "상품 배너");
-            const thumb = b.kind === "CUSTOM" ? b.figure?.url : product?.mainImageUrl;
+            const name = b.title || product?.name || (b.kind === "PRODUCT" ? "상품 배너" : "제목 없는 배너");
+            const thumb = b.kind === "PRODUCT" ? product?.mainImageUrl : b.figure?.url;
             const status = b.shown
               ? { text: "노출 중", cls: "text-success border-success/40" }
               : !b.visible
                 ? { text: "숨김", cls: "text-muted border-subtle" }
                 : {
-                    text: b.kind === "PRODUCT" ? "안 나감 · 상품 비공개" : "안 나감 · 인물 사진 없음",
+                    text:
+                      b.kind === "PRODUCT"
+                        ? "안 나감 · 상품 비공개"
+                        : b.kind === "IMAGE"
+                          ? "안 나감 · 사진 없음"
+                          : "안 나감 · 인물 사진 없음",
                     cls: "text-error border-error/40",
                   };
             const iconBtn =
@@ -414,7 +456,7 @@ function BannerList({
                   <span className="text-primary truncate text-sm font-medium">{name}</span>
                   <span className="flex flex-wrap items-center gap-2">
                     <span className="text-secondary border-subtle text-2xs border px-2 py-0.5">
-                      {b.kind === "PRODUCT" ? "상품 정보" : "직접 등록"}
+                      {b.kind === "PRODUCT" ? "누끼 · 상품 정보" : b.kind === "IMAGE" ? "이미지 한 장" : "누끼 · 직접 등록"}
                     </span>
                     <span className={`text-2xs border px-2 py-0.5 ${status.cls}`}>{status.text}</span>
                     {b.kind === "PRODUCT" && product && <span className="text-muted text-2xs truncate">{product.slug}</span>}
@@ -507,7 +549,14 @@ function BannerEditor({
   const urlOk = HERO_CTA_URL.test(text.ctaUrl);
   const detail = pid ? details[pid] : undefined;
   const slide: HeroSlide | null =
-    form.kind === "PRODUCT"
+    form.kind === "IMAGE"
+      ? slideFromImage({
+          ...text,
+          ctaUrl: urlOk ? text.ctaUrl : "",
+          figure: form.figure ? { url: form.figure.url, alt: form.figureAlt } : null,
+          mobile: form.mobile ? { url: form.mobile.url, alt: form.mobileAlt } : null,
+        })
+      : form.kind === "PRODUCT"
       ? detail && detail !== "error"
         ? slideFromProduct(detail, { ...text, ctaUrl: urlOk ? text.ctaUrl : "" })
         : null
@@ -525,13 +574,16 @@ function BannerEditor({
         : detail === "error"
           ? "상품 정보를 불러오지 못했습니다."
           : "상품 정보를 불러오는 중입니다."
-      : "가운데 인물 사진을 올리면 미리보기가 나옵니다.";
+      : form.kind === "IMAGE"
+        ? "큰 사진을 올리면 미리보기가 나옵니다."
+        : "가운데 인물 사진을 올리면 미리보기가 나옵니다.";
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     if (form.kind === "PRODUCT" && !form.productId) return setError("배너로 쓸 상품을 골라 주세요.");
     if (form.kind === "CUSTOM" && !form.figure) return setError("가운데 인물 사진을 올려 주세요.");
+    if (form.kind === "IMAGE" && !form.figure) return setError("화면을 덮을 큰 사진을 올려 주세요.");
     if (!urlOk) return setError("버튼 주소는 /로 시작하는 사이트 안 주소나 https:// 주소만 쓸 수 있습니다.");
     setBusy(true);
     try {
@@ -549,6 +601,9 @@ function BannerEditor({
   }
 
   const productText = form.kind === "PRODUCT";
+  const imageLayout = form.kind === "IMAGE";
+  // 누끼 배너 안에서 마지막으로 고른 방식 — 모양을 바꿨다 돌아와도 그대로
+  const [cutoutKind, setCutoutKind] = useState<HeroBannerKind>(form.kind === "CUSTOM" ? "CUSTOM" : "PRODUCT");
 
   return (
     <form onSubmit={submit} noValidate className="flex flex-col gap-8">
@@ -564,9 +619,41 @@ function BannerEditor({
         <h2 className="text-primary text-lg font-semibold">{banner ? "배너 수정" : "배너 등록"}</h2>
       </div>
 
-      {/* ── 1 등록 방식 ── */}
+      {/* ── 1 배너 모양 ── */}
       <fieldset className="border-subtle bg-surface border p-6 md:p-8">
-        <legend className="text-primary px-1 text-base font-semibold">등록 방식</legend>
+        <legend className="text-primary px-1 text-base font-semibold">배너 모양</legend>
+        <div className="mt-2 grid gap-3 md:grid-cols-2">
+          {LAYOUT_OPTIONS.map((m) => {
+            const on = (m.value === "image") === imageLayout;
+            return (
+              <label
+                key={m.value}
+                className={`ease-fluid flex cursor-pointer flex-col gap-2 border p-5 transition-colors duration-300 ${
+                  on ? "border-accent bg-accent-tint" : "border-subtle hover:border-accent"
+                }`}
+              >
+                <span className="flex items-center gap-2.5">
+                  <input
+                    type="radio"
+                    name="banner-layout"
+                    value={m.value}
+                    checked={on}
+                    onChange={() => set({ kind: m.value === "image" ? "IMAGE" : cutoutKind })}
+                    className="accent-accent h-4 w-4"
+                  />
+                  <span className="text-primary text-sm font-semibold">{m.title}</span>
+                </span>
+                <span className="text-secondary text-xs leading-relaxed">{m.desc}</span>
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      {/* ── 누끼 배너 — 등록 방식 ── */}
+      {!imageLayout && (
+      <fieldset className="border-subtle bg-surface border p-6 md:p-8">
+        <legend className="text-primary px-1 text-base font-semibold">누끼 등록 방식</legend>
         <div className="mt-2 grid gap-3 md:grid-cols-2">
           {KIND_OPTIONS.map((m) => {
             const on = form.kind === m.value;
@@ -583,7 +670,10 @@ function BannerEditor({
                     name="banner-kind"
                     value={m.value}
                     checked={on}
-                    onChange={() => set({ kind: m.value })}
+                    onChange={() => {
+                      setCutoutKind(m.value);
+                      set({ kind: m.value });
+                    }}
                     className="accent-accent h-4 w-4"
                   />
                   <span className="text-primary text-sm font-semibold">{m.title}</span>
@@ -594,9 +684,41 @@ function BannerEditor({
           })}
         </div>
       </fieldset>
+      )}
 
       {/* ── 2 상품 · 사진 ── */}
-      {form.kind === "PRODUCT" ? (
+      {imageLayout ? (
+        <section aria-label="배너 사진" className="border-subtle bg-surface border p-6 md:p-8">
+          <h3 className="text-primary text-base font-semibold">사진</h3>
+          <p className="text-muted text-2xs mt-1 leading-relaxed">
+            사진이 첫 화면 전체를 덮습니다. 화면 비율에 맞춰 가장자리가 잘리니 중요한 부분은 가운데에 두세요. 위아래에 옅은 그림자가 깔려
+            헤더와 글자가 어떤 사진 위에서도 읽힙니다.
+          </p>
+          <div className="mt-6 grid gap-8 md:grid-cols-2">
+            <div className="flex flex-col gap-3">
+              <ImageField
+                label="큰 사진 (PC · 공통)"
+                hint="가로 16:9 이상, 긴 변 2400px 정도. 휴대폰 사진을 비우면 이 사진의 가운데를 잘라 씁니다."
+                required
+                aspect="wide"
+                value={form.figure}
+                onChange={(v) => set({ figure: v })}
+              />
+              <Counted id="banner-figure-alt" label="사진 설명 (화면 낭독용)" value={form.figureAlt} max={HERO_LIMITS.alt} placeholder="예: 가을 컬렉션 화보 — 네이비 수트" onChange={(v) => set({ figureAlt: v })} />
+            </div>
+            <div className="flex flex-col gap-3">
+              <ImageField
+                label="휴대폰 사진 (선택)"
+                hint="세로 9:16, 1080×1920 정도. 휴대폰 화면은 세로라 가로 사진을 덮으면 많이 잘립니다."
+                aspect="portrait"
+                value={form.mobile}
+                onChange={(v) => set({ mobile: v })}
+              />
+              <Counted id="banner-mobile-alt" label="사진 설명 (화면 낭독용)" value={form.mobileAlt} max={HERO_LIMITS.alt} onChange={(v) => set({ mobileAlt: v })} />
+            </div>
+          </div>
+        </section>
+      ) : form.kind === "PRODUCT" ? (
         <section aria-label="상품 고르기" className="border-subtle bg-surface border p-6 md:p-8">
           <label htmlFor="banner-product" className="text-primary text-base font-semibold">
             상품
@@ -659,7 +781,9 @@ function BannerEditor({
         <p className="text-muted text-2xs mt-1">
           {productText
             ? "비워 두면 상품 정보(분류 · 이름 · 가격 · 상품 페이지)가 나갑니다. 적은 줄만 그 문구로 바뀝니다."
-            : "비운 줄은 화면에 나오지 않습니다."}{" "}
+            : imageLayout
+              ? "글자는 사진 아래쪽에 흰색으로 나갑니다. 비운 줄은 나오지 않고, 다 비우면 버튼만 나갑니다."
+              : "비운 줄은 화면에 나오지 않습니다."}{" "}
           맨 위 「운동으로 달라진 체형을 위한 남성 기성복」은 그대로입니다.
         </p>
         <div className="mt-6 grid gap-6 md:grid-cols-2">
@@ -681,6 +805,37 @@ function BannerEditor({
               <p role="alert" className="text-error text-2xs mt-1.5">
                 /로 시작하는 사이트 안 주소나 https:// 주소만 쓸 수 있습니다.
               </p>
+            )}
+            {!productText && (
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <label htmlFor="banner-cta-pick" className="text-secondary text-2xs">
+                  상품이나 페이지에서 고르기
+                </label>
+                <select
+                  id="banner-cta-pick"
+                  value=""
+                  onChange={(e) => e.target.value && set({ ctaUrl: e.target.value })}
+                  className={`${field} max-w-md`}
+                >
+                  <option value="">주소 고르기 — 고르면 위 칸이 채워집니다</option>
+                  <optgroup label="페이지">
+                    {LINK_PAGES.map((p) => (
+                      <option key={p.href} value={p.href}>
+                        {p.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                  {published.length > 0 && (
+                    <optgroup label="상품">
+                      {published.map((p) => (
+                        <option key={p.id} value={`/products/${p.slug}/`}>
+                          {(p.name ?? "이름 없음") + " · " + p.slug}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                </select>
+              </div>
             )}
           </div>
         </div>

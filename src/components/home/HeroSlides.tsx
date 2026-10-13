@@ -19,6 +19,11 @@ import type { DetailCut, HeroSlide } from "@/lib/heroSlide";
  * 장면들은 한 칸(grid 1×1)에 겹쳐 있고 지금 장면만 보인다. 자리를 바꾸지 않아 넘어갈 때 화면이 흔들리지 않는다.
  * 숨은 장면은 inert — 초점 · 화면 낭독기가 닿지 않는다. 칸은 위치 기준(relative)이 아니다:
  * 데스크톱의 이름 · 버튼 블록은 바깥 무대(HeroReveal)를 기준으로 놓인다.
+ *
+ * ── 이미지 한 장 장면 (2026-10-13 "히어로 전체를 이미지 하나로 덮게") ──────────
+ * 사진이 바깥 무대 전체(헤더 아래까지)를 덮는다 — 누끼처럼 가운데 일정 면적이 아니다. 같은 이유로 위치 기준이 바깥 무대다.
+ * 사진 밝기를 모르므로 위 · 아래에 어두운 그림자를 깔고 글자를 흰색으로 쓴다. 헤더도 이 장면 위에서는 밝은 글자가 된다
+ * (히어로 요소의 data-hero-tone="dark" — components/layout/Header). 휴대폰은 세로 사진을 따로 받는다(없으면 큰 사진을 가운데로 잘라).
  */
 
 const INTERVAL_MS = 6000;
@@ -51,6 +56,56 @@ function Primary({ href, className, children }: { href: string; className: strin
     <Link href={href} className={className}>
       {children}
     </Link>
+  );
+}
+
+/** 이미지 한 장 — 사진이 화면 전체를 덮고, 글자 · 버튼은 아래쪽. 글자를 비우면 버튼만 */
+function ImageSlide({ slide, first }: { slide: HeroSlide; first: boolean }) {
+  const cover = slide.cover!;
+  return (
+    <>
+      <picture className="absolute inset-0 block">
+        {cover.mobileSrc && <source media="(max-width: 767px)" srcSet={cover.mobileSrc} />}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={cover.src}
+          alt={cover.alt}
+          loading={first ? "eager" : "lazy"}
+          fetchPriority={first ? "high" : "auto"}
+          className="h-full w-full object-cover"
+        />
+      </picture>
+      {/* 위(헤더 · 첫 줄)와 아래(제목 · 버튼) 글자가 어떤 사진 위에서도 읽히게 */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 26%, rgba(0,0,0,0) 48%, rgba(0,0,0,0.62) 100%)",
+        }}
+      />
+      <div
+        data-quick-avoid=""
+        className="relative z-20 mt-auto flex flex-col items-center pb-2 text-center md:max-w-[620px] md:items-start md:pb-4 md:pl-0 md:text-left"
+      >
+        {slide.eyebrow && <p className="text-gold text-2xs tracking-label">{slide.eyebrow}</p>}
+        {slide.title && (
+          <p className="font-display leading-display tracking-display mt-2 line-clamp-2 text-2xl text-white md:mt-3 md:text-4xl lg:text-5xl">
+            {slide.title}
+          </p>
+        )}
+        {slide.subtitle && <p className="mt-2 text-sm text-white/85 md:mt-3 md:text-lg">{slide.subtitle}</p>}
+        <Primary
+          href={slide.primary.href}
+          className="group bg-accent text-on-accent hover:bg-accent-hover tracking-button ease-fluid mt-5 inline-flex h-11 items-center gap-2 rounded-full pl-5 pr-1.5 text-xs transition-all duration-500 hover:-translate-y-px active:scale-[0.98] md:mt-7 md:h-12 md:gap-3 md:pl-6 md:pr-2 md:text-sm"
+        >
+          {slide.primary.label}
+          <span className="bg-on-accent/12 ease-fluid flex h-7 w-7 items-center justify-center rounded-full transition-transform duration-500 group-hover:-translate-y-px group-hover:translate-x-1 group-hover:scale-105 md:h-8 md:w-8">
+            <ArrowUpRight size={11} weight="light" aria-hidden="true" />
+          </span>
+        </Primary>
+      </div>
+    </>
   );
 }
 
@@ -165,11 +220,29 @@ export function HeroSlides({ slides, autoplay = true }: { slides: HeroSlide[]; a
   const current = Math.min(index, count - 1);
   const go = (next: number) => setIndex((next + count) % count);
   const pad = (n: number) => String(n).padStart(2, "0");
-  const button =
-    "text-secondary hover:text-accent focus-visible:text-accent ease-fluid inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors duration-300";
+  /** 지금 장면이 사진 한 장이면 위 글자 · 버튼 · 헤더를 밝게 */
+  const dark = slides[current]?.layout === "image";
+  const button = `${
+    dark ? "text-white/80 hover:text-white focus-visible:text-white" : "text-secondary hover:text-accent focus-visible:text-accent"
+  } ease-fluid inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors duration-300`;
+
+  // 헤더에 알린다 — 히어로 요소의 표식을 바꾸면 헤더가 글자색을 바꾼다(Header 의 MutationObserver)
+  useEffect(() => {
+    const hero = document.querySelector("[data-hero]");
+    hero?.setAttribute("data-hero-tone", dark ? "dark" : "light");
+  }, [dark]);
 
   return (
     <>
+      {/* 위 한 줄 — 이 페이지의 유일한 h1. 레퍼런스의 상단 영문 캡션 자리다. 사진 장면 위에서는 흰 글자 */}
+      <h1
+        className={`ease-fluid relative z-20 text-center text-xs leading-relaxed transition-colors duration-700 md:text-sm ${
+          dark ? "text-white/90" : "text-secondary"
+        }`}
+      >
+        운동으로 달라진 체형을 위한 남성 기성복
+      </h1>
+
       <div
         role={count > 1 ? "region" : undefined}
         aria-roledescription={count > 1 ? "carousel" : undefined}
@@ -195,7 +268,11 @@ export function HeroSlides({ slides, autoplay = true }: { slides: HeroSlide[]; a
               className="ease-fluid col-start-1 row-start-1 flex min-h-0 flex-col transition-opacity duration-700 motion-reduce:transition-none"
               style={{ opacity: on ? 1 : 0, zIndex: on ? 1 : 0, pointerEvents: on ? undefined : "none" }}
             >
-              <Slide slide={slide} first={i === 0} />
+              {slide.layout === "image" ? (
+                <ImageSlide slide={slide} first={i === 0} />
+              ) : (
+                <Slide slide={slide} first={i === 0} />
+              )}
             </div>
           );
         })}
@@ -210,8 +287,11 @@ export function HeroSlides({ slides, autoplay = true }: { slides: HeroSlide[]; a
           <button type="button" onClick={() => go(current - 1)} aria-label="이전 배너" className={button}>
             <CaretLeft size={14} weight="light" aria-hidden="true" />
           </button>
-          <span className="text-secondary text-2xs tracking-label min-w-[4.5rem] text-center tabular-nums" aria-live={running ? "off" : "polite"}>
-            <span className="text-primary">{pad(current + 1)}</span> / {pad(count)}
+          <span
+            className={`text-2xs tracking-label min-w-[4.5rem] text-center tabular-nums ${dark ? "text-white/70" : "text-secondary"}`}
+            aria-live={running ? "off" : "polite"}
+          >
+            <span className={dark ? "text-white" : "text-primary"}>{pad(current + 1)}</span> / {pad(count)}
           </span>
           <button type="button" onClick={() => go(current + 1)} aria-label="다음 배너" className={button}>
             <CaretRight size={14} weight="light" aria-hidden="true" />

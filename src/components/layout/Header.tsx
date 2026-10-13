@@ -104,6 +104,8 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
   const [open, setOpen] = useState(false);
   // 히어로 위에 떠 있는 동안 true. overHero 가 아니면 항상 false(=평소 모습).
   const [onHero, setOnHero] = useState(overHero);
+  // 히어로의 지금 장면이 사진 한 장(어두운 바탕)인가 — HeroSlides 가 data-hero-tone 으로 알린다
+  const [heroDark, setHeroDark] = useState(false);
 
   useEffect(() => {
     if (!overHero) return;
@@ -131,7 +133,15 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
     );
 
     io.observe(hero);
-    return () => io.disconnect();
+    // 장면이 바뀔 때마다 표식이 바뀐다 — 사진 장면이면 밝은 글자로
+    const readTone = () => setHeroDark(hero.getAttribute("data-hero-tone") === "dark");
+    readTone();
+    const mo = new MutationObserver(readTone);
+    mo.observe(hero, { attributes: true, attributeFilter: ["data-hero-tone"] });
+    return () => {
+      io.disconnect();
+      mo.disconnect();
+    };
   }, [overHero]);
 
   // 메뉴가 열린 동안 뒤 본문이 스크롤되면 위치를 잃는다.
@@ -179,7 +189,12 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
       <header
         className={`ease-fluid sticky top-0 z-40 w-full border-b transition-colors duration-700 ${
           // 색 묶음 클래스가 background 를 직접 깔아서(레이어 밖 CSS) 유틸리티보다 세다 — 투명은 ! 로 이긴다
-          light ? "on-cream on-white border-transparent bg-transparent!" : "on-black border-subtle bg-base"
+          light
+            ? heroDark
+              ? // 사진 장면 위 — 투명한 채 밝은 글자 · 골드 로고(on-black 의 토큰). 사진 위 그림자가 받쳐 준다
+                "on-black border-transparent bg-transparent!"
+              : "on-cream on-white border-transparent bg-transparent!"
+            : "on-black border-subtle bg-base"
         }`}
       >
         <div className="relative flex h-14 w-full items-center justify-between px-5 md:h-18 md:px-10">

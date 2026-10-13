@@ -45,6 +45,9 @@ import type { HeroSlide } from "@/lib/heroSlide";
 
 /** {@code autoplay} — 관리자 미리보기는 넘기지 않는다(한 장만 그린다). */
 export function HeroReveal({ slides, autoplay = true }: { slides: HeroSlide[]; autoplay?: boolean }) {
+  // 누끼 장면이 하나라도 있으면 액자가 올라오는 스크롤 구간(220vh)을 둔다. 전부 이미지 한 장이면 오래 붙잡을 이유가 없다 —
+  // 조금만(115svh) 둔다. 화면 높이와 똑같으면 헤더가 처음부터 "히어로를 지났다" 로 보고 검게 굳어 사진 위를 덮는다.
+  const reveal = slides.some((s) => s.layout === "cutout");
   return (
     /*
       래퍼의 음수 상단 마진은 헤더 높이만큼이다 (Hero.tsx 와 같은 이유). 끌어올린 만큼
@@ -52,9 +55,11 @@ export function HeroReveal({ slides, autoplay = true }: { slides: HeroSlide[]; a
       값 "pin" 은 붙잡힌 무대라는 뜻 — 헤더는 무대가 풀려 위로 빠지기 시작하는 순간 원래 색으로 돌아온다
       (그 전에 돌아오지 않으면 빠져나가는 사진 위에 투명 헤더의 글자가 겹친다, 2026-10-07 모바일 점검).
     */
-    <section data-hero="pin" className="on-cream -mt-[72px] md:-mt-[88px]">
-      <Scene as="div" pin height="220vh" aria-label="대표 룩">
-        <div className="relative flex h-full flex-col overflow-hidden px-5 pb-6 pt-[88px] md:px-10 md:pb-10 md:pt-[104px]">
+    // 끌어올리는 높이 = 헤더 높이(56 · 72) + 아래 경계 1px. 예전 헤더(72 · 88) 기준이 남아 16px 더 올라가 있었고,
+    // 그만큼 화면 아래에 다음 구간이 비쳤다 — 사진 한 장 배너가 화면을 끝까지 덮지 못했다(2026-10-13). 글자 자리는 그대로다.
+    <section data-hero="pin" className="on-cream -mt-[57px] md:-mt-[73px]">
+      <Scene as="div" pin height={reveal ? "220vh" : "115svh"} aria-label="대표 룩">
+        <div className="relative flex h-full flex-col overflow-hidden px-5 pb-6 pt-[73px] md:px-10 md:pb-10 md:pt-[89px]">
           {/* 종이의 결 — 레퍼런스의 안개. 가운데가 아주 조금 밝다 */}
           <div
             aria-hidden="true"
@@ -73,12 +78,8 @@ export function HeroReveal({ slides, autoplay = true }: { slides: HeroSlide[]; a
             <Logo fluid label="" />
           </div>
 
-          {/* 위 한 줄 — 이 페이지의 유일한 h1. 레퍼런스의 상단 영문 캡션 자리다. */}
-          <h1 className="text-secondary relative z-10 text-center text-xs leading-relaxed md:text-sm">
-            운동으로 달라진 체형을 위한 남성 기성복
-          </h1>
-
-          {/* 이름 · 무대 · 버튼 — 장면마다. 여러 장이면 넘어간다 */}
+          {/* 위 한 줄(이 페이지의 유일한 h1) · 이름 · 무대 · 버튼 — 장면마다. 여러 장이면 넘어간다.
+              h1 은 HeroSlides 가 그린다 — 사진 한 장 장면 위에서는 글자를 밝게 바꿔야 해서 */}
           <HeroSlides slides={slides} autoplay={autoplay} />
 
           {/* 스크롤 안내 — 움직이기 시작하면 걷힌다. JS 가 없으면 안내할 게 없다 */}
