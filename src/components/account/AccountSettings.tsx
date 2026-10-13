@@ -139,6 +139,15 @@ function ProfileForm({ profile, onSaved }: { profile: Profile; onSaved: (p: Prof
           <dt className="text-muted w-16 shrink-0">가입 방법</dt>
           <dd className="text-secondary">{PROVIDER_LABEL[profile.provider]}</dd>
         </div>
+        {/* 이메일로 가입한 뒤 같은 이메일의 카카오 · 네이버로 들어와 연결된 계정 — 가입 방법만으로는 보이지 않는다 */}
+        {(profile.linkedProviders ?? []).length > 0 && (
+          <div className="flex gap-3 sm:col-span-2">
+            <dt className="text-muted w-16 shrink-0">간편 로그인</dt>
+            <dd className="text-secondary">
+              {(profile.linkedProviders ?? []).map((p) => PROVIDER_LABEL[p]).join(" · ")} 연결됨
+            </dd>
+          </div>
+        )}
       </dl>
 
       <form onSubmit={submit} noValidate className="mt-6 grid gap-5 md:grid-cols-2">

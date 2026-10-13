@@ -391,6 +391,8 @@ export interface Profile {
   name: string;
   phone: string | null;
   provider: MemberProvider;
+  /** 가입한 방법과 따로, 나중에 연결한 간편 로그인(서버 V28). 예: 이메일로 가입 → 같은 이메일의 네이버로 들어와 연결 */
+  linkedProviders: MemberProvider[];
   /** 간편가입 회원은 false — 비밀번호 변경 칸을 그리지 않는다. */
   hasPassword: boolean;
   createdAt: string;
