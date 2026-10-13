@@ -363,7 +363,9 @@ export function socialStartUrl(providerId: string): string {
 export const SOCIAL_ERROR_MESSAGE: Record<string, string> = {
   email_required:
     "이메일 제공에 동의해야 가입할 수 있습니다. 다시 시도하실 때 이메일 항목에 동의해 주세요.",
+  // 같은 이메일의 회원이 있지만 제공자가 확인한 이메일이 아닐 때(서버 V28 — 확인된 이메일이면 자동으로 연결된다)
   email_in_use: "이미 이메일로 가입된 주소입니다. 이메일과 비밀번호로 로그인해 주세요.",
+  admin_social: "관리자 계정은 간편 로그인으로 들어올 수 없습니다. 이메일과 비밀번호로 로그인해 주세요.",
   withdrawn: "탈퇴한 계정입니다.",
   suspended: "이용이 정지된 계정입니다. 고객센터로 문의해 주세요.",
   access_denied: "로그인을 취소하셨습니다.",
