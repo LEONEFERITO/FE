@@ -24,15 +24,41 @@ import {
  * 키가 없는 제공자는 서버 목록에 없다. 눌러도 아무 일이 없는 버튼을 두는 대신
  * "준비 중" 이라고 말한다.
  *
- * ── 색 ──────────────────────────────────────────────────
- * 제공자 브랜드색을 쓴다. 네이버 공식 버튼은 초록 위 흰 글자인데 그건 2.2:1 이라
- * 우리 QA(4.5:1)를 못 넘는다. 초록 면은 그대로 두고 글자만 짙게 한다.
+ * ── 모양 · 색 — 각 회사 공식 가이드 그대로 (2026-10-13 "다 공식으로") ──────────────
+ * 네이버 로그인 검수는 버튼이 네이버 가이드를 따르는지 본다. 카카오도 같은 규칙이 있다. 그래서 둘 다 공식 모양이다:
+ *   카카오  노랑(#FEE500) 바탕 · 검은 말풍선 심볼 · 검정 85% 글자 「카카오 로그인」 · 모서리 12px
+ *   네이버  초록(#03C75A) 바탕 · 흰 N 로고 · 흰 글자 「네이버 로그인」
+ * 네이버의 흰 글자는 초록 위 대비가 2.2:1 로 우리 대비 기준(4.5:1)에 못 미친다 — 예전에는 글자만 짙게 바꿔 두었지만,
+ * 검수 반려를 피하려고 공식 색으로 돌렸다. 로고 · 회사 이름이 함께 있어 무엇인지 알아볼 수는 있다.
+ * 심볼은 아이콘 라이브러리에 없어(상표) 공식 심볼 모양을 그대로 그린다.
  */
 
 const STYLE: Record<string, string> = {
-  kakao: "bg-[#FEE500] text-[#191919] hover:bg-[#F5DC00]",
-  naver: "bg-[#03C75A] text-[#0A1F14] hover:bg-[#02B451]",
+  kakao: "bg-[#FEE500] text-black/85 hover:bg-[#F5DC00]",
+  naver: "bg-[#03C75A] text-white hover:bg-[#02B451]",
 };
+
+/** 카카오 말풍선 · 네이버 N — 공식 심볼 */
+function Symbol({ id }: { id: string }) {
+  if (id === "kakao") {
+    return (
+      <svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true" className="shrink-0">
+        <path
+          fill="#000000"
+          d="M9 1.5C4.58 1.5 1 4.31 1 7.78c0 2.24 1.5 4.21 3.75 5.32l-.95 3.48c-.08.31.27.55.53.38l4.15-2.74c.17.01.34.02.52.02 4.42 0 8-2.81 8-6.28S13.42 1.5 9 1.5z"
+        />
+      </svg>
+    );
+  }
+  if (id === "naver") {
+    return (
+      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" className="shrink-0">
+        <path fill="#FFFFFF" d="M10.85 8.56 4.97 0H0v16h5.15V7.44L11.03 16H16V0h-5.15z" />
+      </svg>
+    );
+  }
+  return null;
+}
 
 export function SocialButtons({ mode }: { mode: "login" | "signup" }) {
   // null = 아직 모름(서버에 묻는 중). 빈 배열 = 켜진 제공자 없음.
@@ -101,11 +127,12 @@ export function SocialButtons({ mode }: { mode: "login" | "signup" }) {
             <a
               key={id}
               href={socialStartUrl(id)}
-              className={`ease-fluid flex min-h-12 items-center justify-center rounded-full text-sm font-medium transition-colors duration-300 ${
+              className={`ease-fluid flex min-h-12 items-center justify-center gap-2.5 rounded-[12px] text-sm font-medium transition-colors duration-300 ${
                 STYLE[id] ?? "bg-accent text-on-accent"
               }`}
             >
-              {SOCIAL_PROVIDER_LABEL[id] ?? `${id}로 계속하기`}
+              <Symbol id={id} />
+              {SOCIAL_PROVIDER_LABEL[id] ?? `${id} 로그인`}
             </a>
           ))}
         </div>

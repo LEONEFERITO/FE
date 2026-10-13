@@ -174,8 +174,8 @@ export const saveSiteImage = (slot: SiteImageSlot, input: { mediaId: string | nu
 
 // ── 메인 배너 목록 (서버 hero_banner, V25) ────────────────────
 
-/** PRODUCT 누끼 · 상품 정보 가져오기 · CUSTOM 누끼 · 직접 등록 · IMAGE 이미지 한 장(화면 전체) */
-export type HeroBannerKind = "PRODUCT" | "CUSTOM" | "IMAGE";
+/** PRODUCT 누끼 · 상품 정보 가져오기 · CUSTOM 누끼 · 직접 등록 · IMAGE 이미지 한 장(화면 전체) · VIDEO 영상(화면 전체, V29) */
+export type HeroBannerKind = "PRODUCT" | "CUSTOM" | "IMAGE" | "VIDEO";
 
 export interface HeroBannerPhoto {
   mediaId: string;
@@ -196,8 +196,11 @@ export interface HeroBannerAdmin {
   figure: HeroBannerPhoto | null;
   frameLeft: HeroBannerPhoto | null;
   frameRight: HeroBannerPhoto | null;
-  /** 이미지 한 장의 휴대폰용 세로 사진 */
+  /** 이미지 한 장의 휴대폰용 세로 사진 · 영상의 휴대폰 영상 */
   mobile: HeroBannerPhoto | null;
+  /** 영상 배너의 첫 장면 사진 (PC · 휴대폰) */
+  poster: HeroBannerPhoto | null;
+  mobilePoster: HeroBannerPhoto | null;
   /** 관리자가 켜 두었는가 */
   visible: boolean;
   /** 손님 화면에 실제로 나가는가 — 켜 두었고 상품이 공개 중이거나 인물 사진이 있다 */
@@ -217,6 +220,8 @@ export interface HeroBannerInput {
   frameLeft: { mediaId: string; alt: string } | null;
   frameRight: { mediaId: string; alt: string } | null;
   mobile: { mediaId: string; alt: string } | null;
+  poster: { mediaId: string; alt: string } | null;
+  mobilePoster: { mediaId: string; alt: string } | null;
   visible: boolean;
 }
 

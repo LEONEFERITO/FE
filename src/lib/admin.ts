@@ -62,6 +62,14 @@ export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 /** 받아주는 형식. 서버는 매직바이트로 다시 확인하므로 여기 값은 편의일 뿐이다. */
 export const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif", "image/bmp"] as const;
 
+/**
+ * 메인 배너 영상 한 개 (서버 V29). 서버 `MediaService.MAX_VIDEO_BYTES` · max-file-size 와 같은 값.
+ * 손님마다 첫 화면에서 내려받는 파일이라 화면은 10MB 안팎을 권한다(VIDEO_RECOMMENDED_BYTES).
+ */
+export const MAX_VIDEO_BYTES = 30 * 1024 * 1024;
+export const VIDEO_RECOMMENDED_BYTES = 10 * 1024 * 1024;
+export const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/webm"] as const;
+
 export function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes}B`;
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)}KB`;
@@ -94,6 +102,20 @@ export function checkImageFile(file: File): string | null {
   return null;
 }
 
+/** 영상을 고르자마자 하는 검사 — 이미지와 같은 이유(편의, 진짜 방어는 서버). */
+export function checkVideoFile(file: File): string | null {
+  if (file.size > MAX_VIDEO_BYTES) {
+    return `영상이 너무 큽니다 (${formatBytes(file.size)}). ${formatBytes(MAX_VIDEO_BYTES)} 이하로 줄여 올려 주세요.`;
+  }
+  if (file.size === 0) return "빈 파일입니다.";
+  if (file.type && !ACCEPTED_VIDEO_TYPES.includes(file.type as never)) {
+    return file.type === "video/quicktime"
+      ? "아이폰 영상(MOV)은 크롬 · 엣지에서 재생되지 않을 수 있습니다. MP4 로 바꿔 올려 주세요."
+      : "MP4 · WebM 영상만 올릴 수 있습니다.";
+  }
+  return null;
+}
+
 export class AdminApiError extends Error {
   constructor(
     readonly code: string,
@@ -121,7 +143,7 @@ async function fail(res: Response): Promise<never> {
     message = body.message ?? message;
   } catch {
     // 본문이 없을 수 있다(413 등). 상태 코드로 최소한의 안내를 만든다.
-    if (res.status === 413) message = "이미지가 너무 큽니다.";
+    if (res.status === 413) message = "파일이 너무 큽니다.";
     if (res.status === 401) message = "로그인이 필요합니다.";
     if (res.status === 403) message = "권한이 없습니다.";
   }
@@ -155,6 +177,33 @@ export async function uploadImage(file: File): Promise<UploadedImage> {
     body: form,
   });
 
+  if (!res.ok) return fail(res);
+  return (await res.json()) as UploadedImage;
+}
+
+/**
+ * 영상 업로드 (메인 배너, 서버 V29). 수십 MB 라 몇 초 ~ 몇십 초 걸린다 — 얼마나 올라갔는지 보여 주려고
+ * fetch 대신 XMLHttpRequest 를 쓴다(fetch 는 올리는 진행을 알려 주지 않는다). 응답 모양은 이미지와 같다.
+ */
+export async function uploadVideo(file: File, onProgress?: (ratio: number) => void): Promise<UploadedImage> {
+  if (!ADMIN_CONNECTED) {
+    throw new AdminApiError("NOT_CONNECTED", "서버가 아직 연결되지 않았습니다.");
+  }
+  const headers = await csrfHeader();
+  const form = new FormData();
+  form.append("file", file);
+  const xhr = new XMLHttpRequest();
+  const done = new Promise<Response>((resolve, reject) => {
+    xhr.upload.onprogress = (e) => e.lengthComputable && onProgress?.(e.loaded / e.total);
+    xhr.onload = () =>
+      resolve(new Response(xhr.responseText || null, { status: xhr.status, headers: { "Content-Type": "application/json" } }));
+    xhr.onerror = () => reject(new AdminApiError("NETWORK", "연결에 실패했습니다. 다시 시도해 주세요."));
+  });
+  xhr.open("POST", `${API_BASE}/api/admin/media/video`);
+  xhr.withCredentials = true;
+  for (const [k, v] of Object.entries(headers)) xhr.setRequestHeader(k, v);
+  xhr.send(form);
+  const res = await done;
   if (!res.ok) return fail(res);
   return (await res.json()) as UploadedImage;
 }

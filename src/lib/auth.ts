@@ -331,8 +331,9 @@ export function checkPassword(password: string, email: string): string | null {
 // 어떤 제공자가 켜져 있는지는 서버가 안다(키가 있는 것만). 화면은 그 목록만 그린다.
 
 export const SOCIAL_PROVIDER_LABEL: Record<string, string> = {
-  kakao: "카카오로 계속하기",
-  naver: "네이버로 계속하기",
+  // 각 회사 버튼 가이드의 문구 그대로 (2026-10-13 네이버 로그인 검수 대비 "다 공식으로")
+  kakao: "카카오 로그인",
+  naver: "네이버 로그인",
 };
 
 /** 켜진 제공자의 id 목록. 서버 미연결이면 빈 목록 — 버튼 대신 "준비 중" 이 보인다. */

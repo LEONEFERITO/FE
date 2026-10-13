@@ -5,6 +5,8 @@
  *   PRODUCT  상품 정보 가져오기 — 공개 상품의 누끼 · 착용 · 디테일 사진. 문구를 적으면 상품 이름 · 가격 대신 그 문구
  *   CUSTOM   직접 등록 — 올린 사진(인물 · 액자 둘)과 문구 · 버튼
  *   IMAGE    이미지 한 장 — 큰 사진이 히어로 화면 전체를 덮는다(휴대폰용 세로 사진은 선택). 버튼은 원하는 주소로
+ *   VIDEO    영상 — 영상이 히어로 화면 전체를 덮고 소리 없이 반복 재생된다(서버 V29). figure · mobile 이 영상 주소,
+ *            poster · mobilePoster 가 영상이 오기 전에 보일 첫 장면 사진
  * 서버는 **손님 화면에 나갈 배너만** 순서대로 준다(켜 두었고, 상품이 공개 중이거나 주 사진이 있는 것).
  * 그림으로 바꾸는 일은 메인 페이지가 한다(components/home/HeroReveal pickHeroSlides). 하나도 없으면
  * 진열 순서 맨 앞 상품이 나간다 — 배너가 비는 일은 없다.
@@ -13,7 +15,7 @@
  * 이 파일은 서버 컴포넌트(빌드)에서만 쓴다.
  */
 
-export type HeroBannerKind = "PRODUCT" | "CUSTOM" | "IMAGE";
+export type HeroBannerKind = "PRODUCT" | "CUSTOM" | "IMAGE" | "VIDEO";
 
 export interface BannerPhoto {
   url: string;
@@ -33,8 +35,11 @@ export interface HeroBanner {
   figure: BannerPhoto | null;
   frameLeft: BannerPhoto | null;
   frameRight: BannerPhoto | null;
-  /** 이미지 한 장 배너의 휴대폰용 세로 사진. 없으면 큰 사진(figure)을 잘라 쓴다 */
+  /** 이미지 한 장 배너의 휴대폰용 세로 사진(영상 배너는 휴대폰 영상). 없으면 figure 를 잘라 쓴다 */
   mobile: BannerPhoto | null;
+  /** 영상 배너의 첫 장면 사진 */
+  poster: BannerPhoto | null;
+  mobilePoster: BannerPhoto | null;
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
@@ -51,7 +56,7 @@ async function load(): Promise<HeroBanner[]> {
   }
   const list = (await res.json()) as Partial<HeroBanner>[];
   return list
-    .filter((d) => d.kind === "PRODUCT" || d.kind === "CUSTOM" || d.kind === "IMAGE")
+    .filter((d) => d.kind === "PRODUCT" || d.kind === "CUSTOM" || d.kind === "IMAGE" || d.kind === "VIDEO")
     .map((d) => ({
       kind: d.kind as HeroBannerKind,
       productSlug: d.productSlug ?? null,
@@ -64,6 +69,8 @@ async function load(): Promise<HeroBanner[]> {
       frameLeft: photo(d.frameLeft),
       frameRight: photo(d.frameRight),
       mobile: photo(d.mobile),
+      poster: photo(d.poster),
+      mobilePoster: photo(d.mobilePoster),
     }));
 }
 

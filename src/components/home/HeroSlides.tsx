@@ -2,7 +2,7 @@
 
 import { ArrowUpRight, CaretLeft, CaretRight, Pause, Play } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { DetailCut, HeroSlide } from "@/lib/heroSlide";
 
@@ -24,6 +24,14 @@ import type { DetailCut, HeroSlide } from "@/lib/heroSlide";
  * 사진이 바깥 무대 전체(헤더 아래까지)를 덮는다 — 누끼처럼 가운데 일정 면적이 아니다. 같은 이유로 위치 기준이 바깥 무대다.
  * 사진 밝기를 모르므로 위 · 아래에 어두운 그림자를 깔고 글자를 흰색으로 쓴다. 헤더도 이 장면 위에서는 밝은 글자가 된다
  * (히어로 요소의 data-hero-tone="dark" — components/layout/Header). 휴대폰은 세로 사진을 따로 받는다(없으면 큰 사진을 가운데로 잘라).
+ *
+ * ── 영상 장면 (2026-10-13 "영상 배너", 서버 V29) ──────────────────────────
+ * 이미지 한 장과 같은 자리 · 글자에 사진 대신 영상이 소리 없이 반복 재생된다. 첫 장면 사진(포스터)을 먼저 깔고
+ * 영상이 첫 화면을 그리면 그 위로 서서히 나타난다 — 영상을 받는 몇 초 동안 화면이 비지 않게.
+ *   · 지금 장면일 때만 재생한다. 다른 장면은 처음 보일 때 받기 시작한다(첫 화면에 영상 여러 개를 받지 않게).
+ *   · 휴대폰(768px 미만)은 휴대폰 영상이 있으면 그것 — 한 쪽만 받는다(<source media> 는 브라우저마다 달라 직접 고른다).
+ *   · 움직임을 줄인 사용자는 재생하지 않는다(첫 장면만). 끝없이 움직이므로 멈춤 버튼을 둔다(WCAG 2.2.2).
+ *   · 저전력 모드 등으로 자동 재생이 막히면 첫 장면 사진이 그대로 남는다.
  */
 
 const INTERVAL_MS = 6000;
@@ -59,22 +67,102 @@ function Primary({ href, className, children }: { href: string; className: strin
   );
 }
 
-/** 이미지 한 장 — 사진이 화면 전체를 덮고, 글자 · 버튼은 아래쪽. 글자를 비우면 버튼만 */
-function ImageSlide({ slide, first }: { slide: HeroSlide; first: boolean }) {
+function useReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const on = () => setReduced(media.matches);
+    on();
+    media.addEventListener("change", on);
+    return () => media.removeEventListener("change", on);
+  }, []);
+  return reduced;
+}
+
+/** 영상 — 지금 장면이고, 움직임을 줄이지 않았고, 멈추지 않았을 때만 재생 */
+function CoverVideo({
+  video,
+  play,
+  armed,
+}: {
+  video: { src: string; mobileSrc: string | null };
+  play: boolean;
+  /** 받기 시작해도 되는가 — 한 번 보인 장면부터 */
+  armed: boolean;
+}) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [src, setSrc] = useState<string | null>(null);
+  /** 첫 화면을 그린 영상 주소 — 주소가 바뀌면(휴대폰 ↔ PC) 다시 첫 장면 사진부터 */
+  const [readySrc, setReadySrc] = useState<string | null>(null);
+  const ready = src !== null && readySrc === src;
+
+  useEffect(() => {
+    const narrow = window.matchMedia("(max-width: 767px)");
+    const pick = () => setSrc(narrow.matches && video.mobileSrc ? video.mobileSrc : video.src);
+    pick();
+    narrow.addEventListener("change", pick);
+    return () => narrow.removeEventListener("change", pick);
+  }, [video.src, video.mobileSrc]);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !src || !armed) return;
+    if (play) {
+      // 저전력 모드 · 데이터 절약 등으로 막히면 첫 장면 사진이 남는다
+      el.play().catch(() => {});
+    } else {
+      el.pause();
+    }
+  }, [play, src, armed]);
+
+  return (
+    <video
+      ref={ref}
+      // 재생하지 않는 사용자(움직임 줄이기)도 첫 화면은 보이게 — #t 로 첫 장면을 그리게 한다
+      src={armed && src ? `${src}#t=0.001` : undefined}
+      muted
+      loop
+      playsInline
+      disablePictureInPicture
+      preload={armed ? (play ? "auto" : "metadata") : "none"}
+      aria-hidden="true"
+      tabIndex={-1}
+      onLoadedData={() => setReadySrc(src)}
+      className="ease-fluid absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 motion-reduce:transition-none"
+      style={{ opacity: ready ? 1 : 0 }}
+    />
+  );
+}
+
+/** 이미지 한 장 · 영상 — 사진(영상)이 화면 전체를 덮고, 글자 · 버튼은 아래쪽. 글자를 비우면 버튼만 */
+function ImageSlide({ slide, first, active }: { slide: HeroSlide; first: boolean; active: boolean }) {
   const cover = slide.cover!;
+  const video = cover.video ?? null;
+  const reduced = useReducedMotion();
+  const [stopped, setStopped] = useState(false);
+  // 한 번 보인 장면부터 영상을 받는다 — 뒤 장면들의 영상까지 첫 화면에서 받지 않게
+  const [armed, setArmed] = useState(active);
+  if (active && !armed) setArmed(true);
   return (
     <>
-      <picture className="absolute inset-0 block">
-        {cover.mobileSrc && <source media="(max-width: 767px)" srcSet={cover.mobileSrc} />}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={cover.src}
-          alt={cover.alt}
-          loading={first ? "eager" : "lazy"}
-          fetchPriority={first ? "high" : "auto"}
-          className="h-full w-full object-cover"
-        />
-      </picture>
+      {cover.src ? (
+        <picture className="absolute inset-0 block">
+          {cover.mobileSrc && <source media="(max-width: 767px)" srcSet={cover.mobileSrc} />}
+          <img
+            src={cover.src}
+            alt={cover.alt}
+            loading={first ? "eager" : "lazy"}
+            fetchPriority={first ? "high" : "auto"}
+            className="h-full w-full object-cover"
+          />
+        </picture>
+      ) : (
+        // 첫 장면 사진이 없는 영상 — 영상이 올 때까지 어두운 바탕. 설명은 화면 낭독기에만
+        <div className="bg-primary absolute inset-0">
+          <span className="sr-only">{cover.alt}</span>
+        </div>
+      )}
+      {video && <CoverVideo video={video} play={active && !reduced && !stopped} armed={armed} />}
       {/* 위(헤더 · 첫 줄)와 아래(제목 · 버튼) 글자가 어떤 사진 위에서도 읽히게 */}
       <div
         aria-hidden="true"
@@ -95,15 +183,31 @@ function ImageSlide({ slide, first }: { slide: HeroSlide; first: boolean }) {
           </p>
         )}
         {slide.subtitle && <p className="mt-2 text-sm text-white/85 md:mt-3 md:text-lg">{slide.subtitle}</p>}
-        <Primary
-          href={slide.primary.href}
-          className="group bg-accent text-on-accent hover:bg-accent-hover tracking-button ease-fluid mt-5 inline-flex h-11 items-center gap-2 rounded-full pl-5 pr-1.5 text-xs transition-all duration-500 hover:-translate-y-px active:scale-[0.98] md:mt-7 md:h-12 md:gap-3 md:pl-6 md:pr-2 md:text-sm"
-        >
-          {slide.primary.label}
-          <span className="bg-on-accent/12 ease-fluid flex h-7 w-7 items-center justify-center rounded-full transition-transform duration-500 group-hover:-translate-y-px group-hover:translate-x-1 group-hover:scale-105 md:h-8 md:w-8">
-            <ArrowUpRight size={11} weight="light" aria-hidden="true" />
-          </span>
-        </Primary>
+        {/* 버튼 줄. 영상이면 옆에 멈춤 버튼 — 끝없이 움직이는 화면은 멈출 수 있어야 한다(WCAG 2.2.2).
+            글자 블록 안에 둔다: 화면 오른쪽 아래는 떠 있는 퀵메뉴 자리라 거기 두면 눌리지 않는다.
+            움직임을 줄인 사용자에게는 처음부터 멈춰 있어 감춘다 */}
+        <div className="mt-5 flex items-center gap-3 md:mt-7">
+          <Primary
+            href={slide.primary.href}
+            className="group bg-accent text-on-accent hover:bg-accent-hover tracking-button ease-fluid inline-flex h-11 items-center gap-2 rounded-full pl-5 pr-1.5 text-xs transition-all duration-500 hover:-translate-y-px active:scale-[0.98] md:h-12 md:gap-3 md:pl-6 md:pr-2 md:text-sm"
+          >
+            {slide.primary.label}
+            <span className="bg-on-accent/12 ease-fluid flex h-7 w-7 items-center justify-center rounded-full transition-transform duration-500 group-hover:-translate-y-px group-hover:translate-x-1 group-hover:scale-105 md:h-8 md:w-8">
+              <ArrowUpRight size={11} weight="light" aria-hidden="true" />
+            </span>
+          </Primary>
+          {video && !reduced && (
+            <button
+              type="button"
+              onClick={() => setStopped((s) => !s)}
+              aria-label={stopped ? "배너 영상 재생" : "배너 영상 멈춤"}
+              aria-pressed={stopped}
+              className="ease-fluid inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/40 text-white/85 transition-colors duration-300 hover:border-white hover:text-white focus-visible:border-white md:h-12 md:w-12"
+            >
+              {stopped ? <Play size={13} weight="light" aria-hidden="true" /> : <Pause size={13} weight="light" aria-hidden="true" />}
+            </button>
+          )}
+        </div>
       </div>
     </>
   );
@@ -269,7 +373,7 @@ export function HeroSlides({ slides, autoplay = true }: { slides: HeroSlide[]; a
               style={{ opacity: on ? 1 : 0, zIndex: on ? 1 : 0, pointerEvents: on ? undefined : "none" }}
             >
               {slide.layout === "image" ? (
-                <ImageSlide slide={slide} first={i === 0} />
+                <ImageSlide slide={slide} first={i === 0} active={on} />
               ) : (
                 <Slide slide={slide} first={i === 0} />
               )}
