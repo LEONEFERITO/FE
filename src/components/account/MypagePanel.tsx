@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { AccountSettings } from "@/components/account/AccountSettings";
 import { MyOrders } from "@/components/shop/MyOrders";
@@ -27,9 +27,55 @@ import { pendingLabel } from "@/lib/pending";
  * TODO(고객확인) 등급 — 2026-10-06 구조표 "체스판 말 등급별로 나눌 예정" (폰 · 나이트 · 비숍 · 룩 · 퀸 · 킹 등).
  *   등급 이름 · 승급 기준(누적 구매금액?) · 혜택이 정해지면 위 "등급" 칸에 말 아이콘과 함께 표시한다.
  *
- * 2026-10-06 구조표의 CLIENT SERVICES — MY ACCOUNT 는 이 페이지, ORDER STATUS · ORDER HISTORY 는 MyOrders 의
- * 두 구간(#order-status · #orders), RETURNS & EXCHANGES 는 아래 #returns 구간이다.
+ * ── 탭 하나에 화면 하나 (2026-10-13 "너무 복잡하다, 탭별로 해당 화면만") ──────────────
+ * 2026-10-06 구조표의 CLIENT SERVICES 네 칸이 그대로 네 탭이다. 한 번에 한 화면만 보인다:
+ *   내 정보      MY ACCOUNT           등급 · 포인트 · 누적 구매금액 · 내 정보 수정 · 비밀번호 · 탈퇴   /mypage/
+ *   주문 내역    ORDER HISTORY        전체 주문                                                    /mypage/#orders
+ *   주문 현황    ORDER STATUS         제작 · 배송 중인 주문                                         /mypage/#order-status
+ *   교환 · 반품  RETURNS & EXCHANGES  신청 방법                                                    /mypage/#returns
+ * 고른 탭은 주소의 # 에 남는다 — 새로고침 · 공유해도 같은 탭, 메뉴의 링크(siteNav)도 그 탭을 바로 연다.
+ * 같은 페이지에서 메뉴 링크를 누르면 Next 가 # 만 바꾸고 이벤트를 내지 않아서, 클릭 뒤에 주소를 다시 읽는다.
+ * 휴대폰에서도 네 탭이 한 줄에 들어간다(가로 스크롤 없이 4칸).
  */
+
+const TABS = [
+  { id: "account", hash: "", label: "내 정보" },
+  { id: "orders", hash: "orders", label: "주문 내역" },
+  { id: "order-status", hash: "order-status", label: "주문 현황" },
+  { id: "returns", hash: "returns", label: "교환 · 반품" },
+] as const;
+type TabId = (typeof TABS)[number]["id"];
+
+const TAB_EVENT = "mypage:tab";
+
+function subscribeHash(onChange: () => void) {
+  // 같은 페이지 안 링크(Next 의 pushState)는 hashchange 를 내지 않고, 주소도 클릭 직후가 아니라 조금 뒤에 바뀐다 —
+  // 클릭 뒤 1초 동안 몇 번 다시 읽는다(바뀌지 않았으면 다시 그리지 않는다)
+  const onClick = () => [0, 100, 300, 800].forEach((ms) => window.setTimeout(onChange, ms));
+  window.addEventListener("hashchange", onChange);
+  window.addEventListener("popstate", onChange);
+  window.addEventListener(TAB_EVENT, onChange);
+  document.addEventListener("click", onClick);
+  return () => {
+    window.removeEventListener("hashchange", onChange);
+    window.removeEventListener("popstate", onChange);
+    window.removeEventListener(TAB_EVENT, onChange);
+    document.removeEventListener("click", onClick);
+  };
+}
+
+function tabOf(hash: string): TabId {
+  const h = hash.replace(/^#/, "");
+  return TABS.find((t) => t.hash && t.hash === h)?.id ?? "account";
+}
+
+function selectTab(id: TabId) {
+  const hash = TABS.find((t) => t.id === id)?.hash ?? "";
+  const url = `${window.location.pathname}${window.location.search}${hash ? `#${hash}` : ""}`;
+  // 탭을 바꿀 때마다 방문 기록을 쌓지 않는다 — 뒤로 가기는 마이페이지에 오기 전 화면으로
+  window.history.replaceState(window.history.state, "", url);
+  window.dispatchEvent(new Event(TAB_EVENT));
+}
 
 type State =
   | { kind: "offline" }
@@ -49,10 +95,6 @@ export function MypagePanel() {
       .then((user) => {
         if (!alive) return;
         setState(user ? { kind: "member", user } : { kind: "guest" });
-        // 메뉴의 RETURNS & EXCHANGES(/mypage/#returns) — 구간은 회원 화면이 그려진 뒤에 생긴다
-        if (user && window.location.hash === "#returns") {
-          requestAnimationFrame(() => document.getElementById("returns")?.scrollIntoView());
-        }
       })
       .catch(() => alive && setState({ kind: "guest" }));
     return () => {
@@ -136,6 +178,58 @@ export function MypagePanel() {
   }
 
   const { user } = state;
+  return (
+    <MemberView
+      user={user}
+      onSignOut={handleSignOut}
+      onNameChanged={(name) => setState({ kind: "member", user: { ...user, name } })}
+      onWithdrawn={() => setState({ kind: "guest", withdrawn: true })}
+    />
+  );
+}
+
+function MemberView({
+  user,
+  onSignOut,
+  onNameChanged,
+  onWithdrawn,
+}: {
+  user: CurrentUser;
+  onSignOut: () => void;
+  onNameChanged: (name: string) => void;
+  onWithdrawn: () => void;
+}) {
+  const hash = useSyncExternalStore(
+    subscribeHash,
+    () => window.location.hash,
+    () => "",
+  );
+  const tab = tabOf(hash);
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  /** ← → Home End 로 탭 사이를 옮긴다(WAI-ARIA 탭 패턴). 옮기면 바로 그 탭이 열린다 */
+  function onTabKey(e: React.KeyboardEvent, index: number) {
+    const last = TABS.length - 1;
+    const next =
+      e.key === "ArrowRight"
+        ? index === last
+          ? 0
+          : index + 1
+        : e.key === "ArrowLeft"
+          ? index === 0
+            ? last
+            : index - 1
+          : e.key === "Home"
+            ? 0
+            : e.key === "End"
+              ? last
+              : null;
+    if (next === null) return;
+    e.preventDefault();
+    selectTab(TABS[next].id);
+    tabRefs.current[next]?.focus();
+  }
+
   const summary = [
     {
       label: "등급",
@@ -155,11 +249,11 @@ export function MypagePanel() {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
+    <div className="flex flex-col gap-6 md:gap-8">
+      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+        <div className="min-w-0">
           <p className="font-display text-primary text-2xl">{user.name} 님</p>
-          <p className="text-muted mt-1 text-xs">{user.email}</p>
+          <p className="text-muted mt-1 break-all text-xs">{user.email}</p>
         </div>
         <div className="flex flex-wrap items-center gap-5">
           {isAdmin(user) && (
@@ -173,7 +267,7 @@ export function MypagePanel() {
           )}
           <button
             type="button"
-            onClick={handleSignOut}
+            onClick={onSignOut}
             className="text-muted hover:text-accent ease-fluid min-h-11 text-xs underline underline-offset-4 transition-colors duration-300"
           >
             로그아웃
@@ -181,64 +275,94 @@ export function MypagePanel() {
         </div>
       </div>
 
-      <dl className="grid gap-4 md:grid-cols-3">
-        {summary.map((s) => (
-          <div
-            key={s.label}
-            className="border-subtle bg-surface rounded-2xl border p-6"
-          >
-            <dt className="text-muted text-2xs">{s.label}</dt>
-            <dd className="font-display text-primary mt-2 text-xl">
-              {s.value}
-            </dd>
-            <dd className="text-secondary mt-2 text-xs leading-relaxed">
-              {s.note}
-            </dd>
+      {/* 탭 — 휴대폰에서도 네 칸이 한 줄. 지금 탭은 글자색과 아래 줄로 */}
+      <div role="tablist" aria-label="마이페이지" className="border-subtle grid grid-cols-4 border-b">
+        {TABS.map((t, i) => {
+          const on = t.id === tab;
+          return (
+            <button
+              key={t.id}
+              ref={(el) => {
+                tabRefs.current[i] = el;
+              }}
+              type="button"
+              role="tab"
+              id={`mypage-tab-${t.id}`}
+              aria-selected={on}
+              aria-controls={`mypage-panel-${t.id}`}
+              tabIndex={on ? 0 : -1}
+              onClick={() => selectTab(t.id)}
+              onKeyDown={(e) => onTabKey(e, i)}
+              className={`ease-fluid -mb-px flex min-h-12 items-center justify-center border-b-2 px-1 text-center text-xs leading-tight transition-colors duration-300 md:min-h-14 md:text-sm ${
+                on ? "border-accent text-primary font-medium" : "text-muted hover:text-primary border-transparent"
+              }`}
+            >
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div role="tabpanel" id={`mypage-panel-${tab}`} aria-labelledby={`mypage-tab-${tab}`}>
+        {tab === "account" && (
+          <div className="flex flex-col gap-6">
+            <dl className="border-subtle bg-surface divide-subtle grid divide-y rounded-2xl border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+              {summary.map((s) => (
+                // 휴대폰은 한 줄씩(이름 왼쪽 · 값 오른쪽) — 세 칸을 세로로 쌓으면 화면 하나를 다 쓴다. 설명은 넓은 화면에서만
+                <div key={s.label} className="flex items-baseline justify-between gap-4 px-5 py-4 sm:block sm:p-6">
+                  <dt className="text-muted text-2xs">{s.label}</dt>
+                  <dd className="font-display text-primary text-base sm:mt-1.5 sm:text-lg md:text-xl">{s.value}</dd>
+                  <dd className="text-secondary text-2xs mt-1.5 hidden leading-relaxed sm:block">{s.note}</dd>
+                </div>
+              ))}
+            </dl>
+            <AccountSettings onNameChanged={onNameChanged} onWithdrawn={onWithdrawn} />
           </div>
-        ))}
-      </dl>
+        )}
 
-      <MyOrders />
+        {tab === "orders" && <MyOrders view="history" />}
+        {tab === "order-status" && <MyOrders view="status" />}
 
-      {/* RETURNS & EXCHANGES — 신청은 주문 상세에서 한다. 여기는 어디서 어떻게 하는지 알려 주는 자리 */}
-      <section
-        id="returns"
-        className="border-subtle bg-surface scroll-mt-20 rounded-2xl border p-6 md:scroll-mt-24 md:p-8"
-        aria-labelledby="returns-heading"
-      >
-        <p className="text-accent text-2xs tracking-label">RETURNS &amp; EXCHANGES</p>
-        <h2 id="returns-heading" className="text-primary mt-1 text-sm font-medium">
-          교환 · 반품
-        </h2>
-        <ol className="text-secondary mt-3 flex list-decimal flex-col gap-1.5 pl-5 text-sm leading-relaxed">
-          <li>배송이 끝난 주문을 위 주문 내역에서 엽니다.</li>
-          <li>주문 상세의 <b className="text-primary">교환 · 반품 신청</b>에서 사유와 사진을 남깁니다.</li>
-          <li>접수 → 승인 → 회수 → 완료 순서로 진행 상황이 그 주문 상세에 쌓입니다.</li>
-        </ol>
-        <p className="text-muted mt-3 text-xs leading-relaxed">
-          신청 기간과 기준은{" "}
-          <Link href="/terms#article-16" className="text-accent hover:text-accent-hover underline underline-offset-4">
-            이용약관 제16조
-          </Link>
-          에 있습니다. 기간이 지났거나 궁금한 점은{" "}
-          <a
-            href={KAKAO_CHANNEL.chat}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-accent hover:text-accent-hover underline underline-offset-4"
-          >
-            카카오톡 채널<span className="sr-only">(새 창)</span>
-          </a>
-          로 알려 주세요.
-        </p>
-      </section>
-
-      <AccountSettings
-        onNameChanged={(name) =>
-          setState({ kind: "member", user: { ...user, name } })
-        }
-        onWithdrawn={() => setState({ kind: "guest", withdrawn: true })}
-      />
+        {/* RETURNS & EXCHANGES — 신청은 주문 상세에서 한다. 여기는 어디서 어떻게 하는지 알려 주는 자리 */}
+        {tab === "returns" && (
+          <section className="border-subtle bg-surface rounded-2xl border p-5 md:p-8" aria-labelledby="returns-heading">
+            <p className="text-accent text-2xs tracking-label">RETURNS &amp; EXCHANGES</p>
+            <h2 id="returns-heading" className="text-primary mt-1 text-sm font-medium">
+              교환 · 반품
+            </h2>
+            <ol className="text-secondary mt-3 flex list-decimal flex-col gap-1.5 pl-5 text-sm leading-relaxed">
+              <li>배송이 끝난 주문을 「주문 내역」에서 엽니다.</li>
+              <li>
+                주문 상세의 <b className="text-primary">교환 · 반품 신청</b>에서 사유와 사진을 남깁니다.
+              </li>
+              <li>접수 → 승인 → 회수 → 완료 순서로 진행 상황이 그 주문 상세에 쌓입니다.</li>
+            </ol>
+            <button
+              type="button"
+              onClick={() => selectTab("orders")}
+              className="border-interactive text-primary hover:border-accent hover:text-accent ease-fluid mt-5 inline-flex min-h-11 items-center rounded-full border px-5 text-xs transition-colors duration-300"
+            >
+              주문 내역 보기
+            </button>
+            <p className="text-muted mt-4 text-xs leading-relaxed">
+              신청 기간과 기준은{" "}
+              <Link href="/terms#article-16" className="text-accent hover:text-accent-hover underline underline-offset-4">
+                이용약관 제16조
+              </Link>
+              에 있습니다. 기간이 지났거나 궁금한 점은{" "}
+              <a
+                href={KAKAO_CHANNEL.chat}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-accent hover:text-accent-hover underline underline-offset-4"
+              >
+                카카오톡 채널<span className="sr-only">(새 창)</span>
+              </a>
+              로 알려 주세요.
+            </p>
+          </section>
+        )}
+      </div>
     </div>
   );
 }

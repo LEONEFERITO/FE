@@ -22,6 +22,10 @@ import {
  * 한 폼에 몰면 비밀번호 칸을 비워 둔 채 이름만 바꾸려는 사람이 "현재 비밀번호" 를
  * 요구받는다. 무엇을 바꾸는지에 따라 확인하는 것이 다르다.
  *
+ * ── 비밀번호 변경도 접어 둔다 (2026-10-13 "마이페이지가 너무 길다") ─────────────
+ * 자주 하는 일이 아니다. 펼쳐 두면 휴대폰에서 입력칸 세 개가 화면을 다 차지한다. 바꾼 직후에는 결과 문구가
+ * 보이도록 펼친 채로 둔다(닫는 건 손님이).
+ *
  * ── 탈퇴는 접어 둔다 ────────────────────────────────────
  * 되돌릴 수 없는 동작이 화면에 늘 펼쳐져 있을 이유가 없다. 펼치면 무엇이 지워지는지 먼저
  * 읽히고, 확인 체크를 해야 버튼이 눌린다. 버튼은 강조색이 아니다 — 권하는 동작이 아니다.
@@ -212,11 +216,12 @@ function PasswordForm({ email }: { email: string }) {
   }
 
   return (
-    <section className={panel} aria-labelledby="password-heading">
-      <h2 id="password-heading" className="text-primary text-sm font-medium">
-        비밀번호 변경
-      </h2>
-      <form onSubmit={submit} noValidate className="mt-6 grid gap-5 md:grid-cols-3">
+    <details className={panel}>
+      <summary className="text-primary hover:text-accent ease-fluid flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 text-sm font-medium transition-colors duration-300 [&::-webkit-details-marker]:hidden">
+        <span id="password-heading">비밀번호 변경</span>
+        <span className="text-muted text-2xs font-normal">눌러서 열기</span>
+      </summary>
+      <form onSubmit={submit} noValidate aria-labelledby="password-heading" className="mt-4 grid gap-5 md:grid-cols-3">
         <Field
           label="현재 비밀번호"
           name="current-password"
@@ -252,7 +257,7 @@ function PasswordForm({ email }: { email: string }) {
           {result && <Notice tone={result.tone}>{result.text}</Notice>}
         </div>
       </form>
-    </section>
+    </details>
   );
 }
 
