@@ -11,6 +11,8 @@
  * 공개 키는 서버가 준다 — 결제사나 키를 바꿔도 화면을 다시 빌드하지 않는다. 비밀 키는 서버에만 있다.
  */
 
+import { publishCartCount } from "@/lib/cartCount";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
 export const SHOP_CONNECTED = API_BASE.length > 0;
 
@@ -107,13 +109,20 @@ export interface Cart {
 
 export const MAX_QUANTITY = 10;
 
-export const getCart = () => request<Cart>("GET", "/api/cart");
+/** 장바구니를 돌려받을 때마다 헤더의 CART (n) 을 고친다(lib/cartCount). */
+const counted = (p: Promise<Cart>) =>
+  p.then((cart) => {
+    publishCartCount(cart.items.length);
+    return cart;
+  });
+
+export const getCart = () => counted(request<Cart>("GET", "/api/cart"));
 export const addToCart = (slug: string, size: string, quantity = 1) =>
-  request<Cart>("POST", "/api/cart/items", { slug, size, quantity });
+  counted(request<Cart>("POST", "/api/cart/items", { slug, size, quantity }));
 export const changeCartQuantity = (id: string, quantity: number) =>
-  request<Cart>("PATCH", `/api/cart/items/${encodeURIComponent(id)}`, { quantity });
+  counted(request<Cart>("PATCH", `/api/cart/items/${encodeURIComponent(id)}`, { quantity }));
 export const removeCartLine = (id: string) =>
-  request<Cart>("DELETE", `/api/cart/items/${encodeURIComponent(id)}`);
+  counted(request<Cart>("DELETE", `/api/cart/items/${encodeURIComponent(id)}`));
 
 // ── 주문 ────────────────────────────────────────────────────
 
@@ -235,6 +244,17 @@ export interface Quote {
   remoteAreaLabel: string | null;
   freeShippingThresholdKrw: number | null;
 }
+
+/** 최근 배송지 — 결제까지 간 주문의 받는 곳, 최근 것부터 5곳. 주문서에서 고른다. */
+export interface RecentAddress {
+  recipientName: string;
+  recipientPhone: string;
+  zipCode: string;
+  address1: string;
+  address2: string | null;
+  deliveryMemo: string | null;
+}
+export const recentAddresses = () => request<RecentAddress[]>("GET", "/api/orders/recent-addresses");
 
 /** 주문서 화면 금액 — 고른 줄로 서버가 계산한다(주문서 작성과 같은 계산). 우편번호를 주면 제주 · 도서산간 추가까지. */
 export const quoteOrder = (cartItemIds: string[], zipCode?: string) =>

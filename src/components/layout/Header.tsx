@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import { Logo } from "@/components/brand/Logo";
 import { useCategoryGroups } from "@/components/layout/CategoryOrder";
 import { ABOUT_GROUPS, ABOUT_LABEL, type NavLink } from "@/data/siteNav";
+import { useCartCount } from "@/lib/cartCount";
+import { SHOP_CONNECTED, getCart } from "@/lib/shop";
 
 /**
  * 전역 헤더 — 화면 폭을 가득 채우는 배너.
@@ -98,13 +100,23 @@ function NavAnchor({
 /** 오른쪽 묶음. 개인 영역이라 탐색 메뉴와 나눠 둔다. */
 const ACCOUNT_NAV = [
   { href: "/mypage", label: "MY" },
-  { href: "/cart", label: "CART (0)" },
+  { href: "/cart", label: "CART" },
 ] as const;
+
+/** CART 뒤에 장바구니 줄 수 — CART (2). */
+const accountLabel = (item: { href: string; label: string }, cartCount: number) =>
+  item.href === "/cart" ? `CART (${cartCount})` : item.label;
 
 export function Header({ overHero = false }: { overHero?: boolean }) {
   const [open, setOpen] = useState(false);
   // 분류 메뉴 — 관리자 › 분류 순서대로(빌드 때 받은 값, components/layout/CategoryOrder)
   const CATEGORY_GROUPS = useCategoryGroups();
+  // 장바구니 줄 수 — 페이지를 열 때 한 번 받고, 이후는 담기 · 지우기가 돌려준 장바구니로 바뀐다(lib/cartCount)
+  const cartCount = useCartCount();
+  useEffect(() => {
+    if (!SHOP_CONNECTED) return;
+    getCart().catch(() => {}); // 로그인 전이면 401 — 0 으로 둔다
+  }, []);
   // 히어로 위에 떠 있는 동안 true. overHero 가 아니면 항상 false(=평소 모습).
   const [onHero, setOnHero] = useState(overHero);
   // 히어로의 지금 장면이 사진 한 장(어두운 바탕)인가 — HeroSlides 가 data-hero-tone 으로 알린다
@@ -314,7 +326,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
                 href={item.href}
                 className="text-2xs tracking-label text-accent-deep hover:text-accent ease-fluid hidden min-h-11 min-w-11 items-center justify-center whitespace-nowrap px-1 transition-colors duration-700 sm:inline-flex"
               >
-                {item.label}
+                {accountLabel(item, cartCount)}
               </Link>
             ))}
 
@@ -434,7 +446,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
                   onClick={() => setOpen(false)}
                   className="text-secondary hover:text-accent tracking-label ease-fluid inline-flex min-h-11 items-center text-xs transition-colors duration-500"
                 >
-                  {item.label}
+                  {accountLabel(item, cartCount)}
                 </Link>
               </li>
             ))}

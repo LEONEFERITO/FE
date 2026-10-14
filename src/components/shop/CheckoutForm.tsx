@@ -16,10 +16,12 @@ import {
   openPaymentWindow,
   paymentReadiness,
   quoteOrder,
+  recentAddresses,
   won,
   type CartLine,
   type PaymentReadiness,
   type Quote,
+  type RecentAddress,
 } from "@/lib/shop";
 import { SHIPPING_LINES } from "@/data/shipping";
 
@@ -78,6 +80,19 @@ export function CheckoutForm() {
     }
   }
   const [memo, setMemo] = useState("");
+  // 최근 배송지 — 결제까지 간 주문의 받는 곳. 고르면 여섯 칸이 한 번에 채워진다
+  const [recent, setRecent] = useState<RecentAddress[]>([]);
+  const [picked, setPicked] = useState<number | null>(null);
+  function pickRecent(i: number) {
+    const a = recent[i];
+    setPicked(i);
+    setName(a.recipientName);
+    setPhone(a.recipientPhone);
+    setZipCode(a.zipCode);
+    setAddress1(a.address1);
+    setAddress2(a.address2 ?? "");
+    setMemo(a.deliveryMemo ?? "");
+  }
   const [agree, setAgree] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [pending, setPending] = useState(false);
@@ -99,9 +114,20 @@ export function CheckoutForm() {
           paymentReadiness(),
         ]);
         if (alive) setLoad({ kind: "ready", lines, quote, readiness });
-        // 받는 분 기본값은 내 정보. 다른 사람에게 보내면 고치면 된다.
-        const profile = await fetchProfile().catch(() => null);
-        if (alive && profile) {
+        // 받는 분 기본값 — 최근 배송지가 있으면 가장 최근 것, 없으면 내 정보. 다른 사람에게 보내면 고치면 된다.
+        const [profile, addresses] = await Promise.all([fetchProfile().catch(() => null), recentAddresses().catch(() => [])]);
+        if (!alive) return;
+        setRecent(addresses);
+        if (addresses.length > 0) {
+          const a = addresses[0];
+          setPicked(0);
+          setName((v) => v || a.recipientName);
+          setPhone((v) => v || a.recipientPhone);
+          setZipCode((v) => v || a.zipCode);
+          setAddress1((v) => v || a.address1);
+          setAddress2((v) => v || a.address2 || "");
+          setMemo((v) => v || a.deliveryMemo || "");
+        } else if (profile) {
           setName((v) => v || profile.name);
           setPhone((v) => v || profile.phone || "");
         }
@@ -234,33 +260,59 @@ export function CheckoutForm() {
           </ul>
         </section>
 
-        <fieldset className="flex flex-col gap-5">
-          <legend className="text-primary mb-5 text-sm font-medium">받는 분</legend>
-          <div className="grid gap-5 md:grid-cols-2">
+        {/*
+          받는 분 — 모바일에서 한 화면에 들어오게 칸을 묶는다:
+          이름 · 연락처 한 줄 / 우편번호 · [주소 검색] 한 줄 / 주소 / 상세 주소 · 요청사항 한 줄(sm 이상).
+          최근 배송지가 있으면 맨 위에서 고른다 — 다시 적지 않게.
+        */}
+        <fieldset className="flex flex-col gap-4">
+          <legend className="text-primary mb-4 text-sm font-medium">받는 분</legend>
+          {recent.length > 0 && (
+            <div role="radiogroup" aria-label="최근 배송지" className="flex flex-wrap gap-2">
+              {recent.map((a, i) => (
+                <button
+                  key={`${a.zipCode}-${a.address1}-${a.address2 ?? ""}`}
+                  type="button"
+                  role="radio"
+                  aria-checked={picked === i}
+                  onClick={() => pickRecent(i)}
+                  className={`ease-fluid inline-flex min-h-11 max-w-full items-center gap-2 rounded-full border px-4 text-left text-xs transition-colors duration-300 ${
+                    picked === i ? "border-accent bg-velvet/40 text-primary" : "border-interactive text-secondary hover:border-accent"
+                  }`}
+                >
+                  <span className="shrink-0">{a.recipientName}</span>
+                  <span className="text-muted truncate">{a.address1}{a.address2 ? ` ${a.address2}` : ""}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
             <Field label="이름" name="recipient-name" autoComplete="name" value={name}
-              onChange={(e) => setName(e.target.value)} error={show("name")} maxLength={50} />
+              onChange={(e) => { setName(e.target.value); setPicked(null); }} error={show("name")} maxLength={50} />
             <Field label="연락처" name="recipient-phone" type="tel" inputMode="tel" autoComplete="tel"
-              value={phone} onChange={(e) => setPhone(e.target.value)} error={show("phone")}
+              value={phone} onChange={(e) => { setPhone(e.target.value); setPicked(null); }} error={show("phone")}
               placeholder="010-1234-5678" />
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 md:grid-cols-[160px_auto_minmax(0,1fr)] md:gap-4">
+            <Field label="우편번호" name="zip" inputMode="numeric" autoComplete="postal-code" value={zipCode}
+              onChange={(e) => { setZipCode(e.target.value); setPicked(null); }} error={show("zipCode")} maxLength={5} />
             <button type="button" onClick={findAddress}
-              className="border-interactive text-primary hover:border-accent ease-fluid inline-flex min-h-11 w-fit items-center gap-2 rounded-full border px-5 text-sm transition-colors duration-300">
+              className={`border-interactive text-primary hover:border-accent ease-fluid inline-flex min-h-12 items-center gap-2 rounded-full border px-5 text-sm whitespace-nowrap transition-colors duration-300 ${show("zipCode") ? "mb-7" : ""}`}>
               <MagnifyingGlass size={15} weight="light" aria-hidden="true" />
               주소 검색
             </button>
-            {addressSearchError && <p className="text-muted text-2xs">{addressSearchError}</p>}
+            <div className="col-span-2 md:col-span-1">
+              <Field label="주소" name="address1" autoComplete="address-line1" value={address1}
+                onChange={(e) => { setAddress1(e.target.value); setPicked(null); }} error={show("address1")} maxLength={200} />
+            </div>
           </div>
-          <div className="grid gap-5 md:grid-cols-[160px_minmax(0,1fr)]">
-            <Field label="우편번호" name="zip" inputMode="numeric" autoComplete="postal-code" value={zipCode}
-              onChange={(e) => setZipCode(e.target.value)} error={show("zipCode")} maxLength={5} />
-            <Field label="주소" name="address1" autoComplete="address-line1" value={address1}
-              onChange={(e) => setAddress1(e.target.value)} error={show("address1")} maxLength={200} />
+          {addressSearchError && <p className="text-muted text-2xs -mt-2">{addressSearchError}</p>}
+          <div className="grid gap-3 sm:grid-cols-2 md:gap-4">
+            <Field label="상세 주소 (선택)" name="address2" autoComplete="address-line2" value={address2}
+              onChange={(e) => { setAddress2(e.target.value); setPicked(null); }} maxLength={200} />
+            <Field label="배송 요청사항 (선택)" name="memo" value={memo}
+              onChange={(e) => setMemo(e.target.value)} maxLength={100} placeholder="문 앞에 두어 주세요" />
           </div>
-          <Field label="상세 주소 (선택)" name="address2" autoComplete="address-line2" value={address2}
-            onChange={(e) => setAddress2(e.target.value)} maxLength={200} />
-          <Field label="배송 요청사항 (선택)" name="memo" value={memo}
-            onChange={(e) => setMemo(e.target.value)} maxLength={100} placeholder="문 앞에 두어 주세요" />
         </fieldset>
       </div>
 

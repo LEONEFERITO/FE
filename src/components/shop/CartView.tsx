@@ -189,7 +189,7 @@ export function CartView({ empty }: { empty: React.ReactNode }) {
           <Row label="상품 금액" value={won(cart.itemsAmountKrw)} />
           <Row
             label="배송비"
-            value={cart.shippingFeeKrw == null ? pendingLabel("배송비 정책") : won(cart.shippingFeeKrw)}
+            value={cart.shippingFeeKrw == null ? pendingLabel("배송비 정책") : cart.shippingFeeKrw === 0 ? "무료" : won(cart.shippingFeeKrw)}
             muted={cart.shippingFeeKrw == null}
           />
           {cart.freeShippingThresholdKrw != null && (
