@@ -11,6 +11,7 @@ import { MEASURE_GUIDE } from "@/data/fit";
 import { shareMetadata } from "@/lib/metadata";
 import { pendingHint, pendingLabel } from "@/lib/pending";
 import { LINE_LABEL } from "@/types/product";
+import { SHIPPING_LINES } from "@/data/shipping";
 
 /**
  * 브랜드 이용 메뉴얼 (요구사항 2-2).
@@ -181,8 +182,11 @@ export default function GuidePage() {
                     제작 기간은 상품마다 다르며, 각 상품 페이지와 결제 전에 표시됩니다. 제작이 끝나면 발송하고,
                     진행 상황은 <Link href="/mypage/#order-status" className="text-accent hover:text-accent-hover underline underline-offset-4">마이페이지</Link>에서 확인하실 수 있습니다.
                   </p>
-                  {/* TODO(고객확인) 출고 예정일 기준 · 택배사 · 배송비 */}
-                  <p className="text-muted text-xs">{pendingHint("배송 안내", "출고 예정일 · 택배사 · 배송비")}</p>
+                  <ul className="flex flex-col gap-1 text-xs leading-relaxed">
+                    <li>{SHIPPING_LINES.fee}</li>
+                    <li>{SHIPPING_LINES.remote}</li>
+                    <li className="text-muted">교환 · 반품: {SHIPPING_LINES.exchangeFee}</li>
+                  </ul>
                 </Card>
               </Reveal>
               <Reveal delay={180}>

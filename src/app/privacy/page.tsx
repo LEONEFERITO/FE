@@ -10,7 +10,7 @@ import { shareMetadata } from "@/lib/metadata";
 /**
  * 개인정보처리방침. 본문은 data/privacy.ts — 이 사이트가 실제로 수집하는 것만 적었다.
  *
- * TODO(고객확인) 수탁업체(택배사 · 메일 발송). 사이트 전체 noindex 와 별개로 확정 전까지 색인하지 않는다.
+ * TODO(고객확인) 수탁업체(메일 발송). 사이트 전체 noindex 와 별개로 확정 전까지 색인하지 않는다.
  */
 
 export const metadata: Metadata = shareMetadata({

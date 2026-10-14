@@ -1,6 +1,7 @@
 import { Warning } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { Eyebrow } from "@/components/ui/Eyebrow";
+import { SHIPPING_LINES } from "@/data/shipping";
 
 /**
  * 배송 · 교환 · 상담 안내.
@@ -34,8 +35,8 @@ interface Item {
 const CORE: Item = {
   no: "01",
   title: "교환 · 반품",
-  body: null, // TODO(고객확인) 신청 기간 · 왕복 배송비 부담 · 불가 조건
-  todo: "신청 기간과 배송비 부담 기준을 확인 중입니다",
+  body: `${SHIPPING_LINES.exchange} ${SHIPPING_LINES.exchangeFee} ${SHIPPING_LINES.condition}`,
+  todo: "",
   href: "/qna/",
   linkLabel: "교환 · 반품 안내",
 };
@@ -44,8 +45,8 @@ const SIDE: Item[] = [
   {
     no: "02",
     title: "배송",
-    body: null, // TODO(고객확인) 배송비 · 발송 기준일 · 도서산간
-    todo: "배송비와 발송 기준을 확인 중입니다",
+    body: `${SHIPPING_LINES.fee}. ${SHIPPING_LINES.remote}. ${SHIPPING_LINES.dispatch}`,
+    todo: "",
   },
   {
     no: "03",

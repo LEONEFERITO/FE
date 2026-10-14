@@ -223,14 +223,22 @@ export interface CreatedOrder {
 
 export interface Quote {
   itemsAmountKrw: number;
+  /** 기본 + 제주 · 도서산간 추가 */
   shippingFeeKrw: number;
   totalAmountKrw: number;
   longestLeadTimeDays: number;
+  /** 기본 배송비(무료 기준 이상이면 0) */
+  shippingBaseKrw: number;
+  /** 제주 · 도서산간 추가 — 우편번호를 줬을 때만 */
+  remoteExtraKrw: number;
+  /** 예: "제주". 추가가 없으면 null */
+  remoteAreaLabel: string | null;
+  freeShippingThresholdKrw: number | null;
 }
 
-/** 주문서 화면 금액 — 고른 줄로 서버가 계산한다(주문서 작성과 같은 계산). */
-export const quoteOrder = (cartItemIds: string[]) =>
-  request<Quote>("POST", "/api/orders/quote", { cartItemIds });
+/** 주문서 화면 금액 — 고른 줄로 서버가 계산한다(주문서 작성과 같은 계산). 우편번호를 주면 제주 · 도서산간 추가까지. */
+export const quoteOrder = (cartItemIds: string[], zipCode?: string) =>
+  request<Quote>("POST", "/api/orders/quote", zipCode ? { cartItemIds, zipCode } : { cartItemIds });
 
 export type PaymentProvider = "nicepay" | "toss";
 

@@ -193,8 +193,13 @@ export function CartView({ empty }: { empty: React.ReactNode }) {
             muted={cart.shippingFeeKrw == null}
           />
           {cart.freeShippingThresholdKrw != null && (
-            <p className="text-muted text-2xs">{won(cart.freeShippingThresholdKrw)} 이상 무료 배송</p>
+            <p className="text-muted text-2xs">
+              {cart.itemsAmountKrw > 0 && cart.itemsAmountKrw < cart.freeShippingThresholdKrw
+                ? `${won(cart.freeShippingThresholdKrw - cart.itemsAmountKrw)} 더 담으면 무료 배송`
+                : `${won(cart.freeShippingThresholdKrw)} 이상 무료 배송`}
+            </p>
           )}
+          <p className="text-muted text-2xs leading-relaxed">제주 · 도서산간은 주문서에서 주소를 넣으면 추가 배송비가 더해집니다.</p>
           <div className="border-subtle mt-2 border-t pt-3">
             <Row
               label="합계"

@@ -10,6 +10,7 @@ import { SizeSelector } from "@/components/product/SizeSelector";
 import { usePurchase } from "@/components/product/usePurchase";
 import { CATEGORY_LABEL } from "@/types/product";
 import type { Product } from "@/types/product";
+import { SHIPPING_LINES } from "@/data/shipping";
 
 /**
  * 구매 패널.
@@ -179,10 +180,10 @@ export function PurchasePanel({ product }: { product: Product }) {
       */}
       <ul className="mt-2 flex flex-col gap-2">
         {[
-          // TODO(고객확인) D-1 · A-3: 값이 오면 이 배열을 실제 정책 문장으로 바꾼다
-          pendingLabel("배송비 정책"),
-          pendingLabel("교환·반품 기간과 배송비 부담"),
-          pendingLabel("사이즈 교환 조건"),
+          // 배송 · 교환 정책 (data/shipping.ts — 서버 배송비 설정과 같은 값)
+          `${SHIPPING_LINES.fee} · 제주 · 도서산간 추가`,
+          SHIPPING_LINES.exchange,
+          SHIPPING_LINES.exchangeFee,
         ].map((line) => (
           <li key={line} className="text-muted flex gap-2 text-xs">
             <span

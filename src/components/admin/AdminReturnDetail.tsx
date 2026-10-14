@@ -25,6 +25,7 @@ import {
   won,
   type AdminReturnDetail as Detail,
 } from "@/lib/shop";
+import { SHIPPING } from "@/data/shipping";
 
 /**
  * 관리자 교환·반품 상세 · 처리. `?id=` 신청 번호.
@@ -34,7 +35,7 @@ import {
  *   회수 대기 → [회수 완료] · [거절]
  *   회수 완료 → 반품: [환불하고 완료]   교환: [재발송 (송장)] · 둘 다 [거절 (검수 불합격)]
  *
- * 환불액은 관리자가 넣는다 — 왕복 배송비 차감 기준이 아직 없다(TODO(고객확인)).
+ * 환불액은 관리자가 넣는다 — 기본값은 단순 변심이면 왕복 배송비(data/shipping.ts)를 뺀 금액, 판매자 책임이면 그대로.
  * 기본값은 돌려받은 상품 금액이고, 상한은 이 주문에서 아직 환불하지 않은 금액이다(서버도 막는다).
  * 환불은 토스로 바로 나가서 되돌릴 수 없으므로 한 번 더 묻는다.
  */
@@ -268,7 +269,10 @@ export function AdminReturnDetail() {
                 setConfirmRefund(false);
               }} className={`${field} tabular-nums`} />
               <p className="text-muted text-2xs leading-relaxed">
-                돌려받은 상품 금액 {won(itemsValue)} · 최대 {won(refundableKrw)}. 배송비 차감은 아직 기준이 없어 직접 넣습니다.
+                돌려받은 상품 금액 {won(itemsValue)} · 최대 {won(refundableKrw)}.{" "}
+                {SELLER_FAULT.includes(r.reason)
+                  ? "판매자 책임이라 배송비를 빼지 않습니다."
+                  : `단순 변심 · 사이즈라 왕복 배송비 ${won(SHIPPING.changeOfMindRoundTripKrw)}을 뺀 금액이 기본값입니다.`}
               </p>
               {confirmRefund && amountOk && (
                 <p className="text-primary text-2xs leading-relaxed">
@@ -283,7 +287,11 @@ export function AdminReturnDetail() {
               </div>
             </form>
           ) : (
-            <button type="button" className={primary} onClick={() => { setAmount(String(Math.min(itemsValue, refundableKrw))); setMode("refund"); }}>
+            <button type="button" className={primary} onClick={() => {
+              const fee = SELLER_FAULT.includes(r.reason) ? 0 : SHIPPING.changeOfMindRoundTripKrw;
+              setAmount(String(Math.max(0, Math.min(itemsValue - fee, refundableKrw))));
+              setMode("refund");
+            }}>
               환불하고 완료
             </button>
           ))}

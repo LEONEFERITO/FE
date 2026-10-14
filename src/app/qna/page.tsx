@@ -12,6 +12,7 @@ import { KAKAO_CHANNEL } from "@/data/business";
 import { shareMetadata } from "@/lib/metadata";
 import { pendingLabel } from "@/lib/pending";
 import { LINE_LABEL } from "@/types/product";
+import { SHIPPING_LINES } from "@/data/shipping";
 
 /**
  * QnA (요구사항 3).
@@ -59,8 +60,8 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
       <>
         사이즈가 맞지 않으면 교환해 드립니다. 배송을 받은 뒤{" "}
         <Link href="/mypage/" className="text-accent underline underline-offset-4">마이페이지</Link> › 주문
-        상세에서 신청하면 진행 상황을 그 화면에서 볼 수 있습니다. 배송비 부담은 정책이 확정되는 대로
-        안내합니다. <span className="text-muted">{pendingLabel("교환 조건")}</span>
+        상세에서 신청하면 진행 상황을 그 화면에서 볼 수 있습니다. {SHIPPING_LINES.exchange}{" "}
+        {SHIPPING_LINES.exchangeFee} {SHIPPING_LINES.condition}
       </>
     ),
   },
@@ -93,7 +94,11 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
   },
   {
     q: "배송비는 얼마인가요?",
-    a: <span className="text-muted">{pendingLabel("배송비 정책")}</span>,
+    a: (
+      <>
+        {SHIPPING_LINES.fee}입니다. {SHIPPING_LINES.remote}. {SHIPPING_LINES.dispatch}
+      </>
+    ),
   },
 ];
 

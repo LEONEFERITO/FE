@@ -21,6 +21,7 @@ import {
   type PaymentReadiness,
   type Quote,
 } from "@/lib/shop";
+import { SHIPPING_LINES } from "@/data/shipping";
 
 /**
  * 주문서.
@@ -117,6 +118,24 @@ export function CheckoutForm() {
       alive = false;
     };
   }, [itemsParam]);
+
+  // 우편번호 5자리가 정해지면 금액을 다시 받는다 — 제주 · 도서산간 추가 배송비.
+  // 결제 금액은 어차피 서버가 주문서를 만들 때 다시 계산한다(화면 값은 안내용).
+  const lineKey = load.kind === "ready" ? load.lines.map((l) => l.id).join(",") : "";
+  const zip = zipCode.trim();
+  useEffect(() => {
+    if (!lineKey || !/^[0-9]{5}$/.test(zip)) return;
+    let alive = true;
+    const t = window.setTimeout(() => {
+      quoteOrder(lineKey.split(","), zip)
+        .then((q) => alive && setLoad((prev) => (prev.kind === "ready" ? { ...prev, quote: q } : prev)))
+        .catch(() => {});
+    }, 250);
+    return () => {
+      alive = false;
+      window.clearTimeout(t);
+    };
+  }, [lineKey, zip]);
 
   const errors: Record<string, string> = {};
   if (!name.trim()) errors.name = "받는 분 이름을 입력해 주세요.";
@@ -256,8 +275,18 @@ export function CheckoutForm() {
           </div>
           <div className="flex justify-between gap-4">
             <dt className="text-secondary">배송비</dt>
-            <dd className="text-primary tabular-nums">{won(quote.shippingFeeKrw)}</dd>
+            <dd className="text-primary tabular-nums">{quote.shippingBaseKrw === 0 ? "무료" : won(quote.shippingBaseKrw)}</dd>
           </div>
+          {quote.remoteExtraKrw > 0 && (
+            <div className="flex justify-between gap-4">
+              <dt className="text-secondary">{quote.remoteAreaLabel ?? "도서산간"} 추가 배송비</dt>
+              <dd className="text-primary tabular-nums">{won(quote.remoteExtraKrw)}</dd>
+            </div>
+          )}
+          <p className="text-muted text-2xs leading-relaxed">
+            {quote.freeShippingThresholdKrw != null && `${won(quote.freeShippingThresholdKrw)} 이상 무료 배송 · `}
+            {/^[0-9]{5}$/.test(zip) ? "받는 곳 기준으로 계산했습니다." : SHIPPING_LINES.remote}
+          </p>
           <div className="border-subtle flex items-baseline justify-between gap-4 border-t pt-3">
             <dt className="text-primary">합계</dt>
             <dd className="font-display text-primary text-2xl tabular-nums">{won(quote.totalAmountKrw)}</dd>
@@ -269,6 +298,9 @@ export function CheckoutForm() {
           <ul className="text-secondary text-2xs flex list-disc flex-col gap-1.5 pl-4 leading-relaxed">
             <li>주문 후 제작하는 옷입니다. 약 {quote.longestLeadTimeDays}일 뒤 출고됩니다.</li>
             <li>제작이 시작되면 직접 취소할 수 없습니다. 결제 직후에는 마이페이지에서 취소할 수 있습니다.</li>
+            <li>
+              {SHIPPING_LINES.exchange} {SHIPPING_LINES.exchangeFee}
+            </li>
             <li>
               교환·반품 조건은{" "}
               <Link href="/terms/#article-16" className="text-accent underline underline-offset-4">
@@ -319,7 +351,7 @@ export function CheckoutForm() {
           </p>
         )}
         <p className="text-muted text-2xs leading-relaxed">
-          결제는 토스페이먼츠 결제창에서 진행됩니다. 카드 정보는 LEONE FERITO 에 저장되지 않습니다.
+          결제는 {readiness.provider === "toss" ? "토스페이먼츠" : "나이스페이먼츠"} 결제창에서 진행됩니다. 카드 정보는 LEONE FERITO 에 저장되지 않습니다.
         </p>
       </aside>
     </form>
