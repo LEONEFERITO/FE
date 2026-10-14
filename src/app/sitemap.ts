@@ -25,6 +25,7 @@ const PAGES = [
   "/qna/",
   "/terms/",
   "/privacy/",
+  "/cookies/",
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

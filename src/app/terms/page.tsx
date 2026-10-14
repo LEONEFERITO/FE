@@ -6,7 +6,6 @@ import { Header } from "@/components/layout/Header";
 import { PageBand } from "@/components/ui/PageBand";
 import { TERMS } from "@/data/terms";
 import { shareMetadata } from "@/lib/metadata";
-import { pendingLabel } from "@/lib/pending";
 
 /**
  * 이용약관.
@@ -14,7 +13,7 @@ import { pendingLabel } from "@/lib/pending";
  * 회원가입 폼이 이 페이지에 동의를 받는다. 본문은 data/terms.ts —
  * 공정위 전자상거래 표준약관을 이 몰에 맞춘 것이다.
  *
- * TODO(고객확인) 약관 검토 · 시행일. 확정 전까지는 색인하지 않는다.
+ * TODO(고객확인) 약관 법률 검토. 사이트 전체 noindex 와 별개로 확정 전까지 색인하지 않는다.
  */
 
 export const metadata: Metadata = shareMetadata({
@@ -32,7 +31,7 @@ export default function Page() {
         <PageBand
           eyebrow="LEGAL"
           title="이용약관"
-          description={`시행일 ${TERMS.effectiveDate ?? pendingLabel()}`}
+          description={`시행일 ${TERMS.effectiveDate}`}
         />
         <div className="on-cream">
           <LegalDocument doc={TERMS} />

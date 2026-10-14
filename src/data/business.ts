@@ -29,7 +29,7 @@ export interface BusinessInfo {
 }
 
 // 2026-10-01 고객 전달값. 사업자등록번호만 표기 형식(000-00-00000)으로 끊었고 나머지는 받은 그대로다.
-// TODO(고객확인) 개인정보 보호책임자 · 주소를 사업자등록증과 대조(시·도 표기 포함 여부)
+// TODO(고객확인) 주소를 사업자등록증과 대조(시·도 표기 포함 여부)
 export const BUSINESS: BusinessInfo = {
   companyName: "레오네페리토 (LEONEFERITO)",
   representative: "조강현",
@@ -38,7 +38,9 @@ export const BUSINESS: BusinessInfo = {
   address: "수원시 영통구 매영로 425번길 1 1층 더맨리",
   phone: "010-2434-7794 · 010-9291-0518",
   email: "sport0308@naver.com",
-  privacyOfficer: null,
+  // 2026-10-14 — 따로 지정한 사람이 없어 대표자를 보호책임자로 둔다(개인정보 보호법 시행령 제32조 ②: 소상공인은 대표자가 책임자).
+  // 다른 사람을 지정하면 "이름 (직함)" 으로 바꾼다. 연락처는 위 대표 전화 · 이메일을 같이 쓴다.
+  privacyOfficer: "조강현 (대표)",
   // 2026-10-12 서버 확정 — AWS Lightsail 서울 리전 한 대에 사이트 · API · DB (PG 심사 때 하단 표기를 본다)
   hosting: "Amazon Web Services (서울)",
 };

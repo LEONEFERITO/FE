@@ -6,12 +6,11 @@ import { Header } from "@/components/layout/Header";
 import { PageBand } from "@/components/ui/PageBand";
 import { PRIVACY } from "@/data/privacy";
 import { shareMetadata } from "@/lib/metadata";
-import { pendingLabel } from "@/lib/pending";
 
 /**
  * 개인정보처리방침. 본문은 data/privacy.ts — 이 사이트가 실제로 수집하는 것만 적었다.
  *
- * TODO(고객확인) 보호책임자 · 시행일 · 수탁업체. 확정 전까지는 색인하지 않는다.
+ * TODO(고객확인) 수탁업체(택배사 · 메일 발송). 사이트 전체 noindex 와 별개로 확정 전까지 색인하지 않는다.
  */
 
 export const metadata: Metadata = shareMetadata({
@@ -28,7 +27,7 @@ export default function Page() {
         <PageBand
           eyebrow="LEGAL"
           title="개인정보처리방침"
-          description={`시행일 ${PRIVACY.effectiveDate ?? pendingLabel()}`}
+          description={`시행일 ${PRIVACY.effectiveDate}`}
         />
         <div className="on-cream">
           <LegalDocument doc={PRIVACY} />
