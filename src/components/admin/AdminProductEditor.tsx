@@ -1,7 +1,8 @@
 "use client";
 
-import { ArrowLeft, CheckCircle, Warning } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft, CheckCircle, Trash, Warning } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 
 import { ErrorNotice } from "@/components/admin/AdminProductList";
@@ -11,6 +12,7 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import {
   ADMIN_CONNECTED,
   AdminApiError,
+  deleteProduct,
   getProduct,
   missingLabel,
   publishProduct,
@@ -128,6 +130,8 @@ export function AdminProductEditor() {
       <PublishPanel product={p} onChanged={() => reload(p.id)} />
 
       <ProductForm initial={p} onSaved={() => reload(p.id)} />
+
+      <DeletePanel product={p} />
     </div>
   );
 }
@@ -248,6 +252,86 @@ function PublishPanel({
             className="bg-accent text-on-accent hover:bg-accent-hover ease-fluid inline-flex min-h-11 items-center rounded-full px-6 text-sm transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {pending ? "공개하는 중" : "공개하기"}
+          </button>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * 상품 삭제 — 맨 아래, 다른 일과 떨어진 자리. 한 번 더 묻는다(되돌릴 수 없다).
+ * 주문 이력이 있는 상품은 서버가 409 로 막고 "비공개로 내려 두세요" 를 돌려준다 — 그 문구를 그대로 보여 준다.
+ */
+function DeletePanel({ product }: { product: AdminProductEdit }) {
+  const router = useRouter();
+  const [confirming, setConfirming] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function remove() {
+    setPending(true);
+    setError(null);
+    try {
+      await deleteProduct(product.id);
+      router.push("/admin/products");
+    } catch (e) {
+      setError(e instanceof AdminApiError ? e.message : "삭제하지 못했습니다.");
+      setConfirming(false);
+      setPending(false);
+    }
+  }
+
+  return (
+    <section
+      aria-labelledby="delete-heading"
+      className="border-error/40 flex flex-col gap-4 rounded-2xl border px-5 py-5 md:flex-row md:items-center md:justify-between md:px-7"
+    >
+      <div className="min-w-0">
+        <h2 id="delete-heading" className="text-primary text-sm font-medium">
+          상품 삭제
+        </h2>
+        <p className="text-muted text-2xs mt-1.5 leading-relaxed">
+          주문 이력이 없는 상품만 지울 수 있습니다. 장바구니에 담긴 것과 이 상품의 메인 배너도 함께 지워지며 되돌릴 수
+          없습니다. 주문이 있었던 상품은 비공개로 내려 두세요.
+        </p>
+        {error && (
+          <p role="alert" className="text-error text-2xs mt-2 leading-relaxed">
+            {error}
+          </p>
+        )}
+      </div>
+
+      <div className="flex shrink-0 flex-wrap gap-2">
+        {confirming ? (
+          /* 공개 패널과 같은 이유로 "취소" 가 먼저, 방금 누른 버튼 자리에 온다 */
+          <>
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => setConfirming(false)}
+              className="border-interactive text-secondary hover:border-accent ease-fluid inline-flex min-h-11 items-center rounded-full border px-5 text-sm transition-colors duration-300"
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              disabled={pending}
+              onClick={remove}
+              className="bg-error ease-fluid inline-flex min-h-11 items-center gap-2 rounded-full px-5 text-sm text-on-accent transition-opacity duration-300 hover:opacity-90 disabled:opacity-60"
+            >
+              <Trash size={15} weight="light" aria-hidden="true" />
+              {pending ? "지우는 중" : `네, "${product.name ?? product.slug}" 삭제`}
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setConfirming(true)}
+            className="border-error text-error hover:bg-velvet-tint ease-fluid inline-flex min-h-11 items-center gap-2 rounded-full border px-5 text-sm transition-colors duration-300"
+          >
+            <Trash size={15} weight="light" aria-hidden="true" />
+            상품 삭제
           </button>
         )}
       </div>

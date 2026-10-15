@@ -324,6 +324,16 @@ export async function unpublishProduct(id: string): Promise<void> {
   if (!res.ok) return fail(res);
 }
 
+/** 삭제 — 주문 이력이 있으면 409(PRODUCT_HAS_ORDERS, 서버 문구가 할 일을 알려 준다). */
+export async function deleteProduct(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/admin/products/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    credentials: "include",
+    headers: await csrfHeader(),
+  });
+  if (!res.ok) return fail(res);
+}
+
 // ── 조회 ─────────────────────────────────────────────────────
 
 export type ProductStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
