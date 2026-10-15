@@ -130,7 +130,7 @@ export function AdminSidebar() {
 export function AdminTopNav() {
   const active = activeOf(usePathname() ?? "/admin/");
   return (
-    <nav aria-label="관리자 메뉴" className="border-subtle bg-base -mx-5 overflow-x-auto border-b px-5 lg:hidden">
+    <nav aria-label="관리자 메뉴" className="border-subtle bg-page -mx-5 overflow-x-auto border-b px-5 lg:hidden">
       <ul className="flex w-max gap-1 py-2">
         {ITEMS.map((item) => {
           const on = item.key === active.key;
@@ -150,7 +150,7 @@ export function AdminTopNav() {
 /** 맨 위 띠 — 워드마크 + "관리자" */
 export function AdminTopBar() {
   return (
-    <div className="border-subtle bg-base flex h-14 items-center gap-3 border-b px-5">
+    <div className="border-subtle bg-page flex h-14 items-center gap-3 border-b px-5">
       <Link href="/admin/" className="text-accent-deep inline-flex min-h-11 items-center gap-3" aria-label="관리자 대시보드">
         <Logo width={120} label="" />
         <span className="text-primary text-sm">관리자</span>

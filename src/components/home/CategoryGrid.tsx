@@ -161,7 +161,7 @@ function Tile({
           */
           <span
             aria-hidden="true"
-            className="from-velvet-tint to-base absolute inset-0 flex items-center justify-center bg-gradient-to-br"
+            className="from-velvet-tint to-page absolute inset-0 flex items-center justify-center bg-gradient-to-br"
           >
             {/*
               글자 크기는 **칸 폭**을 따른다. 모바일 2열의 좁은 칸에 데스크톱 크기를

@@ -178,7 +178,7 @@ export function QuickView({
       onClose={onClose}
       // overflow-hidden · touch-none: 스크롤은 안쪽 정보 칸만 한다. 판 자체가 또 스크롤되면 손잡이 · 사진이 밀려 올라가며 깨진다
       // max-h 를 직접 준다 — 브라우저 기본값(100% − 2em − 6px)이 안쪽 상자보다 6px 작아 바닥이 잘렸다
-      className="quick on-cream on-white bg-base text-primary m-auto max-h-[calc(100svh-2rem)] w-[calc(100%-2rem)] max-w-[1100px] touch-none overflow-hidden p-0 md:max-h-[min(88svh,820px)] md:w-[92vw]"
+      className="quick on-cream on-white bg-page text-primary m-auto max-h-[calc(100svh-2rem)] w-[calc(100%-2rem)] max-w-[1100px] touch-none overflow-hidden p-0 md:max-h-[min(88svh,820px)] md:w-[92vw]"
     >
       {opened && (
         <div className="flex max-h-[calc(100svh-2rem)] flex-col md:max-h-[min(88svh,820px)] md:grid md:grid-cols-[minmax(0,11fr)_minmax(0,9fr)]">

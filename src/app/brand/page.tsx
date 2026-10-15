@@ -101,7 +101,7 @@ const css = (v: Record<string, string | number>) => v as React.CSSProperties;
  */
 function Chapter({ id, title, description }: { id: string; title: string; description: string }) {
   return (
-    <section id={id} aria-labelledby={`${id}-heading`} className="bg-base border-subtle scroll-mt-14 border-t md:scroll-mt-18">
+    <section id={id} aria-labelledby={`${id}-heading`} className="bg-page border-subtle scroll-mt-14 border-t md:scroll-mt-18">
       <div className="mx-auto grid max-w-[1320px] gap-6 px-5 py-20 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:gap-16 md:px-15 md:py-28">
         <Reveal>
           <Eyebrow>THE MAISON</Eyebrow>
@@ -206,7 +206,7 @@ export default async function BrandPage() {
             </h1>
           </div>
 
-          <div aria-hidden="true" className="brand-hero-veil bg-base pointer-events-none absolute inset-0" />
+          <div aria-hidden="true" className="brand-hero-veil bg-page pointer-events-none absolute inset-0" />
 
           <p
             aria-hidden="true"
@@ -227,7 +227,7 @@ export default async function BrandPage() {
           id="identity"
           pin
           height="260vh"
-          className="bg-base scroll-mt-14 md:scroll-mt-18"
+          className="bg-page scroll-mt-14 md:scroll-mt-18"
           stageClassName="flex items-center overflow-hidden"
           aria-labelledby="slogan-heading"
         >
@@ -303,7 +303,7 @@ export default async function BrandPage() {
         </div>
 
         {/* ── 4 · 사진 — 사진마다 자기 장면(view) 이라 각자 화면을 지나는 진행도로 움직인다 ── */}
-        <section className="bg-base" aria-labelledby="impression-heading">
+        <section className="bg-page" aria-labelledby="impression-heading">
           <div className="mx-auto max-w-[1320px] px-5 py-24 md:px-15 md:py-40">
             <div className="grid gap-10 md:grid-cols-12 md:gap-x-8 md:gap-y-0">
               <div className="md:order-2 md:col-span-5 md:self-center md:pl-6">
@@ -389,7 +389,7 @@ export default async function BrandPage() {
         {/* ── 6 · 맺음 = OUR SYMBOL — 모노그램과 워드마크 ──────────────── */}
         <section
           id="symbol"
-          className="bg-base border-subtle scroll-mt-14 border-t md:scroll-mt-18"
+          className="bg-page border-subtle scroll-mt-14 border-t md:scroll-mt-18"
           aria-labelledby="closing-heading"
         >
           <div className="mx-auto flex max-w-[1320px] flex-col items-center px-5 py-24 text-center md:py-36">

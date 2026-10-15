@@ -205,7 +205,7 @@ export function ImageField({
           )}
 
           {pending && (
-            <span className="bg-base/60 text-primary text-2xs absolute inset-0 flex items-center justify-center">
+            <span className="bg-page/60 text-primary text-2xs absolute inset-0 flex items-center justify-center">
               올리는 중
             </span>
           )}

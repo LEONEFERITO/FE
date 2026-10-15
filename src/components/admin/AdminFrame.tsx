@@ -24,7 +24,7 @@ export function AdminFrame({ children }: { children: React.ReactNode }) {
         <main id="main" className="flex-1 px-5">{children}</main>
       ) : (
         <div className="flex flex-1">
-          <aside className="border-subtle bg-base hidden w-56 shrink-0 border-r lg:block">
+          <aside className="border-subtle bg-page hidden w-56 shrink-0 border-r lg:block">
             <div className="sticky top-0 flex h-screen flex-col overflow-y-auto">
               <AdminSidebar />
             </div>

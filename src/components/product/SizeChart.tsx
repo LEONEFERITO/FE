@@ -153,7 +153,7 @@ export function SizeChart({ chart, basis, tolerance, headingId }: Props) {
         onClick={(e) => {
           if (e.target === dialogRef.current) setZoomed(false);
         }}
-        className="bg-base/95 text-primary m-0 h-full max-h-none w-full max-w-none p-0 backdrop:bg-black/70"
+        className="bg-page/95 text-primary m-0 h-full max-h-none w-full max-w-none p-0 backdrop:bg-black/70"
       >
         <div className="flex h-full flex-col">
           <div className="border-subtle flex items-center justify-between border-b px-5 py-3">

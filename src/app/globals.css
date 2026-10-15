@@ -13,14 +13,13 @@
  * ════════════════════════════════════════════════════════════ */
 
 @theme inline {
-  /* ── 배경 → bg-base, bg-surface, bg-band ─────────────── */
+  /* ── 배경 → bg-page, bg-surface, bg-band ─────────────── */
   /*
-   * ⚠️ 이 이름 때문에 `text-base` 는 글자 크기가 아니라 **글자색(bg-base)** 이 된다.
-   * Tailwind 4 는 색 이름이 크기 이름보다 우선한다. 기본 크기가 필요하면
-   * `text-(length:--fs-base)` 를 쓴다 — 실제로 필터 시트 제목과 사이즈 찾기 결과가
-   * 크림 위 크림 글자로 사라졌던 원인이다 (2026-09-30).
+   * 바닥색 이름이 page 인 이유: 예전 이름 `base` 는 `text-base`(글자 크기)와 겹쳐 Tailwind 4 가 색으로 해석했다 —
+   * 필터 시트 제목이 크림 위 크림 글자로 사라졌던 원인(2026-09-30). 2026-10-15 page 로 바꿔 `text-base` 가 다시 크기가 됐다.
+   * 그동안 쓰던 `text-(length:--fs-base)` 도 그대로 동작한다.
    */
-  --color-base: var(--bg-base);
+  --color-page: var(--bg-base);
   --color-surface: var(--bg-surface);
   /* 이름이 "band" 인 이유: --color-subtle 은 아래 border-subtle 이 이미 쓴다.
    * Tailwind 4 는 색 하나가 bg-/text-/border- 를 모두 만들어서 이름이 겹치면 충돌한다. */

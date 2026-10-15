@@ -200,7 +200,7 @@ export function VideoField({ label, hint, value, onChange, aspect = "wide", requ
             <span className="text-muted text-2xs absolute inset-0 flex items-center justify-center">없음</span>
           )}
           {pending && (
-            <span className="bg-base/60 text-primary text-2xs absolute inset-0 flex items-center justify-center tabular-nums">
+            <span className="bg-page/60 text-primary text-2xs absolute inset-0 flex items-center justify-center tabular-nums">
               {progress > 0 ? `${Math.round(progress * 100)}%` : "준비 중"}
             </span>
           )}

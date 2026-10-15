@@ -195,7 +195,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
       {/*
         GNB 색 — 2026-10-06 고객 요청("상단 GNB 컬러 확인"): 기존 몰(leoneferito.kr)처럼 **흰 바탕 · 진한 글자 ·
         아래 얇은 선**. on-cream on-white 로 이 안의 토큰만 밝은 쪽으로 뒤집는다(드롭다운 · ABOUT 판도 같이).
-        반투명(bg-base/85)을 쓰지 않는다 — 반투명이면 뒤 페이지 색이 비쳐 흰 페이지 위에서 회갈색으로 탁해졌다.
+        반투명(bg-page/85)을 쓰지 않는다 — 반투명이면 뒤 페이지 색이 비쳐 흰 페이지 위에서 회갈색으로 탁해졌다.
         히어로 위에서는 바탕 · 선을 비워 투명하고, 히어로 배너를 지나면 원래 색으로 굳는다(2026-10-06 요청 — PC · 모바일 모두).
 
         2026-10-07 고객 요청으로 "원래 색" 이 **검정**이 됐다(on-black — 크림 글자 · 골드 로고). 메인 배너는 밝은 종이라
@@ -209,7 +209,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
               ? // 사진 장면 위 — 투명한 채 밝은 글자 · 골드 로고(on-black 의 토큰). 사진 위 그림자가 받쳐 준다
                 "on-black border-transparent bg-transparent!"
               : "on-cream on-white border-transparent bg-transparent!"
-            : "on-black border-subtle bg-base"
+            : "on-black border-subtle bg-page"
         }`}
       >
         <div className="relative flex h-14 w-full items-center justify-between px-5 md:h-18 md:px-10">
@@ -252,7 +252,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
                   {ABOUT_LABEL}
                 </Link>
                 <div className="invisible absolute inset-x-0 top-full z-50 pt-0 opacity-0 transition-[opacity,visibility] duration-300 ease-out group-focus-within/nav:visible group-focus-within/nav:opacity-100 group-hover/nav:visible group-hover/nav:opacity-100">
-                  <div className="on-black bg-base border-subtle shadow-lift border-y">
+                  <div className="on-black bg-page border-subtle shadow-lift border-y">
                     <div className="mx-auto grid max-w-[1180px] grid-cols-4 gap-8 px-10 py-8">
                       {ABOUT_GROUPS.map((group) => (
                         <div key={group.label} className="min-w-0">
@@ -289,7 +289,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
                   </Link>
                   {group.children.length > 0 && (
                     <div className="invisible absolute left-1/2 top-full z-50 -translate-x-1/2 pt-3 opacity-0 transition-[opacity,visibility] duration-300 ease-out group-focus-within/nav:visible group-focus-within/nav:opacity-100 group-hover/nav:visible group-hover/nav:opacity-100">
-                      <div className="on-black bg-base border-subtle shadow-lift w-64 border p-2">
+                      <div className="on-black bg-page border-subtle shadow-lift w-64 border p-2">
                         <p className="text-muted text-2xs px-3 pb-2 pt-2">{group.description}</p>
                         <ul>
                           {group.children.map((child) => (
@@ -358,7 +358,7 @@ export function Header({ overHero = false }: { overHero?: boolean }) {
       <div
         id="mobile-menu"
         hidden={!open}
-        className="on-black bg-base fixed inset-0 z-30 lg:hidden"
+        className="on-black bg-page fixed inset-0 z-30 lg:hidden"
       >
         <nav
           aria-label="모바일 메뉴"

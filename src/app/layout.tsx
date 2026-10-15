@@ -110,7 +110,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
       className={`${display.variable} ${body.variable} ${korean.variable} h-full antialiased`}
     >
-      <body className="bg-base text-primary flex min-h-full flex-col">
+      <body className="bg-page text-primary flex min-h-full flex-col">
         {/*
           스킵 링크 — 키보드 사용자가 헤더 링크 여섯 개를 건너뛰고 본문으로 간다.
           body 의 **첫 초점 요소**여야 하므로 스크립트보다 앞에 둔다.
