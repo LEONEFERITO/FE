@@ -36,6 +36,7 @@ const ITEMS = [
     ],
   },
   { key: "why", href: "/admin/display/why/", label: "메인 WHY 구간" },
+  { key: "business", href: "/admin/display/business/", label: "푸터 · 사업자 정보" },
   { key: "members", href: "/admin/members/", label: "회원 관리" },
   { key: "stats", href: "/admin/stats/", label: "통계" },
   { key: "notices", href: "/admin/notices/", label: "공지사항" },

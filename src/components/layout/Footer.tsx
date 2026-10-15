@@ -1,7 +1,8 @@
 import Link from "next/link";
 
 import { Logo } from "@/components/brand/Logo";
-import { BUSINESS, BUSINESS_FIELDS, KAKAO_CHANNEL } from "@/data/business";
+import { BUSINESS_FIELDS, KAKAO_CHANNEL } from "@/data/business";
+import { getBusiness } from "@/lib/business";
 import { pendingLabel } from "@/lib/pending";
 
 /**
@@ -11,13 +12,15 @@ import { pendingLabel } from "@/lib/pending";
  * 페이지 아래가 갑자기 다른 사이트처럼 끊긴다.
  *
  * 아래 사업자 정보와 약관 링크는 전자상거래법 제10조의 **표기 의무** 사항이다.
- * 값은 data/business.ts 에 있다 — 약관도 같은 값을 본다.
+ * 값은 관리자 › 푸터 · 사업자 정보에서 고친다 — 빌드할 때 서버에서 받는다(lib/business.ts).
+ * 서버가 없을 때(화면 확인 단계)는 data/business.ts 의 값이다.
  *
  * 개인정보처리방침 링크는 개인정보 보호법 제30조 · 처리방침 작성지침에 따라
  * **이름을 그대로 쓰고 다른 링크보다 눈에 띄게**(굵게) 둔다.
  */
 
-export function Footer() {
+export async function Footer() {
+  const BUSINESS = await getBusiness();
   return (
     <footer className="bg-band border-subtle mt-auto border-t">
       <div className="mx-auto max-w-[1320px] px-5 py-20 md:px-15 md:py-28">

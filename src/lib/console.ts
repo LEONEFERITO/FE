@@ -146,6 +146,24 @@ export const adminWhy = () => request<WhyAdminView>("GET", "/api/admin/why");
 export const saveWhy = (input: { eyebrow: string; title: string; intro: string; items: { title: string; body: string; mediaId: string | null }[] }) =>
   request<WhyAdminView>("PUT", "/api/admin/why", input);
 
+// ── 푸터 사업자 정보 ─────────────────────────────────────────
+
+/** 서버 site_business(V31). 전자상거래법 제10조 표기 항목 — 손님 화면 푸터에 그대로 나간다. */
+export interface SiteBusiness {
+  companyName: string;
+  representative: string;
+  registrationNumber: string;
+  mailOrderNumber: string;
+  address: string;
+  phone: string;
+  email: string;
+  privacyOfficer: string;
+  hosting: string;
+}
+
+export const adminSiteBusiness = () => request<SiteBusiness>("GET", "/api/admin/site-business");
+export const saveSiteBusiness = (input: SiteBusiness) => request<SiteBusiness>("PUT", "/api/admin/site-business", input);
+
 // ── 사이트 사진 칸 (매장 사진 등) ────────────────────────────
 
 /** 서버의 SiteImageSlot 과 같은 값 (lib/siteImages.ts 의 손님용 타입과도 같다). */
