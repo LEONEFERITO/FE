@@ -438,6 +438,22 @@ async function getJson<T>(path: string): Promise<T> {
   return (await res.json()) as T;
 }
 
+/** 배송비 면제 스위치(서버 V32) — 켜면 모든 주문 배송비 0원(제주 · 도서산간 추가 포함). */
+export function getShippingWaiver(): Promise<{ waived: boolean }> {
+  return getJson("/api/admin/orders/shipping-waiver");
+}
+
+export async function setShippingWaiver(waived: boolean): Promise<{ waived: boolean }> {
+  const res = await fetch(`${API_BASE}/api/admin/orders/shipping-waiver`, {
+    method: "PUT",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...(await csrfHeader()) },
+    body: JSON.stringify({ waived }),
+  });
+  if (!res.ok) return fail(res);
+  return (await res.json()) as { waived: boolean };
+}
+
 /** 전체 목록. 초안 포함. 상태별로 거르는 건 화면이 한다 — 수십 점이라 요청 한 번이면 된다. */
 export function listProducts(): Promise<AdminProductRow[]> {
   return getJson("/api/admin/products");
