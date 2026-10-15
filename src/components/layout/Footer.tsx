@@ -97,6 +97,20 @@ export function Footer() {
                   <dd className={value ? "text-secondary" : "text-muted"}>
                     {/* 값이 없으면 확인 필요임을 화면에서 드러낸다. 빈칸으로 두면 잊힌다. */}
                     {value ?? pendingLabel()}
+                    {/*
+                      공정위 통신판매사업자 정보공개 — 전자상거래법 시행규칙상 사업자정보를 확인할 수 있게 연결한다.
+                      PG · 카드사 심사가 보는 항목이다.
+                    */}
+                    {key === "mailOrderNumber" && BUSINESS.registrationNumber && (
+                      <a
+                        href={`https://www.ftc.go.kr/bizCommPop.do?wrkr_no=${BUSINESS.registrationNumber.replace(/[^0-9]/g, "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-accent ml-2 underline underline-offset-4"
+                      >
+                        사업자정보 확인<span className="sr-only">(새 창)</span>
+                      </a>
+                    )}
                   </dd>
                 </div>
               );
