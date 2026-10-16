@@ -88,12 +88,20 @@ export function AdminProductList() {
           <span />
         )}
 
-        <Link
-          href="/admin/products/new"
-          className="bg-accent text-on-accent hover:bg-accent-hover ease-fluid inline-flex min-h-12 items-center gap-2 rounded-full px-6 text-sm transition-colors duration-300"
-        >
-          <Plus size={16} weight="light" aria-hidden="true" />새 상품 등록
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/admin/products/import"
+            className="border-interactive text-secondary hover:border-accent hover:text-primary ease-fluid inline-flex min-h-12 items-center gap-2 rounded-full border px-6 text-sm transition-colors duration-300"
+          >
+            엑셀로 한번에 등록
+          </Link>
+          <Link
+            href="/admin/products/new"
+            className="bg-accent text-on-accent hover:bg-accent-hover ease-fluid inline-flex min-h-12 items-center gap-2 rounded-full px-6 text-sm transition-colors duration-300"
+          >
+            <Plus size={16} weight="light" aria-hidden="true" />새 상품 등록
+          </Link>
+        </div>
       </div>
 
       {state.kind === "loading" && <Skeleton />}

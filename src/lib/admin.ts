@@ -117,6 +117,9 @@ export function checkVideoFile(file: File): string | null {
 }
 
 export class AdminApiError extends Error {
+  /** 일괄 등록(IMPORT_INVALID)처럼 줄마다 이유가 있는 오류 — 서버 fieldErrors 그대로 */
+  rows?: ImportRowError[];
+
   constructor(
     readonly code: string,
     message: string,
@@ -322,6 +325,57 @@ export async function unpublishProduct(id: string): Promise<void> {
     headers: await csrfHeader(),
   });
   if (!res.ok) return fail(res);
+}
+
+// ── 일괄 등록 (엑셀 CSV, 서버 2026-10-16) ─────────────────────────
+
+export interface ImportCreated {
+  row: number;
+  id: string;
+  slug: string;
+  name: string;
+}
+
+/** field 는 "3행 · 판매가" 처럼 사람이 읽는 위치 */
+export interface ImportRowError {
+  field: string;
+  message: string;
+}
+
+/** 양식 내려받기 — 로그인 쿠키가 필요해 링크가 아니라 fetch 로 받아 저장한다 */
+export async function downloadImportTemplate(): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/admin/products/import/template`, { credentials: "include" });
+  if (!res.ok) return fail(res);
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "leoneferito-products.csv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+export async function importProducts(file: File): Promise<ImportCreated[]> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch(`${API_BASE}/api/admin/products/import`, {
+    method: "POST",
+    credentials: "include",
+    headers: await csrfHeader(),
+    body: form,
+  });
+  if (res.status === 400) {
+    const body = await res.json().catch(() => null);
+    if (body?.code === "IMPORT_INVALID") {
+      const err = new AdminApiError("IMPORT_INVALID", body.message ?? "파일을 확인해 주세요.");
+      err.rows = body.fieldErrors ?? [];
+      throw err;
+    }
+    throw new AdminApiError(body?.code ?? "UNKNOWN", body?.message ?? "올리지 못했습니다.");
+  }
+  if (!res.ok) return fail(res);
+  return ((await res.json()) as { created: ImportCreated[] }).created;
 }
 
 /** 복제 — 초안 복사본의 id 를 돌려준다. 화면은 그 수정 화면으로 간다. */
