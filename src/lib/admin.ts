@@ -324,6 +324,17 @@ export async function unpublishProduct(id: string): Promise<void> {
   if (!res.ok) return fail(res);
 }
 
+/** 복제 — 초안 복사본의 id 를 돌려준다. 화면은 그 수정 화면으로 간다. */
+export async function duplicateProduct(id: string): Promise<string> {
+  const res = await fetch(`${API_BASE}/api/admin/products/${encodeURIComponent(id)}/duplicate`, {
+    method: "POST",
+    credentials: "include",
+    headers: await csrfHeader(),
+  });
+  if (!res.ok) return fail(res);
+  return ((await res.json()) as { id: string }).id;
+}
+
 /** 삭제 — 주문 이력이 있으면 409(PRODUCT_HAS_ORDERS, 서버 문구가 할 일을 알려 준다). */
 export async function deleteProduct(id: string): Promise<void> {
   const res = await fetch(`${API_BASE}/api/admin/products/${encodeURIComponent(id)}`, {
@@ -539,6 +550,32 @@ export function listMembers(query: {
   const params = new URLSearchParams({ q: query.q, page: String(query.page) });
   if (query.status) params.set("status", query.status);
   return getJson(`/api/admin/members?${params}`);
+}
+
+// ── 접속 기록 (서버 V33, 최고 관리자만) ─────────────────────────
+
+export interface AdminAccessLogRow {
+  id: number;
+  actorId: string | null;
+  actorEmail: string;
+  method: string;
+  path: string;
+  status: number;
+  ip: string | null;
+  createdAt: string;
+}
+
+export interface AdminAccessLogPage {
+  items: AdminAccessLogRow[];
+  page: number;
+  totalPages: number;
+  total: number;
+}
+
+export function listAccessLogs(query: { q: string; page: number }): Promise<AdminAccessLogPage> {
+  const params = new URLSearchParams({ page: String(query.page) });
+  if (query.q) params.set("q", query.q);
+  return getJson(`/api/admin/access-logs?${params}`);
 }
 
 /** 상세. 열어 본 것 자체가 서버에 기록된다 (개인정보 접속 기록). */

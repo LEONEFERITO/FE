@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, CheckCircle, Trash, Warning } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft, CheckCircle, Copy, Trash, Warning } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
@@ -13,6 +13,7 @@ import {
   ADMIN_CONNECTED,
   AdminApiError,
   deleteProduct,
+  duplicateProduct,
   getProduct,
   missingLabel,
   publishProduct,
@@ -131,8 +132,63 @@ export function AdminProductEditor() {
 
       <ProductForm initial={p} onSaved={() => reload(p.id)} />
 
+      <DuplicatePanel product={p} />
+
       <DeletePanel product={p} />
     </div>
+  );
+}
+
+/**
+ * 상품 복제 (2026-10-16 "한번에 등록") — 사진 · 사이즈 · 고시까지 같은 초안을 만들고 그 수정 화면으로 간다.
+ * 색상 변형처럼 비슷한 상품을 빨리 늘릴 때. 이름 뒤에 "(복제)" 가 붙으니 이름 · 색상 · 사진만 바꾸면 된다.
+ */
+function DuplicatePanel({ product }: { product: AdminProductEdit }) {
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function duplicate() {
+    setPending(true);
+    setError(null);
+    try {
+      const id = await duplicateProduct(product.id);
+      router.push(`/admin/products/edit?id=${encodeURIComponent(id)}`);
+    } catch (e) {
+      setError(e instanceof AdminApiError ? e.message : "복제하지 못했습니다.");
+      setPending(false);
+    }
+  }
+
+  return (
+    <section
+      aria-labelledby="duplicate-heading"
+      className="border-subtle bg-band/60 flex flex-col gap-4 rounded-2xl border px-5 py-5 md:flex-row md:items-center md:justify-between md:px-7"
+    >
+      <div className="min-w-0">
+        <h2 id="duplicate-heading" className="text-primary text-sm font-medium">
+          이 상품을 복제
+        </h2>
+        <p className="text-muted text-2xs mt-1.5 leading-relaxed">
+          사진 · 사이즈 · 실측 · 설명 · 고시 정보를 그대로 복사한 초안이 생깁니다. 색상 변형처럼 비슷한 상품을 만들 때 이름 ·
+          색상 · 사진만 바꾸면 됩니다. 재고는 복사하지 않습니다.
+        </p>
+        {error && (
+          <p role="alert" className="text-error text-2xs mt-2 leading-relaxed">
+            {error}
+          </p>
+        )}
+      </div>
+      <button
+        type="button"
+        disabled={pending}
+        onClick={duplicate}
+        className="border-interactive text-secondary hover:border-accent hover:text-primary ease-fluid inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-5 text-sm transition-colors duration-300 disabled:opacity-60"
+      >
+        <Copy size={15} weight="light" aria-hidden="true" />
+        {pending ? "복제하는 중" : "복제해서 새 초안 만들기"}
+      </button>
+    </section>
   );
 }
 
