@@ -1,3 +1,5 @@
+import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
+
 import { KAKAO_CHANNEL, OFFLINE_SHOP } from "@/data/business";
 
 /**
@@ -36,6 +38,10 @@ import { KAKAO_CHANNEL, OFFLINE_SHOP } from "@/data/business";
  * 버튼은 캡처의 갈색 VIEW MORE 하나 — 구글 지도에서 매장 위치를 연다(브랜드 페이지 지도와 같은 주소).
  * 흰 글자 대비 7.4:1. 같은 날 검정 상자 · 금색 글자를 잠깐 썼다가 이 모양으로 되돌렸다.
  * 브랜드 페이지의 지도판은 요청 범위가 아니라 그대로 둔다(지도 자체가 링크라 버튼은 방문 문의).
+ *
+ * ── 2026-10-17 디자이너 요청 — 메인의 이 구간은 검정 ──
+ * page.tsx 가 on-black 으로 감싼다: 바탕 검정, 글자는 크림 · 보조 토큰. 오른쪽 상자의 베이지 면은 없앴고,
+ * 버튼은 시안대로 골드 테두리 알약 "지도보기 →"(구글 지도). 브랜드 페이지의 지도판(map)은 그대로다.
  */
 export function OfflineShop({
   image = null,
@@ -53,10 +59,10 @@ export function OfflineShop({
       id="offline-shop"
       aria-labelledby="offline-heading"
       // 지도판은 화면 끝까지 채운다 — 가운데 떠 있는 블록이 아니라 페이지의 마지막 면이다 (2026-10-06 요청)
-      className={map ? "w-full" : "mx-auto max-w-[1320px] px-5 pb-24 md:px-15 md:pb-32"}
+      className={map ? "w-full" : "mx-auto max-w-[1320px] px-5 py-24 md:px-15 md:py-32"}
     >
       <div
-        className={`bg-surface grid ${
+        className={`grid ${map ? "bg-surface" : ""} ${
           map ? "min-[1200px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]" : "md:grid-cols-[minmax(0,11fr)_minmax(0,14fr)]"
         }`}
       >
@@ -121,7 +127,7 @@ export function OfflineShop({
         </div>
 
         <div
-          className={`flex flex-col justify-center gap-10 p-7 md:p-16 ${map ? "min-[1200px]:px-20" : "bg-[#f7f1ea]"}`}
+          className={`flex flex-col justify-center gap-10 p-7 md:p-16 ${map ? "min-[1200px]:px-20" : ""}`}
         >
           <dl className="flex flex-col gap-9">
             <div>
@@ -139,16 +145,22 @@ export function OfflineShop({
             </div>
           </dl>
 
-          {/* 버튼도 직각이다 (머리말 "각진 직사각형이다"). 채운 것이 주 동선, 테두리만 있는 것이 부 동선 */}
+          {/* 메인: 시안(2026-10-17)의 골드 테두리 알약 "지도보기 →". 지도판(map) 쪽 버튼은 직각이다(머리말 "각진 직사각형이다") */}
           {!map ? (
             <div>
               <a
                 href={`https://www.google.com/maps/search/?api=1&query=${q}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="ease-fluid tracking-button inline-flex min-h-11 items-center bg-[#7b4a1e] px-9 text-xs text-white transition-colors duration-500 hover:bg-[#5f3815]"
+                className="group border-accent text-accent hover:bg-accent-tint ease-fluid tracking-button inline-flex min-h-11 items-center gap-2.5 rounded-full border px-8 text-xs transition-colors duration-500"
               >
-                VIEW MORE
+                지도보기
+                <ArrowRight
+                  size={13}
+                  weight="light"
+                  aria-hidden="true"
+                  className="ease-fluid transition-transform duration-500 group-hover:translate-x-0.5"
+                />
                 <span className="sr-only">(구글 지도에서 매장 위치, 새 창)</span>
               </a>
             </div>

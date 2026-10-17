@@ -45,7 +45,8 @@ const body = Spectral({
  * 폰트 자체는 Next 가 self-host 하므로 한글은 정상 출력된다.
  */
 const korean = Noto_Sans_KR({
-  weight: ["400", "500", "700"],
+  // 300: 라인 페이지 소개 글(2026-10-17 시안 Light). 없으면 브라우저가 400 으로 대신 그려 시안과 달라진다
+  weight: ["300", "400", "500", "700"],
   variable: "--font-korean",
   display: "swap",
   preload: false,

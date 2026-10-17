@@ -1,12 +1,8 @@
-import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
-import Link from "next/link";
-
 import { ProductCard } from "@/components/product/ProductCard";
-import { Eyebrow } from "@/components/ui/Eyebrow";
 import type { Product } from "@/types/product";
 
 /**
- * 메인의 제품 격자.
+ * 메인의 제품 격자 — BEST.
  *
  * ── 히어로와 같은 제품이 또 나오는 것에 대해 ──────────────
  * 한 번 격자를 걷어내고 "전체 보기" 한 줄로 줄여봤는데 틀렸다. 900px 히어로와
@@ -20,6 +16,10 @@ import type { Product } from "@/types/product";
  *
  * 목록 페이지와 **같은 카드** 를 쓴다. 메인 전용 카드를 따로 만들면
  * 실측 표기 규칙이 두 군데로 갈라지고, 한쪽만 고쳐지는 날이 온다.
+ *
+ * ── 2026-10-17 디자이너 요청 ──────────────────────────────
+ * 제목은 "제품" 대신 **BEST**. 위의 눈썹 선(— COLLECTION)과 오른쪽 "전체 보기" 버튼은 뺐다
+ * ("위에 라인이랑 버튼 전부 삭제"). 전체 목록은 헤더 분류와 카드에서 간다.
  */
 export function FeaturedProducts({ products }: { products: Product[] }) {
   if (products.length === 0) return null;
@@ -29,30 +29,12 @@ export function FeaturedProducts({ products }: { products: Product[] }) {
       className="mx-auto max-w-[1320px] px-5 py-24 md:px-15 md:py-32"
       aria-labelledby="featured-heading"
     >
-      <div className="flex flex-wrap items-end justify-between gap-5">
-        <div>
-          <Eyebrow>COLLECTION</Eyebrow>
-          <h2
-            id="featured-heading"
-            className="font-display text-primary leading-display tracking-display mt-3 text-3xl md:text-4xl"
-          >
-            제품
-          </h2>
-        </div>
-
-        <Link
-          href="/products"
-          className="group border-interactive text-accent hover:border-accent hover:text-accent hover:bg-accent-tint ease-fluid tracking-button text-2xs inline-flex items-center gap-2.5 rounded-full border px-6 py-3 transition-all duration-500 hover:-translate-y-px"
-        >
-          전체 보기
-          <ArrowRight
-            size={13}
-            weight="light"
-            aria-hidden="true"
-            className="ease-fluid transition-transform duration-500 group-hover:translate-x-0.5"
-          />
-        </Link>
-      </div>
+      <h2
+        id="featured-heading"
+        className="font-display text-primary leading-display tracking-display text-3xl md:text-4xl"
+      >
+        BEST
+      </h2>
 
       {/* 2026-10-08 고객 요청: 폰에서 카드 사이를 조금만(4px) 띄운다 — 목록 페이지(ProductBrowser)와 같다. 글자는 카드 안에서 조금 들인다(ProductCard inset) */}
       <ul className="mt-12 grid grid-cols-2 gap-x-1 gap-y-10 md:grid-cols-4 md:gap-x-5 md:gap-y-12">

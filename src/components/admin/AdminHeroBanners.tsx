@@ -217,7 +217,6 @@ const LINK_PAGES: { label: string; href: string }[] = [
   { label: "페리토 라인", href: "/line/ferito/" },
   { label: "룩북", href: "/lookbook/" },
   { label: "브랜드", href: "/brand/" },
-  { label: "이용 안내", href: "/guide/" },
 ];
 
 function errorText(e: unknown, fallback: string): string {

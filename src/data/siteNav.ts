@@ -8,7 +8,6 @@ import { CATEGORY_NAV, CATEGORY_SUBS, categoryHref, subHref } from "@/data/categ
  * 주소는 전부 실재하는 페이지 · 구간이다 — 없는 주소를 걸면 "곧 생긴다" 가 아니라 "고장났다" 로 읽힌다.
  *
  *   THE MAISON       브랜드 페이지의 구간들(/brand/#…)
- *   THE GUIDE        이용 안내의 구간들(/guide/#…)
  *   THE LOOKBOOK     룩북의 두 컬렉션(/lookbook/#…)
  *   분류 다섯 + ACCESSORIES  카테고리 페이지와 세부 메뉴(?sub=). ACCESSORIES 는 구조표에 없지만 남긴다(2026-10-06 결정)
  *   CLIENT SERVICES  문의(카카오톡) · 마이페이지 구간들 · FAQ
@@ -42,18 +41,7 @@ const BRAND_GROUPS: NavGroup[] = [
       { label: "OUR SYMBOL", href: "/brand/#symbol", description: "브랜드명, 로고 등의 상징과 의미" },
     ],
   },
-  {
-    label: "THE GUIDE",
-    href: "/guide/",
-    description: "브랜드 이용 가이드",
-    children: [
-      { label: "MADE TO ORDER", href: "/guide/#order", description: "주문 후 제작 방식, 제작 프로세스, 주문 시 유의사항" },
-      { label: "Size Guide", href: "/guide/#size", description: "제품별 사이즈 선택법, 실측 기준, 체형별 선택 방법" },
-      { label: "Alterations", href: "/guide/#alteration", description: "소매 · 바지 기장 등의 수선 안내 및 권장사항" },
-      { label: "Delivery", href: "/guide/#delivery", description: "제작 기간, 출고 예정일, 배송 방식" },
-      { label: "Care", href: "/guide/#care", description: "수트 · 셔츠 · 팬츠 · 신발류 등의 세탁, 보관 및 관리 방법" },
-    ],
-  },
+  // THE GUIDE(이용 안내, /guide)는 2026-10-17 디자이너 요청으로 페이지째 지웠다 — 메인의 "브랜드 이용 메뉴얼" 구간과 함께.
   {
     label: "THE LOOKBOOK",
     href: "/lookbook/",

@@ -157,11 +157,12 @@ export default function QnaPage() {
                     정교한 맞춤을 원하시면 <b className="text-primary">더맨리</b>로 안내해
                     드립니다.
                   </p>
+                  {/* 이용 안내(/guide)가 없어져(2026-10-17) 브랜드 페이지의 테일러샵 안내로 보낸다 */}
                   <Link
-                    href="/guide"
+                    href="/brand/#tailoring"
                     className="text-accent hover:text-accent-hover ease-fluid mt-3 inline-flex min-h-11 items-center text-xs underline underline-offset-4 transition-colors duration-300"
                   >
-                    이용 안내에서 더 보기
+                    매장 위치 · 운영시간 보기
                   </Link>
                 </div>
               </Reveal>

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 
 import { QuickView } from "@/components/product/QuickView";
-import { CATEGORY_LABEL } from "@/types/product";
 import type { Product } from "@/types/product";
 
 /**
@@ -44,6 +43,8 @@ export function ProductCard({ product, inset = false }: { product: Product; inse
   const image = product.images[0]?.url;
   const inStock = product.skus.filter((s) => s.orderable).length;
   const allSoldOut = inStock === 0;
+  // 색상 줄 — 색은 상품이 아니라 사이즈 칸(Sku)에 적힌다. 겹치는 것은 하나로, 여럿이면 " · " 로 잇는다. 없으면 줄이 생기지 않는다.
+  const colors = [...new Set(product.skus.map((s) => s.color).filter((c): c is string => !!c))];
 
 
   return (
@@ -98,24 +99,26 @@ export function ProductCard({ product, inset = false }: { product: Product; inse
         </div>
 
         {/*
-          글자 — 이름, 그 아래 가격 · 분류 한 줄. 작게 (2026-10-08 고객 요청, 레퍼런스 LYFT 의 "이름 / 가격 · 색상 수").
+          글자 — 이름 / 색상 / 가격 세 줄 (2026-10-17 디자이너 피그마 수정본).
+          시안 수치 그대로: 이름 16px 굵게, 색상 13px 보통, 가격 16px 굵게, 행간 100%, 자간 0, 글자색은 하나.
+          분류명(TROUSERS 등)은 시안에 없어 뺐다. 색상은 상품에 적혀 있을 때만 한 줄 생긴다.
           실측 요약과 사이즈 칩은 카드에서 뺐다 — 카드가 너무 길었다. 그 둘은 빠른 보기 팝업과 상세 페이지에 있다.
         */}
         <div className={`mt-3 text-left ${inset ? "px-3 md:px-0" : ""}`}>
-          <h3 className="text-primary ease-fluid group-hover:text-accent text-xs font-medium transition-colors duration-500">
+          <h3 className="font-display text-primary ease-fluid group-hover:text-accent text-[16px] leading-none transition-colors duration-500">
             {name}
           </h3>
-          <p className="text-2xs mt-1 flex flex-wrap items-baseline gap-x-2">
+          {colors.length > 0 && <p className="text-primary mt-1 text-[13px] leading-none">{colors.join(" · ")}</p>}
+          <p className="mt-3 flex flex-wrap items-baseline gap-x-2 leading-none">
             {product.priceKrw !== null ? (
-              <span className="text-primary tabular-nums">{KRW.format(product.priceKrw)}원</span>
+              <span className="font-display text-primary text-[16px] tabular-nums">{KRW.format(product.priceKrw)}원</span>
             ) : (
               // D1 이 카탈로그+문의로 확정되면 이 표시가 정상 상태가 된다.
-              <span className="text-muted">가격 문의</span>
+              <span className="text-muted text-[13px]">가격 문의</span>
             )}
             {product.priceKrw !== null && product.listPriceKrw !== null && product.listPriceKrw > product.priceKrw && (
-              <span className="text-muted tabular-nums line-through">{KRW.format(product.listPriceKrw)}원</span>
+              <span className="text-muted text-[13px] tabular-nums line-through">{KRW.format(product.listPriceKrw)}원</span>
             )}
-            <span className="text-muted tracking-label">{CATEGORY_LABEL[product.category].en}</span>
           </p>
         </div>
       </Link>

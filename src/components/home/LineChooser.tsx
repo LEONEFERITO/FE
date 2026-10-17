@@ -116,10 +116,10 @@ export function LineChooser({
           })}
         </ul>
 
-        {/* 맞춤 정장 — 기성복 두 라인 밖의 길. 이용 안내의 "맞춤 제작" 카드로 간다(테일러샵 방문 안내) */}
+        {/* 맞춤 정장 — 기성복 두 라인 밖의 길. 브랜드 페이지의 THE TAILORING(테일러샵 안내)으로 간다 */}
         <div className="mt-10 flex justify-center md:mt-12">
           <Link
-            href="/guide/#custom"
+            href="/brand/#tailoring"
             className="group tracking-button ease-fluid inline-flex min-h-11 items-center gap-3 rounded-full border border-primary/45 px-7 text-sm text-primary transition-all duration-500 hover:border-accent hover:text-accent"
           >
             맞춤 정장

@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { Logo } from "@/components/brand/Logo";
-import { BUSINESS_FIELDS, KAKAO_CHANNEL } from "@/data/business";
+import { BUSINESS_FIELDS } from "@/data/business";
 import { getBusiness } from "@/lib/business";
 import { pendingLabel } from "@/lib/pending";
 
@@ -33,44 +33,12 @@ export async function Footer() {
         </p>
 
         {/*
-          둘러보기 — 2026-10-05 에 헤더 내비가 분류(Suit · Jacket …)로 바뀌면서 헤더에서 내려온 메뉴다.
-          헤더에서 사라진 페이지가 사이트에서 사라진 것이 되면 안 된다. 어느 화면에서든 여기서 닿는다.
+          둘러보기 줄(THE MAISON · THE LOOKBOOK · COLLECTION · CLIENT SERVICES)과 공지사항 · 카카오톡 문의 링크는
+          2026-10-17 디자이너 요청으로 뺐다. 남는 것은 약관 · 정책(표기 의무)과 사업자 정보뿐이다 —
+          브랜드 · 룩북 · 문의는 헤더 ABOUT 에서, 공지는 마이페이지 · 퀵메뉴에서 닿는다.
         */}
-        <nav aria-label="둘러보기" className="mt-10 flex flex-wrap gap-x-7">
-          {/* 2026-10-06 구조표의 상위 메뉴 이름 그대로 — 분류는 헤더에 있으니 여기엔 브랜드 · 안내 · 서비스만 */}
-          {[
-            { href: "/brand/", label: "THE MAISON" },
-            { href: "/guide/", label: "THE GUIDE" },
-            { href: "/lookbook/", label: "THE LOOKBOOK" },
-            { href: "/products/", label: "COLLECTION" },
-            { href: "/qna/", label: "CLIENT SERVICES" },
-          ].map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="text-secondary hover:text-primary tracking-label ease-fluid inline-flex min-h-11 items-center text-2xs transition-colors duration-300"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="border-subtle mt-6 border-t pt-6">
-          <nav aria-label="안내 · 약관 및 정책" className="flex flex-wrap gap-x-7">
-            <Link
-              href="/notice/"
-              className="text-secondary hover:text-primary ease-fluid inline-flex min-h-11 items-center text-xs transition-colors duration-300"
-            >
-              공지사항
-            </Link>
-            <a
-              href={KAKAO_CHANNEL.chat}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-secondary hover:text-primary ease-fluid inline-flex min-h-11 items-center text-xs transition-colors duration-300"
-            >
-              카카오톡 문의<span className="sr-only">(새 창)</span>
-            </a>
+        <div className="border-subtle mt-10 border-t pt-6">
+          <nav aria-label="약관 및 정책" className="flex flex-wrap gap-x-7">
             <Link
               href="/terms"
               className="text-secondary hover:text-primary ease-fluid inline-flex min-h-11 items-center text-xs transition-colors duration-300"

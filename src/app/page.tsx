@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { BrandManual } from "@/components/home/BrandManual";
 import { Connect } from "@/components/home/Connect";
 import { FeaturedProducts } from "@/components/home/FeaturedProducts";
 import { Hero } from "@/components/home/Hero";
@@ -31,6 +30,9 @@ import { getSiteImages } from "@/lib/siteImages";
  *   5 채널      QnA · 카카오톡 채널 · 인스타그램 · 유튜브
  *   6 매장      OFFLINE SHOP — 주소 · 운영시간
  *   7 푸터
+ *
+ * 2026-10-17 디자이너 요청(피그마 댓글): 2(브랜드 문장 + 이용 메뉴얼)는 메인에서 뺐고 이용 안내 페이지도 지웠다.
+ * 4 제품 구간의 제목은 BEST(눈썹 선 · 전체 보기 버튼 없음), 6 매장 구간은 검정 바탕이다.
  *
  * 가이드에 없는 구간은 메인에서 내렸다: 카테고리 격자(헤더 내비가 분류가 되면서 역할이 겹친다),
  * 핏 비교 · 사이즈 찾기 · 교환 안내. 컴포넌트는 남아 있다 — 사이즈 찾기는 가이드에서 옆으로 빼 둔
@@ -131,12 +133,17 @@ export default async function Home() {
           </>
         )}
 
-        <BrandManual />
+        {/*
+          브랜드 문장 + 브랜드 이용 메뉴얼 구간(BrandManual)은 2026-10-17 디자이너 요청으로 뺐다 — 이용 안내 페이지(/guide)도 같이.
+          브랜드 문장(SLOGAN)은 data/brand.ts 에 남아 있어 브랜드 페이지가 계속 쓴다.
+        */}
 
-        {/* 문의 · 채널 · 매장은 흰 바탕 (2026-10-07 고객 요청) */}
+        {/* 문의 · 채널은 흰 바탕 (2026-10-07 고객 요청) */}
         <div className="on-cream on-white">
           <Connect />
-          {/* 매장 사진은 관리자가 올린 것(/admin/display/offline). 아직 없으면 기본 사진 */}
+        </div>
+        {/* 매장 구간은 검정 (2026-10-17 디자이너 요청). 사진은 관리자가 올린 것(/admin/display/offline). 아직 없으면 기본 사진 */}
+        <div className="on-black">
           <OfflineShop
             image={siteImages.OFFLINE_SHOP?.url ?? background}
             alt={siteImages.OFFLINE_SHOP?.alt}

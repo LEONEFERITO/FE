@@ -60,8 +60,9 @@ export default async function CategoryPage({ params }: PageProps<"/category/[cat
 
       <main id="main" className="on-cream on-white flex-1">
         {/* 가운데 제목 (2026-10-08 LYFT 구성) — 영문 분류명은 넓은 자간 · 대문자, 아래 한글 */}
+        {/* pl-[0.18em]: 자간은 마지막 글자 뒤에도 붙어 영문이 한글보다 왼쪽으로 치우쳐 보였다(2026-10-17 "영어랑 한글 정렬 안 맞아요"). 그만큼 앞을 들여 가운데를 맞춘다 */}
         <header className="px-5 py-10 text-center md:py-14">
-          <h1 className="font-display text-primary tracking-[0.18em] text-2xl uppercase md:text-3xl">{entry.title}</h1>
+          <h1 className="font-display text-primary tracking-[0.18em] pl-[0.18em] text-2xl uppercase md:text-3xl">{entry.title}</h1>
           <p className="text-secondary mt-2 text-sm">{ko}</p>
         </header>
 

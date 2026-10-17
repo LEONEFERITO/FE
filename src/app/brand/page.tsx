@@ -420,12 +420,7 @@ export default async function BrandPage() {
                 >
                   컬렉션 보기
                 </Link>
-                <Link
-                  href="/guide"
-                  className="tracking-button ease-fluid border-primary/45 text-primary hover:border-primary inline-flex min-h-12 items-center rounded-full border px-7 text-sm transition-all duration-500 active:scale-[0.98]"
-                >
-                  이용 안내
-                </Link>
+                {/* "이용 안내" 버튼은 2026-10-17 에 이용 안내 페이지(/guide)가 없어지면서 같이 뺐다 */}
               </div>
             </Reveal>
 

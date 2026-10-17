@@ -20,7 +20,6 @@ const PAGES = [
   "/line/leone/",
   "/line/ferito/",
   "/brand/",
-  "/guide/",
   "/lookbook/",
   "/qna/",
   "/terms/",
