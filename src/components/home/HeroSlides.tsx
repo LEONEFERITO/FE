@@ -176,33 +176,37 @@ function ImageSlide({ slide, first, active }: { slide: HeroSlide; first: boolean
         data-quick-avoid=""
         className="relative z-20 mt-auto flex flex-col items-center pb-2 text-center md:max-w-[620px] md:items-start md:pb-4 md:pl-0 md:text-left"
       >
-        {slide.eyebrow && <p className="text-gold text-2xs tracking-label">{slide.eyebrow}</p>}
+        {/* 글자는 전부 흰색 (2026-10-17 디자이너 요청 "히어로 텍스트 화이트로 통일") — 작은 줄도 골드가 아니다 */}
+        {slide.eyebrow && <p className="text-2xs tracking-label text-white">{slide.eyebrow}</p>}
         {slide.title && (
           <p className="font-display leading-display tracking-display mt-2 line-clamp-2 text-2xl text-white md:mt-3 md:text-4xl lg:text-5xl">
             {slide.title}
           </p>
         )}
-        {slide.subtitle && <p className="mt-2 text-sm text-white/85 md:mt-3 md:text-lg">{slide.subtitle}</p>}
+        {slide.subtitle && <p className="mt-2 text-sm text-white md:mt-3 md:text-lg">{slide.subtitle}</p>}
         {/* 버튼 줄. 영상이면 옆에 멈춤 버튼 — 끝없이 움직이는 화면은 멈출 수 있어야 한다(WCAG 2.2.2).
             글자 블록 안에 둔다: 화면 오른쪽 아래는 떠 있는 퀵메뉴 자리라 거기 두면 눌리지 않는다.
             움직임을 줄인 사용자에게는 처음부터 멈춰 있어 감춘다 */}
-        <div className="mt-5 flex items-center gap-3 md:mt-7">
-          <Primary
-            href={slide.primary.href}
-            className="group bg-accent text-on-accent hover:bg-accent-hover tracking-button ease-fluid inline-flex h-11 items-center gap-2 rounded-full pl-5 pr-1.5 text-xs transition-all duration-500 hover:-translate-y-px active:scale-[0.98] md:h-12 md:gap-3 md:pl-6 md:pr-2 md:text-sm"
-          >
-            {slide.primary.label}
-            <span className="bg-on-accent/12 ease-fluid flex h-7 w-7 items-center justify-center rounded-full transition-transform duration-500 group-hover:-translate-y-px group-hover:translate-x-1 group-hover:scale-105 md:h-8 md:w-8">
-              <ArrowUpRight size={11} weight="light" aria-hidden="true" />
-            </span>
-          </Primary>
+        {/* 버튼은 관리자가 켠 배너에만(slide.primary, V35). 영상 멈춤 버튼은 버튼과 상관없이 있다 */}
+        <div className={`flex items-center gap-3 ${slide.primary || (video && !reduced) ? "mt-5 md:mt-7" : ""}`}>
+          {slide.primary && (
+            <Primary
+              href={slide.primary.href}
+              className="group bg-accent text-on-accent hover:bg-accent-hover tracking-button ease-fluid inline-flex h-11 items-center gap-2 rounded-full pl-5 pr-1.5 text-xs transition-all duration-500 hover:-translate-y-px active:scale-[0.98] md:h-12 md:gap-3 md:pl-6 md:pr-2 md:text-sm"
+            >
+              {slide.primary.label}
+              <span className="bg-on-accent/12 ease-fluid flex h-7 w-7 items-center justify-center rounded-full transition-transform duration-500 group-hover:-translate-y-px group-hover:translate-x-1 group-hover:scale-105 md:h-8 md:w-8">
+                <ArrowUpRight size={11} weight="light" aria-hidden="true" />
+              </span>
+            </Primary>
+          )}
           {video && !reduced && (
             <button
               type="button"
               onClick={() => setStopped((s) => !s)}
               aria-label={stopped ? "배너 영상 재생" : "배너 영상 멈춤"}
               aria-pressed={stopped}
-              className="ease-fluid inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/40 text-white/85 transition-colors duration-300 hover:border-white hover:text-white focus-visible:border-white md:h-12 md:w-12"
+              className="ease-fluid inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/40 text-white transition-colors duration-300 hover:border-white focus-visible:border-white md:h-12 md:w-12"
             >
               {stopped ? <Play size={13} weight="light" aria-hidden="true" /> : <Pause size={13} weight="light" aria-hidden="true" />}
             </button>
@@ -269,15 +273,18 @@ function Slide({ slide, first }: { slide: HeroSlide; first: boolean }) {
         data-quick-avoid=""
         className="relative z-20 mt-5 flex flex-wrap items-center justify-center gap-3 md:absolute md:bottom-10 md:left-10 md:mt-0 md:justify-start lg:left-[7%]"
       >
-        <Primary
-          href={slide.primary.href}
-          className="group bg-accent text-on-accent hover:bg-accent-hover shadow-button hover:shadow-button-hover tracking-button ease-fluid inline-flex h-11 items-center gap-2 rounded-full pl-5 pr-1.5 text-xs transition-all duration-500 hover:-translate-y-px active:scale-[0.98] md:h-12 md:gap-3 md:pl-6 md:pr-2 md:text-sm"
-        >
-          {slide.primary.label}
-          <span className="bg-on-accent/12 ease-fluid flex h-7 w-7 items-center justify-center rounded-full transition-transform duration-500 group-hover:-translate-y-px group-hover:translate-x-1 group-hover:scale-105 md:h-8 md:w-8">
-            <ArrowUpRight size={11} weight="light" aria-hidden="true" />
-          </span>
-        </Primary>
+        {/* 주 버튼은 관리자가 켠 배너에만(V35). 「전체 제품」은 그대로 */}
+        {slide.primary && (
+          <Primary
+            href={slide.primary.href}
+            className="group bg-accent text-on-accent hover:bg-accent-hover shadow-button hover:shadow-button-hover tracking-button ease-fluid inline-flex h-11 items-center gap-2 rounded-full pl-5 pr-1.5 text-xs transition-all duration-500 hover:-translate-y-px active:scale-[0.98] md:h-12 md:gap-3 md:pl-6 md:pr-2 md:text-sm"
+          >
+            {slide.primary.label}
+            <span className="bg-on-accent/12 ease-fluid flex h-7 w-7 items-center justify-center rounded-full transition-transform duration-500 group-hover:-translate-y-px group-hover:translate-x-1 group-hover:scale-105 md:h-8 md:w-8">
+              <ArrowUpRight size={11} weight="light" aria-hidden="true" />
+            </span>
+          </Primary>
+        )}
         <Link
           href="/products"
           className="tracking-button ease-fluid border-strong hover:border-accent hover:text-accent hover:shadow-soft inline-flex h-11 items-center rounded-full border px-5 text-xs text-primary transition-all duration-500 active:scale-[0.98] md:h-12 md:px-6 md:text-sm"
@@ -327,7 +334,7 @@ export function HeroSlides({ slides, autoplay = true }: { slides: HeroSlide[]; a
   /** 지금 장면이 사진 한 장이면 위 글자 · 버튼 · 헤더를 밝게 */
   const dark = slides[current]?.layout === "image";
   const button = `${
-    dark ? "text-white/80 hover:text-white focus-visible:text-white" : "text-secondary hover:text-accent focus-visible:text-accent"
+    dark ? "text-white" : "text-secondary hover:text-accent focus-visible:text-accent"
   } ease-fluid inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors duration-300`;
 
   // 헤더에 알린다 — 히어로 요소의 표식을 바꾸면 헤더가 글자색을 바꾼다(Header 의 MutationObserver)
@@ -338,14 +345,11 @@ export function HeroSlides({ slides, autoplay = true }: { slides: HeroSlide[]; a
 
   return (
     <>
-      {/* 위 한 줄 — 이 페이지의 유일한 h1. 레퍼런스의 상단 영문 캡션 자리다. 사진 장면 위에서는 흰 글자 */}
-      <h1
-        className={`ease-fluid relative z-20 text-center text-xs leading-relaxed transition-colors duration-700 md:text-sm ${
-          dark ? "text-white/90" : "text-secondary"
-        }`}
-      >
-        운동으로 달라진 체형을 위한 남성 기성복
-      </h1>
+      {/*
+        이 페이지의 유일한 h1. 화면에서는 뺐다(2026-10-17 디자이너 요청 "이 텍스트 없애주고") — 검색 · 화면 낭독기에는
+        페이지 제목으로 남긴다. 눈에 보이는 첫 줄이 없어진 만큼 장면의 큰 제목이 첫 글자가 된다.
+      */}
+      <h1 className="sr-only">운동으로 달라진 체형을 위한 남성 기성복</h1>
 
       <div
         role={count > 1 ? "region" : undefined}
@@ -392,7 +396,7 @@ export function HeroSlides({ slides, autoplay = true }: { slides: HeroSlide[]; a
             <CaretLeft size={14} weight="light" aria-hidden="true" />
           </button>
           <span
-            className={`text-2xs tracking-label min-w-[4.5rem] text-center tabular-nums ${dark ? "text-white/70" : "text-secondary"}`}
+            className={`text-2xs tracking-label min-w-[4.5rem] text-center tabular-nums ${dark ? "text-white" : "text-secondary"}`}
             aria-live={running ? "off" : "polite"}
           >
             <span className={dark ? "text-white" : "text-primary"}>{pad(current + 1)}</span> / {pad(count)}

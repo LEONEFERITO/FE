@@ -123,13 +123,11 @@ export default async function Home() {
             </div>
 
             {/*
-              가이드의 첫 화면 — 배너를 쓰는 변형에서는 제품 격자 다음이다. 가이드가 그린 모양(사진 위 크림 판)
-              그대로 서되 제목은 h2 다. h1 은 배너가 갖는다.
+              WHY 구간 — 배너를 쓰는 변형에서는 제품 격자 다음이다. 제목은 h2 다(h1 은 배너가 갖는다).
+              2026-10-17 디자이너 시안으로 모양이 뒤집혔다: 검은 바탕, 왼쪽 상자 안에 사진, 오른쪽에 관리자가 적은 글
+              (전에는 사진 위에 크림 글자 판). 판 모양(panel · mobile="cover-dark")은 컴포넌트에 남아 있다.
             */}
-            <div className="on-cream">
-              {/* 폰 구성: cover-dark 로 확정 (2026-10-07 — 사진 전체에 와인 가림막 · 크림 글자). pin · stack · cover-light 도 남아 있다 */}
-              <WhyScroll panel mobile="cover-dark" content={why} fallbackImage={background} />
-            </div>
+            <WhyScroll layout="split" content={why} fallbackImage={background} />
           </>
         )}
 

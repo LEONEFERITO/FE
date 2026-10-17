@@ -32,6 +32,8 @@ export interface HeroBanner {
   ctaLabel: string;
   /** 사이트 안 주소(/…) 또는 https 주소. 비면 상품 페이지(상품 배너) · 전체 제품(직접 등록) */
   ctaUrl: string;
+  /** 버튼을 내보내는가 (서버 V35). false 면 그 배너엔 버튼이 없다 */
+  ctaEnabled: boolean;
   figure: BannerPhoto | null;
   frameLeft: BannerPhoto | null;
   frameRight: BannerPhoto | null;
@@ -65,6 +67,7 @@ async function load(): Promise<HeroBanner[]> {
       subtitle: d.subtitle ?? "",
       ctaLabel: d.ctaLabel ?? "",
       ctaUrl: d.ctaUrl ?? "",
+      ctaEnabled: d.ctaEnabled ?? true,
       figure: photo(d.figure),
       frameLeft: photo(d.frameLeft),
       frameRight: photo(d.frameRight),

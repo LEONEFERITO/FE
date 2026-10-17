@@ -52,7 +52,15 @@ export function WhyScroll({
   hero = false,
   panel = false,
   mobile = "pin",
+  layout,
 }: {
+  /**
+   * `"split"` — 2026-10-17 디자이너 시안: **검은 바탕**, 왼쪽에 사진을 담은 상자(3:2), 오른쪽에 관리자가 적은 글.
+   * 판 모양(사진 위 글자 판)과 **반대**다 — 사진이 상자 안으로 들어가고 글이 밖(검정)으로 나온다.
+   * 핀 · 항목 넘김은 그대로다: 켜진 항목의 사진이 상자 안에서 바뀐다. 폰은 붙잡지 않고 위(사진)에서 아래(글)로 쌓는다.
+   * 이 값을 주면 hero · panel · mobile 은 보지 않는다.
+   */
+  layout?: "split";
   content: WhyContent;
   /** 사진이 없는 항목에 쓸 기본 배경. 파일이 없으면 null — 바탕색만 남는다. */
   fallbackImage: string | null;
@@ -134,6 +142,110 @@ export function WhyScroll({
   const coverDark = mobile === "cover-dark";
   // 폰에서 사진을 위 52% 칸에 가두는 건 A안(pin)뿐 — B · C 는 화면 전체(B 는 폰에서 숨긴다)
   const topBox = boxed && !stack && !cover;
+
+  /** 항목 목록 — 번호 · 제목 버튼 · 접히는 설명. 판 모양과 나뉜 모양이 같은 것을 쓴다. */
+  const itemList = (className: string) => (
+    <ol className={className}>
+      {items.map((item, i) => {
+        const on = i === active;
+        const src = item.imageUrl ?? fallbackImage;
+        return (
+          <li key={i} data-active={on} className={`why-item border-subtle ${stack ? "md:border-t" : "border-t"}`}>
+            {/* B안 폰: 항목 사진. 올린 사진이 4:5 라 그 비율 그대로 — 자르지 않는다. 좌우 끝까지 */}
+            {stack && src && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={src}
+                alt=""
+                loading={i === 0 ? "eager" : "lazy"}
+                className="-mx-5 mb-5 block aspect-[4/5] w-[calc(100%+2.5rem)] max-w-none object-cover md:hidden"
+              />
+            )}
+            <button
+              type="button"
+              onClick={() => jumpTo(i)}
+              aria-current={on ? "step" : undefined}
+              className="ease-fluid flex min-h-12 w-full items-baseline gap-5 py-3 text-left transition-colors duration-500 md:py-4"
+            >
+              <span
+                className={`text-2xs tracking-label tabular-nums ${on ? "text-accent" : "text-muted"} ${
+                  stack ? "max-md:text-accent" : ""
+                }`}
+              >
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span
+                className={`font-display ease-fluid transition-[color,opacity] duration-500 ${
+                  on ? "text-primary text-xl md:text-2xl" : "text-primary/55 text-lg md:text-xl"
+                } ${stack ? "max-md:text-primary max-md:text-xl" : ""}`}
+              >
+                {item.title}
+              </span>
+            </button>
+            <div className="why-body">
+              <div className="min-h-0 overflow-hidden">
+                <p className="text-secondary pb-5 pl-9 text-sm leading-relaxed md:pb-6 md:text-(length:--fs-base)">
+                  {item.body}
+                </p>
+              </div>
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  );
+
+  if (layout === "split") {
+    return (
+      <section
+        ref={sectionRef}
+        aria-labelledby="why-heading"
+        /*
+          why-stack: 폰에서는 붙잡지 않고(핀 해제) 설명을 전부 편다 — 사진 상자 + 글 전부가 한 화면에 안 들어간다.
+          on-black: 바탕 검정, 글자 · 선은 검정 위 값(globals.css).
+        */
+        className="why-pin why-stack on-black"
+        style={{ "--why-steps": items.length + 1 } as React.CSSProperties}
+      >
+        <div className="why-stage relative overflow-hidden">
+          {/* 시안 비율(1765 기준): 왼쪽 여백 140 · 사진 780 · 사이 125 · 글 600 → 13 : 10, 사이 8% */}
+          <div className="mx-auto flex h-full max-w-[1505px] flex-col justify-center gap-10 px-5 py-16 md:grid md:grid-cols-[minmax(0,13fr)_minmax(0,10fr)] md:items-center md:gap-x-[8%] md:px-15 md:py-0 xl:px-[140px]">
+            {/* 사진 상자 — 켜진 항목의 사진만 보인다(crossfade). 장식이라 alt 는 비운다. 폰은 세로(4:5)로 머리가 남게 위를 본다 */}
+            <figure aria-hidden="true" className="bg-surface relative aspect-[4/5] overflow-hidden md:aspect-[3/2]">
+              {items.map((item, i) => {
+                const src = item.imageUrl ?? fallbackImage;
+                if (!src) return null;
+                return (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    key={`${i}-${src}`}
+                    src={src}
+                    alt=""
+                    loading={i === 0 ? "eager" : "lazy"}
+                    data-active={i === active}
+                    className="why-bg absolute inset-0 h-full w-full object-cover object-top md:object-center"
+                  />
+                );
+              })}
+            </figure>
+
+            {/* 글 — 관리자가 적은 WHY 문구(눈썹 · 제목 · 소개 · 항목). 검정 위 크림 */}
+            <div>
+              <Eyebrow>{content.eyebrow}</Eyebrow>
+              <Heading
+                id="why-heading"
+                className="font-display text-primary leading-display tracking-display mt-4 text-3xl md:text-4xl"
+              >
+                {content.title}
+              </Heading>
+              <p className="text-secondary mt-5 whitespace-pre-line text-sm md:text-(length:--fs-base)">{content.intro}</p>
+              {itemList("mt-8 flex flex-col md:mt-10")}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
@@ -261,54 +373,7 @@ export function WhyScroll({
               {content.intro}
             </p>
 
-            <ol className={`flex flex-col md:mt-12 ${stack ? "mt-10 gap-10 md:gap-0" : "mt-8"}`}>
-              {items.map((item, i) => {
-                const on = i === active;
-                const src = item.imageUrl ?? fallbackImage;
-                return (
-                  <li key={i} data-active={on} className={`why-item border-subtle ${stack ? "md:border-t" : "border-t"}`}>
-                    {/* B안 폰: 항목 사진. 올린 사진이 4:5 라 그 비율 그대로 — 자르지 않는다. 좌우 끝까지 */}
-                    {stack && src && (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img
-                        src={src}
-                        alt=""
-                        loading={i === 0 ? "eager" : "lazy"}
-                        className="-mx-5 mb-5 block aspect-[4/5] w-[calc(100%+2.5rem)] max-w-none object-cover md:hidden"
-                      />
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => jumpTo(i)}
-                      aria-current={on ? "step" : undefined}
-                      className="ease-fluid flex min-h-12 w-full items-baseline gap-5 py-3 text-left transition-colors duration-500 md:py-4"
-                    >
-                      <span
-                        className={`text-2xs tracking-label tabular-nums ${on ? "text-accent" : "text-muted"} ${
-                          stack ? "max-md:text-accent" : ""
-                        }`}
-                      >
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <span
-                        className={`font-display ease-fluid transition-[color,opacity] duration-500 ${
-                          on ? "text-primary text-xl md:text-2xl" : "text-primary/55 text-lg md:text-xl"
-                        } ${stack ? "max-md:text-primary max-md:text-xl" : ""}`}
-                      >
-                        {item.title}
-                      </span>
-                    </button>
-                    <div className="why-body">
-                      <div className="min-h-0 overflow-hidden">
-                        <p className="text-secondary pb-5 pl-9 text-sm leading-relaxed md:pb-6 md:text-(length:--fs-base)">
-                          {item.body}
-                        </p>
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
+            {itemList(`flex flex-col md:mt-12 ${stack ? "mt-10 gap-10 md:gap-0" : "mt-8"}`)}
           </div>
         </div>
       </div>

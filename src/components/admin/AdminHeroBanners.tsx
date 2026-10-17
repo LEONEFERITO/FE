@@ -100,6 +100,8 @@ interface Form {
   subtitle: string;
   ctaLabel: string;
   ctaUrl: string;
+  /** 버튼 사용 (V35). 끄면 버튼 글자 · 주소 칸이 접히고 손님 화면에 버튼이 안 나간다 */
+  ctaEnabled: boolean;
   figure: ImageFieldValue | null;
   figureAlt: string;
   frameLeft: ImageFieldValue | null;
@@ -123,6 +125,7 @@ const EMPTY_FORM: Form = {
   subtitle: "",
   ctaLabel: "",
   ctaUrl: "",
+  ctaEnabled: true,
   figure: null,
   figureAlt: "",
   frameLeft: null,
@@ -154,6 +157,7 @@ function formOf(b: HeroBannerAdmin): Form {
     subtitle: b.subtitle,
     ctaLabel: b.ctaLabel,
     ctaUrl: b.ctaUrl,
+    ctaEnabled: b.ctaEnabled ?? true,
     figure: film ? null : asField(b.figure),
     figureAlt: b.figure?.alt ?? "",
     frameLeft: asField(b.frameLeft),
@@ -182,6 +186,7 @@ function inputOf(f: Form): HeroBannerInput {
     subtitle: f.subtitle.trim(),
     ctaLabel: f.ctaLabel.trim(),
     ctaUrl: f.ctaUrl.trim(),
+    ctaEnabled: f.ctaEnabled,
     figure: video ? pick(true, f.film?.video, f.figureAlt) : pick(custom || image, f.figure, f.figureAlt),
     frameLeft: pick(custom, f.frameLeft, f.frameLeftAlt),
     frameRight: pick(custom, f.frameRight, f.frameRightAlt),
@@ -587,7 +592,14 @@ function BannerEditor({
     };
   }, [pid, details]);
 
-  const text = { eyebrow: form.eyebrow.trim(), title: form.title.trim(), subtitle: form.subtitle.trim(), ctaLabel: form.ctaLabel.trim(), ctaUrl: form.ctaUrl.trim() };
+  const text = {
+    eyebrow: form.eyebrow.trim(),
+    title: form.title.trim(),
+    subtitle: form.subtitle.trim(),
+    ctaLabel: form.ctaLabel.trim(),
+    ctaUrl: form.ctaUrl.trim(),
+    ctaEnabled: form.ctaEnabled,
+  };
   const urlOk = HERO_CTA_URL.test(text.ctaUrl);
   const detail = pid ? details[pid] : undefined;
   const slide: HeroSlide | null =
@@ -870,14 +882,23 @@ function BannerEditor({
             ? "비워 두면 상품 정보(분류 · 이름 · 가격 · 상품 페이지)가 나갑니다. 적은 줄만 그 문구로 바뀝니다."
             : imageLayout
               ? `글자는 ${layout === "video" ? "영상" : "사진"} 아래쪽에 흰색으로 나갑니다. 비운 줄은 나오지 않고, 다 비우면 버튼만 나갑니다.`
-              : "비운 줄은 화면에 나오지 않습니다."}{" "}
-          맨 위 「운동으로 달라진 체형을 위한 남성 기성복」은 그대로입니다.
+              : "비운 줄은 화면에 나오지 않습니다."}
         </p>
         <div className="mt-6 grid gap-6 md:grid-cols-2">
           <Counted id="banner-eyebrow" label="작은 줄 (제목 위)" value={form.eyebrow} max={HERO_LIMITS.eyebrow} placeholder={productText ? "비우면 분류 · 라인" : "예: 26FW COLLECTION"} onChange={(v) => set({ eyebrow: v })} />
           <Counted id="banner-title" label="큰 제목" value={form.title} max={HERO_LIMITS.title} placeholder={productText ? "비우면 상품 이름" : "예: 가을 아우터"} onChange={(v) => set({ title: v })} />
           <Counted id="banner-subtitle" label="제목 아래 줄" value={form.subtitle} max={HERO_LIMITS.subtitle} placeholder={productText ? "비우면 가격" : ""} onChange={(v) => set({ subtitle: v })} />
-          <Counted id="banner-cta-label" label="버튼 글자" value={form.ctaLabel} max={HERO_LIMITS.ctaLabel} placeholder="비우면 「자세히 보기」" onChange={(v) => set({ ctaLabel: v })} />
+
+          {/* 버튼 사용 (2026-10-17 요청) — 끄면 아래 글자 · 주소 칸이 접히고 손님 화면에 버튼이 안 나간다. 값은 남는다 */}
+          <label className="text-primary inline-flex min-h-11 cursor-pointer items-center gap-3 text-sm md:col-span-2">
+            <input type="checkbox" checked={form.ctaEnabled} onChange={(e) => set({ ctaEnabled: e.target.checked })} className="accent-accent h-4 w-4" />
+            버튼 사용
+            <span className="text-muted text-2xs">끄면 이 배너에는 버튼이 나가지 않습니다. 적어 둔 글자 · 주소는 남아 있어 다시 켜면 그대로입니다</span>
+          </label>
+          {form.ctaEnabled && (
+            <Counted id="banner-cta-label" label="버튼 글자" value={form.ctaLabel} max={HERO_LIMITS.ctaLabel} placeholder="비우면 「자세히 보기」" onChange={(v) => set({ ctaLabel: v })} />
+          )}
+          {form.ctaEnabled && (
           <div className="md:col-span-2">
             <Counted
               id="banner-cta-url"
@@ -925,6 +946,7 @@ function BannerEditor({
               </div>
             )}
           </div>
+          )}
         </div>
       </section>
 

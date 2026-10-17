@@ -211,6 +211,8 @@ export interface HeroBannerAdmin {
   subtitle: string;
   ctaLabel: string;
   ctaUrl: string;
+  /** 버튼을 내보내는가 (서버 V35). 끄면 글자 · 주소는 보관만 */
+  ctaEnabled: boolean;
   figure: HeroBannerPhoto | null;
   frameLeft: HeroBannerPhoto | null;
   frameRight: HeroBannerPhoto | null;
@@ -234,6 +236,8 @@ export interface HeroBannerInput {
   subtitle: string;
   ctaLabel: string;
   ctaUrl: string;
+  /** 버튼을 내보내는가 (서버 V35). 끄면 글자 · 주소는 보관만 */
+  ctaEnabled: boolean;
   figure: { mediaId: string; alt: string } | null;
   frameLeft: { mediaId: string; alt: string } | null;
   frameRight: { mediaId: string; alt: string } | null;

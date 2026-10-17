@@ -40,19 +40,25 @@ export interface HeroSlide {
   title: string;
   /** 이름 아래 줄 (가격 등). 비면 그리지 않는다 */
   subtitle: string;
-  primary: { label: string; href: string };
+  /** 버튼. null 이면 그리지 않는다 — 관리자가 그 배너의 「버튼 사용」을 껐다(서버 V35) */
+  primary: { label: string; href: string } | null;
   /** 오른쪽 아래 캡션의 둘째 줄. null 이면 LEONE FERITO 한 줄만 */
   captionSub: string | null;
 }
 
-/** 배너 문구 — 관리자가 적는 다섯 줄. 비운 줄은 기본값(상품 이름 · 가격 등)이 나간다. */
+/** 배너 문구 — 관리자가 적는 다섯 줄 + 버튼 사용 여부. 비운 줄은 기본값(상품 이름 · 가격 등)이 나간다. */
 export interface BannerText {
   eyebrow: string;
   title: string;
   subtitle: string;
   ctaLabel: string;
   ctaUrl: string;
+  ctaEnabled: boolean;
 }
+
+/** 버튼 — 끄면 null, 켜면 글자(비우면 「자세히 보기」)와 주소(안전하지 않으면 fallback) */
+const primaryOf = (text: BannerText, fallbackHref: string) =>
+  text.ctaEnabled ? { label: text.ctaLabel || "자세히 보기", href: safeHref(text.ctaUrl, fallbackHref) } : null;
 
 /** 배너가 상품에서 쓰는 값만 — 관리자 화면은 상품 전체(Product)가 아니라 수정용 응답에서 만든다 */
 export type SlideProduct = Pick<Product, "slug" | "name" | "category" | "line" | "priceKrw" | "cutout" | "images">;
@@ -90,7 +96,8 @@ export function slideFromProduct(product: SlideProduct, text?: BannerText): Hero
     eyebrow: text?.eyebrow || `${category?.en ?? product.category} · ${fit?.ko ?? ""}`,
     title: text?.title || name,
     subtitle: text?.subtitle || (product.priceKrw !== null ? `${KRW.format(product.priceKrw)}원` : "가격 문의"),
-    primary: { label: text?.ctaLabel || "자세히 보기", href: text?.ctaUrl ? safeHref(text.ctaUrl, href) : href },
+    // 문구가 없으면(배너 없이 진열 순서 맨 앞 상품) 버튼은 상품 페이지로
+    primary: text ? primaryOf(text, href) : { label: "자세히 보기", href },
     // fit.ko 가 이미 "페리토 라인" 이다 — 뒤에 "라인" 을 또 붙이면 "라인 라인" 이 된다
     captionSub: fit ? `${fit.ko} · ${fit.kind}` : null,
   };
@@ -112,7 +119,7 @@ export function slideFromCustom(
     eyebrow: banner.eyebrow,
     title: banner.title,
     subtitle: banner.subtitle,
-    primary: { label: banner.ctaLabel || "자세히 보기", href: safeHref(banner.ctaUrl, "/products/") },
+    primary: primaryOf(banner, "/products/"),
     captionSub: null,
   };
 }
@@ -132,7 +139,7 @@ export function slideFromImage(
     eyebrow: banner.eyebrow,
     title: banner.title,
     subtitle: banner.subtitle,
-    primary: { label: banner.ctaLabel || "자세히 보기", href: safeHref(banner.ctaUrl, "/products/") },
+    primary: primaryOf(banner, "/products/"),
     captionSub: null,
   };
 }
@@ -163,7 +170,7 @@ export function slideFromVideo(
     eyebrow: banner.eyebrow,
     title: banner.title,
     subtitle: banner.subtitle,
-    primary: { label: banner.ctaLabel || "자세히 보기", href: safeHref(banner.ctaUrl, "/products/") },
+    primary: primaryOf(banner, "/products/"),
     captionSub: null,
   };
 }
