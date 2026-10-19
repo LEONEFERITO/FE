@@ -17,7 +17,7 @@ import { CATEGORY_LABEL, LINE_LABEL, type Category, type ProductLine } from "@/t
  *
  * 메인의 두 라인 카드를 누르면 온다. 구성:
  *   1 머리      뒤로 가기(왼쪽 위) · 작은 라벨(CLASSIC LINE / ATHLETIC LINE) · 라인 이름 · 한 줄 제목 · 소개 세 줄
- *   2 다섯 칸   사진 다섯 장 — 시안 크기 287×392, 사이 10px
+ *   2 사진 흐름  사진이 가로로 천천히 흐른다(2026-10-19 디자이너 요청 · 레퍼런스 mycel.earth/pclm 맨 아래) — 사이 10px
  *   3 상품      분류별로 쭉 — 수트 · 셔츠 · 팬츠 · 자켓 순. 분류 이름은 영문(SHIRT · TROUSERS …)
  *
  * ── 2026-10-17 디자이너 피그마 댓글로 바뀐 것 ───────────────
@@ -27,8 +27,15 @@ import { CATEGORY_LABEL, LINE_LABEL, type Category, type ProductLine } from "@/t
  * 소개 문안은 디자이너가 적어 준 원문(data/brand.ts LINE_INTRO) — "확인 중" 자리 표시는 끝났다.
  * 뺀 것: 분류 위 눈썹 선, 다섯 칸 아래 "페인포인트와 니즈 포인트", 맨 아래 선 + "다른 라인 보기" 버튼.
  *
- * 다섯 칸의 사진은 관리자가 올린다(/admin/display/line — 서버 site_image LINE_*_1~5, V22). 비운 칸은 그 라인
- * 상품의 사진을 앞에서부터 채우고, 모자라면 시안의 회색 칸으로 남는다.
+ * 사진은 관리자가 올린다(/admin/display/line — 서버 site_image LINE_*_1~5, V22). 비운 칸은 그 라인
+ * 상품의 사진을 앞에서부터 채운다.
+ *
+ * ── 2026-10-19 디자이너 요청 ───────────────────────────
+ * 텍스트를 뺀 자리만큼 사진을 키운다(시안 287×392 → 높이 540, 폰 360 · 비율 그대로). 사이는 10px 그대로.
+ * 사진이 가로로 흐른다 — 레퍼런스처럼 스크롤과 상관없이 저절로, 1초에 약 66px. 같은 줄을 두 번 이어 붙이고
+ * 절반(-50%)만큼 옮긴 뒤 처음으로 돌아가 끊김이 없다. 마우스를 올리면 멈춘다. 움직임 줄이기면 멈춘 채 옆으로 넘겨 본다.
+ * 빈칸은 회색으로 두지 않는다 — 있는 사진을 돌려 채운다(한 줄이 화면보다 길어야 흐름이 끊기지 않아 최소 8장).
+ * 사진이 한 장도 없을 때만 시안의 회색 칸을 멈춘 채 둔다.
  */
 
 const LINE_BY_SLUG: Record<string, ProductLine> = { leone: "LEONE", ferito: "FERITO" };
@@ -37,6 +44,10 @@ const LINE_BY_SLUG: Record<string, ProductLine> = { leone: "LEONE", ferito: "FER
 const CATEGORY_ORDER: Category[] = ["SUIT", "SHIRT", "TROUSERS", "JACKET", "SHOES", "ACCESSORIES"];
 
 const TILE_COUNT = 5;
+/** 흐르는 줄 한 벌의 최소 장수 — 넓은 화면(2560)보다 길어야 이어 붙인 자리가 보이지 않는다 */
+const FLOW_MIN = 8;
+/** 한 장(사진 + 10px)이 지나가는 시간(초) — 넓은 화면에서 1초에 약 66px(레퍼런스와 같은 속도) */
+const FLOW_SECONDS_PER_TILE = 6;
 
 export function generateStaticParams() {
   return Object.keys(LINE_BY_SLUG).map((line) => ({ line }));
@@ -66,6 +77,9 @@ export default async function LinePage({ params }: PageProps<"/line/[line]">) {
   const fallback = products.flatMap((p) => p.images);
   let used = 0;
   const photos = slots.map((s) => s ?? fallback[used++] ?? null);
+  // 흐르는 줄 — 빈칸 없이 있는 사진을 돌려 최소 FLOW_MIN 장으로
+  const real = photos.filter((p): p is NonNullable<(typeof photos)[number]> => p !== null);
+  const flow = real.length === 0 ? [] : Array.from({ length: Math.max(FLOW_MIN, real.length) }, (_, i) => real[i % real.length]);
   const groups = CATEGORY_ORDER.map((category) => ({
     category,
     items: products.filter((p) => p.category === category),
@@ -105,27 +119,45 @@ export default async function LinePage({ params }: PageProps<"/line/[line]">) {
           </div>
 
           {/*
-            다섯 칸 — 시안 287×392(≈3:4), 사이 10px. 1515px 이상에서 칸이 정확히 287 이고 그 아래는 폭에 맞춰 준다.
-            넓은 화면에서 한 줄 다섯, 좁은 화면은 2열(다섯째 칸은 가운데 줄 아래로 간다).
+            사진 흐름 — 같은 줄을 두 번 이어 붙여 -50% 까지 옮기고 되돌아간다(globals.css .line-flow).
+            사이 10px 은 칸마다 오른쪽 여백으로 준다 — flex gap 이면 이어 붙인 자리에서 한 번 빠져 이음매가 보인다.
+            뒤쪽 한 벌은 화면 낭독기에 숨긴다(같은 사진을 두 번 읽지 않게).
           */}
-          <div className="mx-auto max-w-[1515px] px-5 pb-16 md:pb-24">
-            <ul className="grid grid-cols-2 gap-2.5 md:grid-cols-5">
-              {Array.from({ length: TILE_COUNT }, (_, i) => {
-                const photo = photos[i];
-                // 좁은 화면의 다섯째 칸: 두 칸을 차지하고 그 안에서 가운데 — 폭은 안쪽 figure 가 맡는다(li 에 w-auto 를 주면 grid 안에서 0 이 된다)
-                return (
-                  <li key={i} className={i === 4 ? "col-span-2 flex justify-center md:col-span-1 md:block" : undefined}>
-                    {/* 사진이 없으면 시안의 회색 칸 그대로 */}
-                    <figure className={`relative aspect-[287/392] overflow-hidden bg-[#D9D9D9] ${i === 4 ? "w-[calc(50%-0.3125rem)] md:w-auto" : ""}`}>
-                      {photo && (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img src={photo.url} alt={photo.alt} loading="lazy" className="absolute inset-0 h-full w-full object-cover object-top" />
-                      )}
-                    </figure>
+          <div className="pb-16 md:pb-24">
+            {flow.length > 0 ? (
+              <div className="line-flow overflow-hidden" aria-label={`${label.en} 사진`}>
+                <ul
+                  className="line-flow-track flex w-max"
+                  style={{ ["--line-flow-duration" as string]: `${flow.length * FLOW_SECONDS_PER_TILE}s` }}
+                >
+                  {[...flow, ...flow].map((photo, i) => {
+                    const copy = i >= flow.length;
+                    return (
+                      <li key={i} aria-hidden={copy || undefined} data-copy={copy || undefined} className="shrink-0 pr-2.5">
+                        <figure className="relative aspect-[287/392] h-[360px] overflow-hidden bg-[#D9D9D9] md:h-[540px]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={photo.url}
+                            alt={copy ? "" : photo.alt}
+                            loading={i < 6 ? "eager" : "lazy"}
+                            className="absolute inset-0 h-full w-full object-cover object-top"
+                          />
+                        </figure>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ) : (
+              /* 사진이 한 장도 없을 때 — 시안의 회색 칸, 멈춘 채 */
+              <ul className="flex justify-center gap-2.5 overflow-hidden px-5">
+                {Array.from({ length: TILE_COUNT }, (_, i) => (
+                  <li key={i} className="shrink-0">
+                    <div className="aspect-[287/392] h-[360px] bg-[#D9D9D9] md:h-[540px]" />
                   </li>
-                );
-              })}
-            </ul>
+                ))}
+              </ul>
+            )}
           </div>
         </section>
 

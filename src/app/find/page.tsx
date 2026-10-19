@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { PasswordResetRequestForm } from "@/components/auth/PasswordResetRequestForm";
 import { Footer } from "@/components/layout/Footer";
@@ -39,6 +40,13 @@ export default function Page() {
           <div className="mt-8">
             <PasswordResetRequestForm />
           </div>
+
+          <p className="text-muted text-2xs mt-6 text-center">
+            가입한 이메일이 기억나지 않으면{" "}
+            <Link href="/find-id" className="text-accent underline underline-offset-4">
+              아이디 찾기
+            </Link>
+          </p>
         </div>
       </main>
       <Footer />

@@ -191,12 +191,21 @@ export function LoginForm() {
           로그인 유지
         </label>
 
-        <Link
-          href="/find"
-          className="inline-flex min-h-11 items-center text-muted hover:text-accent ease-fluid text-2xs underline underline-offset-4 transition-colors duration-300"
-        >
-          비밀번호를 잊으셨나요?
-        </Link>
+        <span className="text-muted text-2xs inline-flex items-center gap-2">
+          <Link
+            href="/find-id"
+            className="hover:text-accent ease-fluid inline-flex min-h-11 items-center underline underline-offset-4 transition-colors duration-300"
+          >
+            아이디 찾기
+          </Link>
+          <span aria-hidden="true">·</span>
+          <Link
+            href="/find"
+            className="hover:text-accent ease-fluid inline-flex min-h-11 items-center underline underline-offset-4 transition-colors duration-300"
+          >
+            비밀번호 찾기
+          </Link>
+        </span>
       </div>
 
       <button

@@ -459,6 +459,23 @@ export async function requestPasswordReset(email: string): Promise<void> {
   if (!res.ok) return failure(res);
 }
 
+/** 아이디 찾기 결과 한 줄 — 서버가 가린 이메일(ho***@naver.com), 들어오는 방법, 가입일(yyyy-MM-dd) */
+export interface FoundAccount {
+  maskedEmail: string;
+  providers: ("LOCAL" | "KAKAO" | "NAVER")[];
+  joinedOn: string;
+}
+
+/** 아이디 찾기 — 이름 · 휴대폰 번호(숫자만이어도 된다). 없으면 빈 목록. 너무 잦으면 rate-limited */
+export async function findEmail(name: string, phone: string): Promise<FoundAccount[]> {
+  requireConnected();
+  const res = await post("/api/auth/find-email", { name, phone });
+  if (res.status === 429) throw new AuthError("rate-limited");
+  if (!res.ok) return failure(res);
+  const body = (await res.json()) as { accounts: FoundAccount[] };
+  return body.accounts;
+}
+
 export async function confirmPasswordReset(token: string, newPassword: string): Promise<void> {
   requireConnected();
   const res = await post("/api/auth/password-reset/confirm", { token, newPassword });
