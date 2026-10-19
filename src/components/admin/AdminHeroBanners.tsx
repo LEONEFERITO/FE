@@ -147,6 +147,12 @@ const asFilm = (video: HeroBannerAdmin["figure"], poster: HeroBannerAdmin["poste
   return v ? { video: v, poster: asField(poster) } : null;
 };
 
+/** 배너 버튼 보이기 · 숨기기 (V35 cta_enabled) */
+const CTA_OPTIONS: { value: boolean; title: string; desc: string }[] = [
+  { value: true, title: "버튼 보이기", desc: "배너 위에 버튼이 나갑니다. 아래에서 글자와 주소를 정합니다." },
+  { value: false, title: "버튼 숨기기", desc: "이 배너에는 버튼이 나가지 않습니다. 적어 둔 글자 · 주소는 남아 다시 보이면 그대로입니다." },
+];
+
 function formOf(b: HeroBannerAdmin): Form {
   const film = b.kind === "VIDEO";
   return {
@@ -414,6 +420,16 @@ function BannerList({
       b.visible ? "배너를 숨겼습니다. 손님 화면은 1~3분 뒤에 바뀝니다." : "배너를 켰습니다. 손님 화면은 1~3분 뒤에 바뀝니다.",
     );
 
+  const toggleCta = (b: HeroBannerAdmin) =>
+    run(
+      `cta-${b.id}`,
+      async () => {
+        await updateHeroBanner(b.id, { ...inputOf(formOf(b)), ctaEnabled: !b.ctaEnabled });
+        await reload();
+      },
+      b.ctaEnabled ? "배너 버튼을 숨겼습니다. 손님 화면은 1~3분 뒤에 바뀝니다." : "배너 버튼을 켰습니다. 손님 화면은 1~3분 뒤에 바뀝니다.",
+    );
+
   const remove = (b: HeroBannerAdmin, name: string) => {
     if (!window.confirm(`「${name}」 배너를 지울까요? 되돌릴 수 없습니다.`)) return;
     void run(
@@ -506,6 +522,7 @@ function BannerList({
                             : "누끼 · 직접 등록"}
                     </span>
                     <span className={`text-2xs border px-2 py-0.5 ${status.cls}`}>{status.text}</span>
+                    {!b.ctaEnabled && <span className="text-muted border-subtle text-2xs border px-2 py-0.5">버튼 숨김</span>}
                     {b.kind === "PRODUCT" && product && <span className="text-muted text-2xs truncate">{product.slug}</span>}
                   </span>
                 </span>
@@ -519,6 +536,16 @@ function BannerList({
                       className="accent-accent h-4 w-4"
                     />
                     노출
+                  </label>
+                  <label className="text-secondary text-2xs mr-2 inline-flex min-h-10 cursor-pointer items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={b.ctaEnabled}
+                      disabled={busy !== null}
+                      onChange={() => toggleCta(b)}
+                      className="accent-accent h-4 w-4"
+                    />
+                    버튼
                   </label>
                   <button type="button" aria-label={`${name} 위로`} disabled={i === 0 || busy !== null} onClick={() => move(i, -1)} className={iconBtn}>
                     <ArrowUp size={14} weight="light" aria-hidden="true" />
@@ -889,12 +916,35 @@ function BannerEditor({
           <Counted id="banner-title" label="큰 제목" value={form.title} max={HERO_LIMITS.title} placeholder={productText ? "비우면 상품 이름" : "예: 가을 아우터"} onChange={(v) => set({ title: v })} />
           <Counted id="banner-subtitle" label="제목 아래 줄" value={form.subtitle} max={HERO_LIMITS.subtitle} placeholder={productText ? "비우면 가격" : ""} onChange={(v) => set({ subtitle: v })} />
 
-          {/* 버튼 사용 (2026-10-17 요청) — 끄면 아래 글자 · 주소 칸이 접히고 손님 화면에 버튼이 안 나간다. 값은 남는다 */}
-          <label className="text-primary inline-flex min-h-11 cursor-pointer items-center gap-3 text-sm md:col-span-2">
-            <input type="checkbox" checked={form.ctaEnabled} onChange={(e) => set({ ctaEnabled: e.target.checked })} className="accent-accent h-4 w-4" />
-            버튼 사용
-            <span className="text-muted text-2xs">끄면 이 배너에는 버튼이 나가지 않습니다. 적어 둔 글자 · 주소는 남아 있어 다시 켜면 그대로입니다</span>
-          </label>
+          {/* 버튼 사용 (2026-10-17 요청, 10-19 라디오로) — 숨기면 아래 글자 · 주소 칸이 접히고 손님 화면에 버튼이 안 나간다. 값은 남는다 */}
+          <fieldset className="md:col-span-2">
+            <legend className="text-primary text-sm font-semibold">버튼</legend>
+            <div role="radiogroup" className="mt-3 grid gap-3 sm:grid-cols-2">
+              {CTA_OPTIONS.map((m) => {
+                const on = form.ctaEnabled === m.value;
+                return (
+                  <label
+                    key={String(m.value)}
+                    className={`ease-fluid flex cursor-pointer flex-col gap-1.5 border p-4 transition-colors duration-300 ${
+                      on ? "border-accent bg-accent-tint" : "border-subtle hover:border-accent"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <input
+                        type="radio"
+                        name="banner-cta"
+                        checked={on}
+                        onChange={() => set({ ctaEnabled: m.value })}
+                        className="accent-accent h-4 w-4"
+                      />
+                      <span className="text-primary text-sm font-semibold">{m.title}</span>
+                    </span>
+                    <span className="text-secondary text-xs leading-relaxed">{m.desc}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
           {form.ctaEnabled && (
             <Counted id="banner-cta-label" label="버튼 글자" value={form.ctaLabel} max={HERO_LIMITS.ctaLabel} placeholder="비우면 「자세히 보기」" onChange={(v) => set({ ctaLabel: v })} />
           )}
