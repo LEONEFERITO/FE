@@ -60,7 +60,12 @@ export function HeroReveal({ slides, autoplay = true }: { slides: HeroSlide[]; a
     // 그만큼 화면 아래에 다음 구간이 비쳤다 — 사진 한 장 배너가 화면을 끝까지 덮지 못했다(2026-10-13). 글자 자리는 그대로다.
     <section data-hero="pin" className="on-cream -mt-[57px] md:-mt-[73px]">
       <Scene as="div" pin height={reveal ? "220vh" : "115svh"} aria-label="대표 룩">
-        <div className="relative flex h-full flex-col overflow-hidden px-5 pb-6 pt-[73px] md:px-10 md:pb-10 md:pt-[89px]">
+        {/*
+          min-h-[100svh] — 무대(.scene-stage)는 핀이 걸렸을 때만 높이가 100svh 로 정해진다. 기기의 «동작 줄이기» 가 켜졌거나
+          스크립트가 아직 안 돈 때는 무대가 auto 높이라 h-full 이 풀리고, 안쪽이 글자 높이만큼(사진 233px)으로 줄어 나머지가
+          비었다(2026-10-20 아이폰 캡처 — 버튼을 끄고 글자만 남으니 더 눈에 띄었다). 안쪽이 스스로 한 화면을 채우게 한다.
+        */}
+        <div className="relative flex h-full min-h-[100svh] flex-col overflow-hidden px-5 pb-6 pt-[73px] md:px-10 md:pb-10 md:pt-[89px]">
           {/* 종이의 결 — 레퍼런스의 안개. 가운데가 아주 조금 밝다 */}
           <div
             aria-hidden="true"
