@@ -40,8 +40,9 @@ const CHANNELS: Channel[] = [
  * 2026-10-20 디자이너 목업: 제목 "문의 및 채널" 가운데, 그 아래 와인(#5E1F21) 상자 넷이 한 줄 — 상자 안에는 이름만.
  * 설명(note)은 화면 낭독기에만 남긴다. 주소를 아직 못 받은 채널은 흐린 상자로 두고 누르지 못한다.
  */
+// 모서리는 둥글게(rounded-xl) — 2026-10-20 디자이너 "각지게 말고 rounded 로"
 const TILE =
-  "font-display flex min-h-14 w-full items-center justify-center px-3 text-center text-sm tracking-[0.04em] md:min-h-16 md:text-base";
+  "font-display flex min-h-14 w-full items-center justify-center rounded-xl px-3 text-center text-sm tracking-[0.04em] md:min-h-16 md:text-base";
 
 export function Connect() {
   return (
