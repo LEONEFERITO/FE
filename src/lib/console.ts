@@ -248,7 +248,7 @@ export interface HeroBannerInput {
 }
 
 /** 서버 hero_banner 의 CHECK 와 같다 */
-export const HERO_LIMITS = { eyebrow: 40, title: 60, subtitle: 80, ctaLabel: 20, ctaUrl: 300, alt: 200 } as const;
+export const HERO_LIMITS = { eyebrow: 40, title: 60, subtitle: 150, ctaLabel: 20, ctaUrl: 300, alt: 200 } as const;
 /** 서버 SiteImageService.MAX_BANNERS 와 같다 */
 export const MAX_HERO_BANNERS = 10;
 /** 서버와 같은 규칙: 비우거나, 사이트 안 주소(/…, // 는 안 됨) 또는 https 주소 */
