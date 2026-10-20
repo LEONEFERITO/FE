@@ -40,9 +40,11 @@ const CHANNELS: Channel[] = [
  * 2026-10-20 디자이너 목업: 제목 "문의 및 채널" 가운데, 그 아래 와인(#5E1F21) 상자 넷이 한 줄 — 상자 안에는 이름만.
  * 설명(note)은 화면 낭독기에만 남긴다. 주소를 아직 못 받은 채널은 흐린 상자로 두고 누르지 못한다.
  */
-// 모서리는 둥글게(rounded-xl) — 2026-10-20 디자이너 "각지게 말고 rounded 로"
+// 모서리는 둥글게 — 2026-10-20 디자이너 "각지게 말고 rounded 로".
+// rounded-xl 은 쓰면 안 된다: globals.css 가 사이트 전체 모서리를 직각으로 고정해(--radius-* = 0, 2026-10-06 고객 요청)
+// 토큰 클래스는 0 으로 풀린다. 그래서 토큰을 타지 않는 값(rounded-[12px])을 직접 쓴다 — 이 상자만 둥글다.
 const TILE =
-  "font-display flex min-h-14 w-full items-center justify-center rounded-xl px-3 text-center text-sm tracking-[0.04em] md:min-h-16 md:text-base";
+  "font-display flex min-h-14 w-full items-center justify-center rounded-[12px] px-3 text-center text-sm tracking-[0.04em] md:min-h-16 md:text-base";
 
 export function Connect() {
   return (

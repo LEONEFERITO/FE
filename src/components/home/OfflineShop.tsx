@@ -169,7 +169,8 @@ export function OfflineShop({
                 href={mapHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group border-accent text-accent hover:bg-accent-tint ease-fluid tracking-button inline-flex min-h-11 items-center gap-2.5 rounded-full border px-8 text-xs transition-colors duration-500"
+                // 글자를 상자 정가운데에 — 높이 고정 + leading-none. 한글은 Gelasio 에 없어 고딕으로 떨어지는데, 행간이 남으면 글자가 위로 떠 보였다
+                className="group border-accent text-accent hover:bg-accent-tint ease-fluid inline-flex h-11 items-center justify-center gap-2 rounded-full border px-8 font-sans text-xs leading-none transition-colors duration-500"
               >
                 지도보기
                 <ArrowRight
