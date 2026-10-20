@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Gelasio, Noto_Sans_KR } from "next/font/google";
+import { Gelasio, Inria_Serif, Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 import { CategoryOrderProvider } from "@/components/layout/CategoryOrder";
 import { QuickMenu } from "@/components/layout/QuickMenu";
@@ -29,6 +29,14 @@ const display = Gelasio({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-display-latin",
+  display: "swap",
+});
+
+/** 상품 카드 글자 — Inria Serif (2026-10-20 디자이너 "여기 글씨체는 Inria Serif"). 라틴 전용 — 한글은 Noto Sans KR 로 떨어진다 */
+const card = Inria_Serif({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-card-latin",
   display: "swap",
 });
 
@@ -113,7 +121,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       // 서버 HTML 에는 그 속성이 없으므로 React 가 "속성이 다르다" 고 경고한다
       // (개발 배지 "1 Issue" 의 정체). 이 요소의 속성 차이만 무시한다 — 자식에게는 번지지 않는다.
       suppressHydrationWarning
-      className={`${display.variable} ${body.variable} ${korean.variable} h-full antialiased`}
+      className={`${display.variable} ${body.variable} ${card.variable} ${korean.variable} h-full antialiased`}
     >
       <body className="bg-page text-primary flex min-h-full flex-col">
         {/*

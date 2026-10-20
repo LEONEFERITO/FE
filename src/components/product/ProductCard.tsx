@@ -44,7 +44,12 @@ export function ProductCard({ product, inset = false }: { product: Product; inse
   const inStock = product.skus.filter((s) => s.orderable).length;
   const allSoldOut = inStock === 0;
   // 색상 줄 — 색은 상품이 아니라 사이즈 칸(Sku)에 적힌다. 겹치는 것은 하나로, 여럿이면 " · " 로 잇는다. 없으면 줄이 생기지 않는다.
-  const colors = [...new Set(product.skus.map((s) => s.color).filter((c): c is string => !!c))];
+  const skuColors = [...new Set(product.skus.map((s) => s.color).filter((c): c is string => !!c))];
+  // 색상이 사이즈 칸에 없고 이름 끝에 붙어 있으면("스트레이트핏 트라우저 · 블랙", "스트레이트 트라우저 (블랙)") 떼어 둘째 줄로
+  // — 2026-10-20 디자이너 시안: 제목 / 색상 / 가격 세 줄. 이름 자체는 바꾸지 않고 카드에서만 나눠 보인다.
+  const split = skuColors.length === 0 ? splitColor(name) : null;
+  const title = split ? split.title : name;
+  const colors = split ? [split.color] : skuColors;
 
 
   return (
@@ -106,18 +111,19 @@ export function ProductCard({ product, inset = false }: { product: Product; inse
           실측 요약과 사이즈 칩은 카드에서 뺐다 — 카드가 너무 길었다. 그 둘은 빠른 보기 팝업과 상세 페이지에 있다.
         */}
         {/* 사진에서 5px — 아래로도 5px(mt-[5px]), 옆으로도 5px (2026-10-20 디자이너 댓글 "사진으로부터 5픽셀") */}
-        <div className={`font-sans mt-[5px] text-left ${inset ? "px-3 md:px-[5px]" : "px-[5px]"}`}>
-          {/* 이름은 한 줄 — 길면 … 으로 자른다(2026-10-20 디자이너 "두 줄 정렬 말고"). 전체 이름은 빠른 보기 · 상세에 있다 */}
+        {/* 글꼴 Inria Serif(라틴 · 숫자) + Noto Sans KR(한글) — 2026-10-20 디자이너 시안: 제목 굵게 / 색상 보통 / (간격) / 가격 굵게 */}
+        <div className={`mt-[5px] text-left font-[family-name:var(--font-card)] ${inset ? "px-3 md:px-[5px]" : "px-[5px]"}`}>
+          {/* 제목은 한 줄 — 길면 … (2026-10-20 "두 줄 정렬 말고"). 전체 이름은 빠른 보기 · 상세에 있다 */}
           <h3
             title={name}
-            className="text-primary ease-fluid group-hover:text-accent truncate text-[16px] font-bold leading-none transition-colors duration-500"
+            className="text-primary ease-fluid group-hover:text-accent truncate text-[16px] font-bold leading-[1.25] transition-colors duration-500"
           >
-            {name}
+            {title}
           </h3>
-          {colors.length > 0 && <p className="text-primary mt-1.5 text-[13px] font-normal leading-none">{colors.join(" · ")}</p>}
-          <p className="mt-2.5 flex flex-wrap items-baseline gap-x-2 leading-none">
+          {colors.length > 0 && <p className="text-primary mt-1 truncate text-[15px] font-normal leading-[1.25]">{colors.join(" · ")}</p>}
+          <p className="mt-3 flex flex-wrap items-baseline gap-x-2 leading-none">
             {product.priceKrw !== null ? (
-              <span className="text-primary text-[16px] font-bold tabular-nums">{KRW.format(product.priceKrw)}원</span>
+              <span className="text-primary text-[17px] font-bold tabular-nums">{KRW.format(product.priceKrw)}원</span>
             ) : (
               // D1 이 카탈로그+문의로 확정되면 이 표시가 정상 상태가 된다.
               <span className="text-muted text-[13px]">가격 문의</span>
@@ -132,4 +138,13 @@ export function ProductCard({ product, inset = false }: { product: Product; inse
       <QuickView product={product} open={open} onClose={() => setOpen(false)} originRef={photoRef} />
     </article>
   );
+}
+
+/** 이름 끝의 색을 떼어 낸다: "A · 블랙" · "A - 블랙" · "A (블랙)" → { title: "A", color: "블랙" }. 없으면 null */
+function splitColor(name: string): { title: string; color: string } | null {
+  const m = name.match(/^(.+?)\s*(?:[·•\-–—]\s*([^()·•\-–—]{1,20})|\(([^()]{1,20})\))\s*$/);
+  if (!m) return null;
+  const color = (m[2] ?? m[3] ?? "").trim();
+  const title = m[1].trim();
+  return color && title ? { title, color } : null;
 }
