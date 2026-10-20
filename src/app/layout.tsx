@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Noto_Sans_KR, Playfair_Display, Spectral } from "next/font/google";
+import { Gelasio, Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 import { CategoryOrderProvider } from "@/components/layout/CategoryOrder";
 import { QuickMenu } from "@/components/layout/QuickMenu";
@@ -20,16 +20,20 @@ import { SITE_URL } from "@/lib/site";
  * 서브셋은 next/font/google 의 font-data.json 에서 직접 확인했다.
  */
 
-/** 표제용. 로고가 고대비 Didone 세리프라 같은 계열로 맞췄다. 라틴 전용. 700 은 제목 전부 굵게(2026-10-08 고객 요청) */
-const display = Playfair_Display({
+/**
+ * 라틴 글꼴은 Gelasio (2026-10-20 디자이너 "글씨체는 Gelasio") — 표제 · 본문 둘 다. 전에는 표제 Playfair Display · 본문 Spectral.
+ * Gelasio 는 Georgia 와 같은 폭의 세리프라 숫자 · 영문이 한글 고딕 옆에서 튀지 않는다. 라틴 전용(한글 글리프 없음 — 위 머리말의 전제).
+ * 700 은 제목 전부 굵게(2026-10-08 고객 요청).
+ */
+const display = Gelasio({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-display-latin",
   display: "swap",
 });
 
-/** 본문용 라틴. 화면 본문 설계 폰트라 x-height 가 커서 한글 고딕 옆에서 덜 튄다. */
-const body = Spectral({
+/** 본문용 라틴 — 같은 Gelasio. 변수 이름만 다르다(globals.css 의 --font-body 가 이 이름을 본다) */
+const body = Gelasio({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
   variable: "--font-body-latin",

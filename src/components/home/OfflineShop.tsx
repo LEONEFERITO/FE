@@ -145,8 +145,7 @@ export function OfflineShop({
             </div>
           )}
           {/* 주소 · 운영시간 + 지도보기는 한 묶음 — 버튼이 글자에서 떨어져 혼자 아래에 뜨지 않게(2026-10-20 "버튼 정렬") */}
-          {/* 글꼴은 고딕(font-sans) — 목업의 주소 · 시간 숫자가 고딕이다. 기본 본문(Spectral)이면 425 · 10시 같은 숫자가 세리프로 섞인다 */}
-          <div className="font-sans flex flex-col gap-8">
+          <div className="flex flex-col gap-8">
           <dl className="flex flex-col gap-9">
             <div>
               <dt className="text-primary text-sm font-semibold">주소</dt>
