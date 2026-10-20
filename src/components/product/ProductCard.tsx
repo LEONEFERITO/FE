@@ -44,12 +44,13 @@ export function ProductCard({ product, inset = false }: { product: Product; inse
   const inStock = product.skus.filter((s) => s.orderable).length;
   const allSoldOut = inStock === 0;
   // 색상 줄 — 색은 상품이 아니라 사이즈 칸(Sku)에 적힌다. 겹치는 것은 하나로, 여럿이면 " · " 로 잇는다. 없으면 줄이 생기지 않는다.
+  // 둘째 줄 색상 — 관리자 상품 화면의 "색상" 칸(notice.color)이 먼저. 없으면 사이즈별 색상, 그것도 없으면 이름 끝에 붙은 색
+  // ("… · 블랙", "… (블랙)")을 카드에서만 떼어 보인다. 2026-10-20 디자이너 시안: 제목 / 색상 / 가격 세 줄.
   const skuColors = [...new Set(product.skus.map((s) => s.color).filter((c): c is string => !!c))];
-  // 색상이 사이즈 칸에 없고 이름 끝에 붙어 있으면("스트레이트핏 트라우저 · 블랙", "스트레이트 트라우저 (블랙)") 떼어 둘째 줄로
-  // — 2026-10-20 디자이너 시안: 제목 / 색상 / 가격 세 줄. 이름 자체는 바꾸지 않고 카드에서만 나눠 보인다.
-  const split = skuColors.length === 0 ? splitColor(name) : null;
+  const productColor = product.notice?.color?.trim() || null;
+  const split = !productColor && skuColors.length === 0 ? splitColor(name) : null;
   const title = split ? split.title : name;
-  const colors = split ? [split.color] : skuColors;
+  const colors = productColor ? [productColor] : split ? [split.color] : skuColors;
 
 
   return (
