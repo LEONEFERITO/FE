@@ -67,6 +67,9 @@
     var(--font-display-latin), var(--font-korean), "Apple SD Gothic Neo", serif;
   --font-body:
     var(--font-body-latin), var(--font-korean), "Apple SD Gothic Neo", serif;
+  /* 숫자 · 영문까지 전부 고딕(Noto Sans KR) — 상품 카드의 가격(2026-10-20 디자이너 "숫자 폰트는 노토산스 · 프리텐다드") */
+  --font-sans:
+    var(--font-korean), "Pretendard", "Apple SD Gothic Neo", sans-serif;
 
   /* ── 크기 → text-hero, text-3xl ... ─────────────────── */
   --text-hero: var(--fs-hero);

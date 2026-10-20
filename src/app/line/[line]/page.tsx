@@ -21,9 +21,11 @@ import { CATEGORY_LABEL, LINE_LABEL, type Category, type ProductLine } from "@/t
  *   3 상품      분류별로 쭉 — 수트 · 셔츠 · 팬츠 · 자켓 순. 분류 이름은 영문(SHIRT · TROUSERS …)
  *
  * ── 2026-10-17 디자이너 피그마 댓글로 바뀐 것 ───────────────
- * 페이지 전체가 검정이다("흰 부분 블랙으로") — 전에는 다섯 칸까지만 검정이고 상품은 크림이었다.
- * GNB 는 와인(#5E1F21, Header tone="wine"), 라인 이름 글자색도 #5E1F21(시안의 "레오네 텍스트 색상").
- * TODO(고객확인) #5E1F21 은 검정 위에서 1.7:1 — 디자이너가 지정한 값이라 그대로 두되, 확인되면 밝은 색으로.
+ * 2026-10-17 에는 페이지 전체가 검정이었는데("흰 부분 블랙으로"), 2026-10-20 디자이너가 다시 정리했다: 첫 화면(머리 + 사진 흐름)만
+ * 검정이고 상품 목록은 흰 바탕. 헤더(와인)는 이제 메인을 뺀 모든 페이지의 기본이다(Header 참고).
+ * GNB 는 와인(#5E1F21, Header tone="wine"). 라인 이름 글자색은 2026-10-20 디자이너 참고 시안의 빨강 #B84040 —
+ * 전의 #5E1F21 은 검정 위에서 1.7:1 이라 안 보였고 "정렬이 너무 달라 보인다" 는 지적을 받았다. 크기도 시안 비율로:
+ * 작은 줄 16 · 이름 96(PC) · 한 줄 제목 28 굵게, 그 사이 여백도 시안대로 넓게.
  * 소개 문안은 디자이너가 적어 준 원문(data/brand.ts LINE_INTRO) — "확인 중" 자리 표시는 끝났다.
  * 뺀 것: 분류 위 눈썹 선, 다섯 칸 아래 "페인포인트와 니즈 포인트", 맨 아래 선 + "다른 라인 보기" 버튼.
  *
@@ -90,9 +92,10 @@ export default async function LinePage({ params }: PageProps<"/line/[line]">) {
       <Header tone="wine" />
 
       {/* 페이지 전체가 검정 — on-black 이 글자 · 선 토큰을 검정 위 값으로 맞춘다(globals.css) */}
-      <main id="main" className="on-black flex-1">
-        {/* ── 1 머리 + 2 다섯 칸 ── */}
-        <section aria-labelledby="line-heading">
+      {/* 첫 화면(머리 + 사진 흐름)만 검정, 상품 목록은 흰 바탕 — 2026-10-20 디자이너 "타고 들어왔을 때 이 부분은 배경이 흰색" */}
+      <main id="main" className="flex-1">
+        {/* ── 1 머리 + 2 사진 흐름 — 검정 ── */}
+        <section aria-labelledby="line-heading" className="on-black">
           {/* 뒤로 가기 — 헤더 바로 아래 왼쪽 끝(시안의 화살표 자리). 헤더와 같은 옆 여백 */}
           <div className="px-3 pt-4 md:px-8 md:pt-6">
             <BackButton />
@@ -100,15 +103,15 @@ export default async function LinePage({ params }: PageProps<"/line/[line]">) {
 
           <div className="mx-auto max-w-[1320px] px-5 pb-12 text-center md:px-15 md:pb-16">
             {/* 작은 라벨 — 시안: 라인 이름과 같은 글꼴, 굵게, 10px 대문자 */}
-            <p className="font-display text-primary text-[10px] uppercase tracking-[0.2em]">{intro.label}</p>
+            <p className="font-display text-primary text-[12px] uppercase tracking-[0.2em] md:text-[16px]">{intro.label}</p>
             <h1
               id="line-heading"
-              className="font-display leading-display tracking-display mt-3 text-3xl text-[#5E1F21] md:text-4xl"
+              className="font-display tracking-display mt-4 text-[56px] leading-none text-[#B84040] md:mt-7 md:text-[80px] lg:text-[96px]"
             >
               {label.en}
             </h1>
-            {/* 한 줄 제목 14px 굵게, 소개 14px 가늘게 · 행간 25px (시안 수치) */}
-            <p className="font-display text-primary mt-12 text-[14px] leading-none md:mt-16">{intro.tagline}</p>
+            {/* 한 줄 제목 — 시안처럼 크고 굵게(20 · PC 28), 이름과 사이를 넓게. 소개 14px 가늘게 · 행간 25px 은 그대로 */}
+            <p className="font-display text-primary mt-12 text-[20px] leading-none md:mt-24 md:text-[28px]">{intro.tagline}</p>
             <p className="text-primary mt-3 text-[14px] font-light leading-[25px]">
               {intro.body.map((sentence) => (
                 <span key={sentence} className="md:block">
@@ -161,8 +164,9 @@ export default async function LinePage({ params }: PageProps<"/line/[line]">) {
           </div>
         </section>
 
-        {/* ── 3 상품 — 분류별로 쭉, 검정 위에 ── */}
-        <div className="mx-auto max-w-[1320px] px-5 pb-24 md:px-15 md:pb-32">
+        {/* ── 3 상품 — 분류별로 쭉, 흰 바탕 위에 ── */}
+        <div className="on-cream on-white">
+        <div className="mx-auto max-w-[1320px] px-5 py-16 md:px-15 md:py-24">
           {groups.length > 0 ? (
             <div className="flex flex-col gap-20">
               {groups.map(({ category, items }) => (
@@ -195,6 +199,7 @@ export default async function LinePage({ params }: PageProps<"/line/[line]">) {
               </Link>
             </div>
           )}
+        </div>
         </div>
       </main>
 

@@ -112,8 +112,15 @@ export default async function Home() {
               <HeroSplit products={FEATURED} />
             )}
 
-            {/* 두 라인 → 제품 격자 — 배너 바로 다음 (2026-10-08 고객 요청 "역시 제품이 먼저 보여야지") */}
-            {/* 카드 사진은 관리자 사진 → 룩북 대표 컷 → 그 라인의 첫 상품 사진 (LineChooser) */}
+            {/*
+              WHY 구간 — 배너 바로 다음 (2026-10-20 디자이너 피그마 순서 "이 페이지가 이 사이로 들어가야 해요").
+              2026-10-08 에는 "제품이 먼저" 라 두 라인 → 제품 다음이었는데, 디자이너 정리 순서로 바꿨다. 제목은 h2 다(h1 은 배너가 갖는다).
+              2026-10-17 디자이너 시안으로 모양이 뒤집혔다: 검은 바탕, 왼쪽 상자 안에 사진, 오른쪽에 관리자가 적은 글
+              (전에는 사진 위에 크림 글자 판). 판 모양(panel · mobile="cover-dark")은 컴포넌트에 남아 있다.
+            */}
+            <WhyScroll layout="split" content={why} fallbackImage={background} />
+
+            {/* 두 라인 → 제품 격자. 카드 사진은 관리자 사진 → 룩북 대표 컷 → 그 라인의 첫 상품 사진 (LineChooser) */}
             <LineChooser
               products={catalog}
               covers={{ LEONE: siteImages.MAIN_LINE_LEONE, FERITO: siteImages.MAIN_LINE_FERITO }}
@@ -121,13 +128,6 @@ export default async function Home() {
             <div className="on-cream on-white">
               <FeaturedProducts products={FEATURED} />
             </div>
-
-            {/*
-              WHY 구간 — 배너를 쓰는 변형에서는 제품 격자 다음이다. 제목은 h2 다(h1 은 배너가 갖는다).
-              2026-10-17 디자이너 시안으로 모양이 뒤집혔다: 검은 바탕, 왼쪽 상자 안에 사진, 오른쪽에 관리자가 적은 글
-              (전에는 사진 위에 크림 글자 판). 판 모양(panel · mobile="cover-dark")은 컴포넌트에 남아 있다.
-            */}
-            <WhyScroll layout="split" content={why} fallbackImage={background} />
           </>
         )}
 

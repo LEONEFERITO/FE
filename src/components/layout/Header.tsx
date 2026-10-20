@@ -90,11 +90,12 @@ const accountLabel = (item: { href: string; label: string }, cartCount: number) 
   item.href === "/cart" ? `CART (${cartCount})` : item.label;
 
 /**
- * `tone="wine"` — 라인 페이지 전용(2026-10-17 디자이너 요청 "GNB 컬러 #5E1F21"). 바는 와인(#5E1F21)으로 고정되고
- * 히어로 투명 전환은 없다. 같은 요청의 "로고 블랙 · 조금 크게" 도 여기서 — 로고는 검정, 폭은 150 → 168.
+ * `tone="wine"` — 바는 와인(#5E1F21)으로 고정되고 히어로 투명 전환은 없다(2026-10-17 디자이너 요청 "GNB 컬러 #5E1F21").
+ * 같은 요청의 "로고 블랙 · 조금 크게" 도 여기서 — 로고는 검정, 폭은 150 → 168.
+ * 2026-10-20 디자이너: "메인(배너 위 투명)만 그대로, 나머지 페이지는 전부 이 와인 바" — 그래서 overHero 가 아니면 wine 이 기본이다.
  * TODO(고객확인) 검정 로고는 와인 바 위에서 1.7:1 이라 거의 안 보인다 — 디자이너 확인 뒤 크림/골드로 바꿀 수 있다.
  */
-export function Header({ overHero = false, tone }: { overHero?: boolean; tone?: "wine" }) {
+export function Header({ overHero = false, tone = overHero ? undefined : "wine" }: { overHero?: boolean; tone?: "wine" }) {
   const wine = tone === "wine";
   const [open, setOpen] = useState(false);
   // 분류 메뉴 — 관리자 › 분류 순서대로(빌드 때 받은 값, components/layout/CategoryOrder)
@@ -187,7 +188,8 @@ export function Header({ overHero = false, tone }: { overHero?: boolean; tone?: 
         히어로 위에서는 바탕 · 선을 비워 투명하고, 히어로 배너를 지나면 원래 색으로 굳는다(2026-10-06 요청 — PC · 모바일 모두).
 
         2026-10-07 고객 요청으로 "원래 색" 이 **검정**이 됐다(on-black — 크림 글자 · 골드 로고). 메인 배너는 밝은 종이라
-        투명한 동안에는 진한 글자가 필요하다 — 그때만 on-cream on-white 묶음을 쓰고, 배너를 지나면 on-black 으로 바뀐다.
+        투명한 동안에는 진한 글자가 필요하다 — 그때만 on-cream on-white 묶음을 쓴다.
+        2026-10-20 디자이너: 메인만 이 검정이고(히어로 위에서는 투명), 메인을 뺀 모든 페이지는 와인 바(tone="wine" 이 기본).
       */}
       <header
         className={`ease-fluid sticky top-0 z-40 w-full border-b transition-colors duration-700 ${

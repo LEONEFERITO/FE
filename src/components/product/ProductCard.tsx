@@ -99,19 +99,20 @@ export function ProductCard({ product, inset = false }: { product: Product; inse
         </div>
 
         {/*
-          글자 — 이름 / 색상 / 가격 세 줄 (2026-10-17 디자이너 피그마 수정본).
-          시안 수치 그대로: 이름 16px 굵게, 색상 13px 보통, 가격 16px 굵게, 행간 100%, 자간 0, 글자색은 하나.
+          글자 — 이름 / 색상 / 가격 세 줄 (2026-10-17 디자이너 피그마 수정본 → 2026-10-20 카톡 수정).
+          이름 16px 굵게, 색상 13px 보통, 가격 16px 굵게 — 굵기로 줄을 가른다. 글꼴은 **전부 고딕**(font-sans = Noto Sans KR):
+          전에는 가격 숫자가 세리프(Playfair)로 나가 "숫자 정렬이 안 맞아 보인다" 는 지적을 받았다. 글자는 사진 왼쪽에서 5px.
           분류명(TROUSERS 등)은 시안에 없어 뺐다. 색상은 상품에 적혀 있을 때만 한 줄 생긴다.
           실측 요약과 사이즈 칩은 카드에서 뺐다 — 카드가 너무 길었다. 그 둘은 빠른 보기 팝업과 상세 페이지에 있다.
         */}
-        <div className={`mt-3 text-left ${inset ? "px-3 md:px-0" : ""}`}>
-          <h3 className="font-display text-primary ease-fluid group-hover:text-accent text-[16px] leading-none transition-colors duration-500">
+        <div className={`font-sans mt-3 text-left ${inset ? "px-3 md:px-[5px]" : "px-[5px]"}`}>
+          <h3 className="text-primary ease-fluid group-hover:text-accent text-[16px] font-bold leading-none transition-colors duration-500">
             {name}
           </h3>
-          {colors.length > 0 && <p className="text-primary mt-1 text-[13px] leading-none">{colors.join(" · ")}</p>}
-          <p className="mt-3 flex flex-wrap items-baseline gap-x-2 leading-none">
+          {colors.length > 0 && <p className="text-primary mt-1.5 text-[13px] font-normal leading-none">{colors.join(" · ")}</p>}
+          <p className="mt-2.5 flex flex-wrap items-baseline gap-x-2 leading-none">
             {product.priceKrw !== null ? (
-              <span className="font-display text-primary text-[16px] tabular-nums">{KRW.format(product.priceKrw)}원</span>
+              <span className="text-primary text-[16px] font-bold tabular-nums">{KRW.format(product.priceKrw)}원</span>
             ) : (
               // D1 이 카탈로그+문의로 확정되면 이 표시가 정상 상태가 된다.
               <span className="text-muted text-[13px]">가격 문의</span>

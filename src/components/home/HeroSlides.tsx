@@ -172,18 +172,23 @@ function ImageSlide({ slide, first, active }: { slide: HeroSlide; first: boolean
             "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 26%, rgba(0,0,0,0) 48%, rgba(0,0,0,0.62) 100%)",
         }}
       />
+      {/*
+        여백은 디자이너 피그마 수치 (2026-10-20 영상 "여백 픽셀 이 기준으로"): 글자 묶음 폭 570, 화면 왼쪽에서 94(무대 padding 40 + 54),
+        아래에서 82(무대 padding 40 + 42), 작은 줄 ↔ 제목 14, 제목 ↔ 설명 38. 설명은 16px · 행간 26px 로 세 줄이 195 높이에 든다.
+        폰은 그대로(가운데 정렬) — 수치는 PC 시안이다.
+      */}
       <div
         data-quick-avoid=""
-        className="relative z-20 mt-auto flex flex-col items-center pb-2 text-center md:max-w-[620px] md:items-start md:pb-4 md:pl-0 md:text-left"
+        className="relative z-20 mt-auto flex flex-col items-center pb-2 text-center md:ml-[54px] md:max-w-[570px] md:items-start md:pb-[42px] md:pl-0 md:text-left"
       >
         {/* 글자는 전부 흰색 (2026-10-17 디자이너 요청 "히어로 텍스트 화이트로 통일") — 작은 줄도 골드가 아니다 */}
-        {slide.eyebrow && <p className="text-2xs tracking-label text-white">{slide.eyebrow}</p>}
+        {slide.eyebrow && <p className="text-2xs tracking-label text-white md:text-[16px]">{slide.eyebrow}</p>}
         {slide.title && (
-          <p className="font-display leading-display tracking-display mt-2 line-clamp-2 text-2xl text-white md:mt-3 md:text-4xl lg:text-5xl">
+          <p className="font-display leading-display tracking-display mt-2 line-clamp-2 text-2xl text-white md:mt-[14px] md:text-4xl lg:text-[52px]">
             {slide.title}
           </p>
         )}
-        {slide.subtitle && <p className="mt-2 text-sm text-white md:mt-3 md:text-lg">{slide.subtitle}</p>}
+        {slide.subtitle && <p className="mt-2 text-sm text-white md:mt-[38px] md:text-[16px] md:leading-[26px]">{slide.subtitle}</p>}
         {/* 버튼 줄. 영상이면 옆에 멈춤 버튼 — 끝없이 움직이는 화면은 멈출 수 있어야 한다(WCAG 2.2.2).
             글자 블록 안에 둔다: 화면 오른쪽 아래는 떠 있는 퀵메뉴 자리라 거기 두면 눌리지 않는다.
             움직임을 줄인 사용자에게는 처음부터 멈춰 있어 감춘다 */}
