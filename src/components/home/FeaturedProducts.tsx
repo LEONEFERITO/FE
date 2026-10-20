@@ -31,7 +31,8 @@ export function FeaturedProducts({ products }: { products: Product[] }) {
     >
       <h2
         id="featured-heading"
-        className="font-display text-primary leading-display tracking-display text-3xl md:text-4xl"
+        // 가운데 정렬 — 2026-10-20 디자이너 "베스트 텍스트 중앙 정렬"
+        className="font-display text-primary leading-display tracking-display text-center text-3xl md:text-4xl"
       >
         BEST
       </h2>

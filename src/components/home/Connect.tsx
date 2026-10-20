@@ -1,4 +1,3 @@
-import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 
 import { KAKAO_CHANNEL, SNS } from "@/data/business";
@@ -31,71 +30,60 @@ interface Channel {
 }
 
 const CHANNELS: Channel[] = [
-  { key: "qna", label: "QnA", note: "주문 · 제작, 사이즈, 배송 · 교환에 대해 자주 묻는 질문", href: "/qna/", external: false },
-  { key: "kakao", label: "카카오톡 채널", note: `${KAKAO_CHANNEL.name} 채널로 1:1 문의`, href: KAKAO_CHANNEL.chat, external: true },
+  { key: "qna", label: "Q&A", note: "주문 · 제작, 사이즈, 배송 · 교환에 대해 자주 묻는 질문", href: "/qna/", external: false },
+  { key: "kakao", label: "Kakao Talk", note: `${KAKAO_CHANNEL.name} 채널로 1:1 문의`, href: KAKAO_CHANNEL.chat, external: true },
   { key: "instagram", label: "Instagram", note: "착장과 새 소식", href: SNS.instagram, external: true },
   { key: "youtube", label: "YouTube", note: "영상으로 보는 레오네페리토", href: SNS.youtube, external: true },
 ];
 
+/**
+ * 2026-10-20 디자이너 목업: 제목 "문의 및 채널" 가운데, 그 아래 와인(#5E1F21) 상자 넷이 한 줄 — 상자 안에는 이름만.
+ * 설명(note)은 화면 낭독기에만 남긴다. 주소를 아직 못 받은 채널은 흐린 상자로 두고 누르지 못한다.
+ */
 const TILE =
-  "bg-band flex h-full min-h-[148px] flex-col justify-between gap-6 p-6 md:p-7";
-
-function Body({ channel, live }: { channel: Channel; live: boolean }) {
-  return (
-    <>
-      <span className="flex items-start justify-between gap-3">
-        <span className={`font-display text-xl ${live ? "text-primary" : "text-muted"}`}>{channel.label}</span>
-        {live && (
-          <ArrowUpRight
-            size={16}
-            weight="light"
-            aria-hidden="true"
-            className="text-accent ease-fluid mt-1 shrink-0 transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-          />
-        )}
-      </span>
-      <span className={`text-sm leading-relaxed ${live ? "text-secondary" : "text-muted"}`}>
-        {live ? channel.note : pendingLabel("주소")}
-      </span>
-    </>
-  );
-}
+  "font-display flex min-h-14 w-full items-center justify-center px-3 text-center text-sm tracking-[0.04em] md:min-h-16 md:text-base";
 
 export function Connect() {
   return (
-    <section aria-labelledby="connect-heading" className="mx-auto max-w-[1320px] px-5 py-24 md:px-15 md:py-32">
+    <section aria-labelledby="connect-heading" className="mx-auto max-w-[1320px] px-5 py-20 md:px-15 md:py-28">
       <h2
         id="connect-heading"
-        className="font-display text-primary leading-display tracking-display text-3xl md:text-4xl"
+        className="font-display text-primary leading-display tracking-display text-center text-3xl md:text-4xl"
       >
-        문의 · 채널
+        문의 및 채널
       </h2>
 
-      <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <ul className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
         {CHANNELS.map((channel) => {
           const live = channel.href !== null;
+          const body = (
+            <>
+              {channel.label}
+              <span className="sr-only"> — {live ? channel.note : pendingLabel("주소")}</span>
+            </>
+          );
           return (
             <li key={channel.key}>
               {!live ? (
-                <div className={TILE}>
-                  <Body channel={channel} live={false} />
+                <div className={`${TILE} bg-[#5E1F21]/40 text-[#F7F1EA]/70`} aria-disabled="true">
+                  {body}
                 </div>
               ) : channel.external ? (
                 <a
                   href={channel.href ?? undefined}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`group ease-fluid hover:bg-accent-tint transition-colors duration-500 ${TILE}`}
+                  className={`${TILE} ease-fluid bg-[#5E1F21] text-[#F7F1EA] transition-colors duration-500 hover:bg-[#4a1719]`}
                 >
-                  <Body channel={channel} live />
+                  {body}
                   <span className="sr-only">(새 창)</span>
                 </a>
               ) : (
                 <Link
                   href={channel.href ?? "/"}
-                  className={`group ease-fluid hover:bg-accent-tint transition-colors duration-500 ${TILE}`}
+                  className={`${TILE} ease-fluid bg-[#5E1F21] text-[#F7F1EA] transition-colors duration-500 hover:bg-[#4a1719]`}
                 >
-                  <Body channel={channel} live />
+                  {body}
                 </Link>
               )}
             </li>

@@ -1,5 +1,6 @@
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 
+import { Logo } from "@/components/brand/Logo";
 import { KAKAO_CHANNEL, OFFLINE_SHOP } from "@/data/business";
 
 /**
@@ -54,6 +55,9 @@ export function OfflineShop({
   map?: boolean;
 }) {
   const q = encodeURIComponent(OFFLINE_SHOP.mapQuery);
+  // 지도 주소 — 네이버 지도를 받았으면 그것(2026-10-20), 없으면 구글 지도 검색
+  const mapHref = OFFLINE_SHOP.mapUrl ?? `https://www.google.com/maps/search/?api=1&query=${q}`;
+  const mapNote = OFFLINE_SHOP.mapUrl ? "네이버 지도" : "구글 지도";
   return (
     <section
       id="offline-shop"
@@ -126,9 +130,20 @@ export function OfflineShop({
           </h2>
         </div>
 
+        {/*
+          메인(map 아님): 2026-10-20 디자이너 목업 — 위에 로고, 주소 · 운영시간은 **사진 아래선에 맞춰** 아래로 붙인다(justify-between).
+          지도판(map)은 전처럼 세로 가운데.
+        */}
         <div
-          className={`flex flex-col justify-center gap-10 p-7 md:p-16 ${map ? "min-[1200px]:px-20" : ""}`}
+          className={`flex flex-col gap-10 ${
+            map ? "justify-center p-7 md:p-16 min-[1200px]:px-20" : "justify-between pt-8 md:pt-2 md:pl-14 md:pb-0"
+          }`}
         >
+          {!map && (
+            <div className="text-accent-deep">
+              <Logo width={240} label="LEONE FERITO" />
+            </div>
+          )}
           <dl className="flex flex-col gap-9">
             <div>
               <dt className="text-primary text-sm font-semibold">주소</dt>
@@ -149,7 +164,7 @@ export function OfflineShop({
           {!map ? (
             <div>
               <a
-                href={`https://www.google.com/maps/search/?api=1&query=${q}`}
+                href={mapHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group border-accent text-accent hover:bg-accent-tint ease-fluid tracking-button inline-flex min-h-11 items-center gap-2.5 rounded-full border px-8 text-xs transition-colors duration-500"
@@ -161,7 +176,7 @@ export function OfflineShop({
                   aria-hidden="true"
                   className="ease-fluid transition-transform duration-500 group-hover:translate-x-0.5"
                 />
-                <span className="sr-only">(구글 지도에서 매장 위치, 새 창)</span>
+                <span className="sr-only">({mapNote}에서 매장 위치, 새 창)</span>
               </a>
             </div>
           ) : (

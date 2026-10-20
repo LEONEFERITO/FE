@@ -140,8 +140,8 @@ export default async function Home() {
         <div className="on-cream on-white">
           <Connect />
         </div>
-        {/* 매장 구간은 검정 (2026-10-17 디자이너 요청). 사진은 관리자가 올린 것(/admin/display/offline). 아직 없으면 기본 사진 */}
-        <div className="on-black">
+        {/* 매장 구간은 흰 바탕 (2026-10-20 디자이너 — 10-17 의 검정에서 되돌림). 사진은 관리자가 올린 것(/admin/display/offline). 아직 없으면 기본 사진 */}
+        <div className="on-cream on-white">
           <OfflineShop
             image={siteImages.OFFLINE_SHOP?.url ?? background}
             alt={siteImages.OFFLINE_SHOP?.alt}

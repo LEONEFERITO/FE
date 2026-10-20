@@ -106,7 +106,11 @@ export function ProductCard({ product, inset = false }: { product: Product; inse
           실측 요약과 사이즈 칩은 카드에서 뺐다 — 카드가 너무 길었다. 그 둘은 빠른 보기 팝업과 상세 페이지에 있다.
         */}
         <div className={`font-sans mt-3 text-left ${inset ? "px-3 md:px-[5px]" : "px-[5px]"}`}>
-          <h3 className="text-primary ease-fluid group-hover:text-accent text-[16px] font-bold leading-none transition-colors duration-500">
+          {/* 이름은 한 줄 — 길면 … 으로 자른다(2026-10-20 디자이너 "두 줄 정렬 말고"). 전체 이름은 빠른 보기 · 상세에 있다 */}
+          <h3
+            title={name}
+            className="text-primary ease-fluid group-hover:text-accent truncate text-[16px] font-bold leading-none transition-colors duration-500"
+          >
             {name}
           </h3>
           {colors.length > 0 && <p className="text-primary mt-1.5 text-[13px] font-normal leading-none">{colors.join(" · ")}</p>}

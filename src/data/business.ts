@@ -88,7 +88,8 @@ export const OFFLINE_SHOP = {
   closedDays: "화요일 / 수요일",
   weekdayHours: "평일 오전 10시 ~ 오후 21시",
   weekendHours: "주말 정오 12시 ~ 오후 21시",
-  mapUrl: null as string | null,
+  /** 네이버 지도 — 2026-10-20 고객 전달(naver.me 짧은 주소). 메인 "지도보기" 와 브랜드 페이지 VIEW MORE 가 연다 */
+  mapUrl: "https://naver.me/xJGvF38R" as string | null,
   /**
    * 구글 지도에서 찾을 주소 — 도로명 주소만(층 · 상호는 검색을 흐린다).
    * 브랜드 페이지의 지도 이미지를 누르면 이 주소로 구글 지도가 열린다.
