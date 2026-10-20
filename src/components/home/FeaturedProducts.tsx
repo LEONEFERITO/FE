@@ -45,6 +45,12 @@ export function FeaturedProducts({ products }: { products: Product[] }) {
           </li>
         ))}
       </ul>
+
+      {/* 아래 구간(문의 및 채널)과의 경계 — 목업(2026-10-20)의 옅은 그림자 선. 양 끝이 흐려진다 */}
+      <div
+        aria-hidden="true"
+        className="mt-20 h-2 bg-gradient-to-b from-black/12 to-transparent [mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)] md:mt-24"
+      />
     </section>
   );
 }
