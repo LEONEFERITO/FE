@@ -36,6 +36,18 @@ import type { DetailCut, HeroSlide } from "@/lib/heroSlide";
 
 const INTERVAL_MS = 6000;
 
+/**
+ * 관리자가 정한 PC 글자 크기(서버 V37)를 CSS 변수로 — 비운 칸은 변수를 안 만들어 기본 크기가 나간다.
+ * 글자 클래스는 md: 에서만 이 변수를 읽는다: 휴대폰은 늘 화면 폭에 맞춘 기본 크기(큰 제목 96px 이 폰 밖으로 넘치지 않게).
+ */
+function sizeVars(sizes: HeroSlide["sizes"]): React.CSSProperties {
+  const vars: Record<string, string> = {};
+  if (sizes.eyebrow) vars["--hero-eyebrow"] = `${sizes.eyebrow}px`;
+  if (sizes.title) vars["--hero-title"] = `${sizes.title}px`;
+  if (sizes.subtitle) vars["--hero-subtitle"] = `${sizes.subtitle}px`;
+  return vars as React.CSSProperties;
+}
+
 function Frame({ cut, side, className }: { cut: DetailCut; side: "l" | "r"; className: string }) {
   return (
     <figure
@@ -180,16 +192,17 @@ function ImageSlide({ slide, first, active }: { slide: HeroSlide; first: boolean
       <div
         data-quick-avoid=""
         className="relative z-20 mt-auto flex flex-col items-center pb-2 text-center md:ml-[54px] md:max-w-[960px] md:items-start md:pb-[42px] md:pl-0 md:text-left"
+        style={sizeVars(slide.sizes)}
       >
         {/* 글자는 전부 흰색 (2026-10-17 디자이너 요청 "히어로 텍스트 화이트로 통일") — 작은 줄도 골드가 아니다 */}
-        {slide.eyebrow && <p className="text-2xs text-white md:text-[16px]">{slide.eyebrow}</p>}
+        {slide.eyebrow && <p className="text-2xs text-white md:[font-size:var(--hero-eyebrow,16px)]">{slide.eyebrow}</p>}
         {slide.title && (
-          <p className="font-display tracking-display mt-2 line-clamp-2 text-2xl leading-none text-white md:mt-[10px] md:text-4xl lg:text-[52px]">
+          <p className="font-display tracking-display mt-2 line-clamp-2 text-2xl leading-none text-white md:mt-[10px] md:[font-size:var(--hero-title,var(--text-4xl))] lg:[font-size:var(--hero-title,52px)]">
             {slide.title}
           </p>
         )}
         {slide.subtitle && (
-          <p className="mt-2 text-sm text-white md:mt-[43px] md:text-[18px] md:font-medium md:leading-[30px] md:whitespace-pre-line">
+          <p className="mt-2 text-sm text-white md:mt-[43px] md:[font-size:var(--hero-subtitle,18px)] md:font-medium md:leading-[1.667] md:whitespace-pre-line">
             {slide.subtitle}
           </p>
         )}
@@ -234,14 +247,16 @@ function Slide({ slide, first }: { slide: HeroSlide; first: boolean }) {
         이름 · 가격. 모바일은 h1 아래 가운데(인물과 겹치지 않게 무대 **밖**),
         데스크톱은 무대 왼쪽 중단 — 레퍼런스의 "사구싶은 가격" 자리. 인물과 액자 사이 여백이 넓다.
       */}
-      <div className="relative z-20 mt-4 text-center md:absolute md:left-10 md:top-1/2 md:mt-0 md:max-w-[320px] md:-translate-y-[62%] md:text-left lg:left-[7%]">
-        {slide.eyebrow && <p className="text-accent text-2xs tracking-label">{slide.eyebrow}</p>}
+      <div className="relative z-20 mt-4 text-center md:absolute md:left-10 md:top-1/2 md:mt-0 md:max-w-[320px] md:-translate-y-[62%] md:text-left lg:left-[7%]"
+        style={sizeVars(slide.sizes)}
+      >
+        {slide.eyebrow && <p className="text-accent text-2xs tracking-label md:[font-size:var(--hero-eyebrow,var(--text-2xs))]">{slide.eyebrow}</p>}
         {slide.title && (
-          <p className="font-display text-primary leading-display tracking-display mt-2 line-clamp-2 text-xl md:mt-3 md:text-3xl lg:text-4xl">
+          <p className="font-display text-primary leading-display tracking-display mt-2 line-clamp-2 text-xl md:mt-3 md:[font-size:var(--hero-title,var(--text-3xl))] lg:[font-size:var(--hero-title,var(--text-4xl))]">
             {slide.title}
           </p>
         )}
-        {slide.subtitle && <p className="text-secondary mt-1.5 text-sm tabular-nums md:mt-3 md:text-lg">{slide.subtitle}</p>}
+        {slide.subtitle && <p className="text-secondary mt-1.5 text-sm tabular-nums md:mt-3 md:[font-size:var(--hero-subtitle,var(--text-lg))]">{slide.subtitle}</p>}
       </div>
 
       {/* ── 무대. 인물 + 액자 둘. 남는 높이를 전부 쓴다 ──────────── */}

@@ -34,6 +34,10 @@ export interface HeroBanner {
   ctaUrl: string;
   /** 버튼을 내보내는가 (서버 V35). false 면 그 배너엔 버튼이 없다 */
   ctaEnabled: boolean;
+  /** PC 글자 크기 px (서버 V37). null 이면 기본 크기 */
+  eyebrowPx: number | null;
+  titlePx: number | null;
+  subtitlePx: number | null;
   figure: BannerPhoto | null;
   frameLeft: BannerPhoto | null;
   frameRight: BannerPhoto | null;
@@ -68,6 +72,9 @@ async function load(): Promise<HeroBanner[]> {
       ctaLabel: d.ctaLabel ?? "",
       ctaUrl: d.ctaUrl ?? "",
       ctaEnabled: d.ctaEnabled ?? true,
+      eyebrowPx: d.eyebrowPx ?? null,
+      titlePx: d.titlePx ?? null,
+      subtitlePx: d.subtitlePx ?? null,
       figure: photo(d.figure),
       frameLeft: photo(d.frameLeft),
       frameRight: photo(d.frameRight),

@@ -21,6 +21,7 @@ import { getProduct, listProducts, type AdminProductEdit, type AdminProductRow }
 import {
   HERO_CTA_URL,
   HERO_LIMITS,
+  HERO_SIZE,
   MAX_HERO_BANNERS,
   adminHeroBanners,
   createHeroBanner,
@@ -102,6 +103,10 @@ interface Form {
   ctaUrl: string;
   /** 버튼 사용 (V35). 끄면 버튼 글자 · 주소 칸이 접히고 손님 화면에 버튼이 안 나간다 */
   ctaEnabled: boolean;
+  /** PC 글자 크기 px (V37) — 칸 그대로의 글자. 비우면 기본 크기 */
+  eyebrowPx: string;
+  titlePx: string;
+  subtitlePx: string;
   figure: ImageFieldValue | null;
   figureAlt: string;
   frameLeft: ImageFieldValue | null;
@@ -126,6 +131,9 @@ const EMPTY_FORM: Form = {
   ctaLabel: "",
   ctaUrl: "",
   ctaEnabled: true,
+  eyebrowPx: "",
+  titlePx: "",
+  subtitlePx: "",
   figure: null,
   figureAlt: "",
   frameLeft: null,
@@ -164,6 +172,9 @@ function formOf(b: HeroBannerAdmin): Form {
     ctaLabel: b.ctaLabel,
     ctaUrl: b.ctaUrl,
     ctaEnabled: b.ctaEnabled ?? true,
+    eyebrowPx: b.eyebrowPx?.toString() ?? "",
+    titlePx: b.titlePx?.toString() ?? "",
+    subtitlePx: b.subtitlePx?.toString() ?? "",
     figure: film ? null : asField(b.figure),
     figureAlt: b.figure?.alt ?? "",
     frameLeft: asField(b.frameLeft),
@@ -177,6 +188,25 @@ function formOf(b: HeroBannerAdmin): Form {
     visible: b.visible,
   };
 }
+
+/** 글자 크기 칸 → 숫자. 비었거나 숫자가 아니면 null(기본 크기) */
+const pxOf = (v: string): number | null => {
+  const n = Number.parseInt(v.trim(), 10);
+  return Number.isFinite(n) ? n : null;
+};
+
+/** 칸이 비었거나 범위 안이면 true */
+const pxOk = (v: string, r: { min: number; max: number }) => {
+  const n = pxOf(v);
+  return n === null || (n >= r.min && n <= r.max);
+};
+
+/** 글자 크기 세 칸 (V37, 2026-10-21 요청 "세 가지 각각 픽셀 조절") — 설명 · 기본값 */
+const SIZE_FIELDS = [
+  { key: "eyebrowPx", label: "작은 줄", range: HERO_SIZE.eyebrow, base: "16" },
+  { key: "titlePx", label: "큰 제목", range: HERO_SIZE.title, base: "52" },
+  { key: "subtitlePx", label: "제목 아래 줄", range: HERO_SIZE.subtitle, base: "18" },
+] as const;
 
 function inputOf(f: Form): HeroBannerInput {
   const custom = f.kind === "CUSTOM";
@@ -193,6 +223,9 @@ function inputOf(f: Form): HeroBannerInput {
     ctaLabel: f.ctaLabel.trim(),
     ctaUrl: f.ctaUrl.trim(),
     ctaEnabled: f.ctaEnabled,
+    eyebrowPx: pxOf(f.eyebrowPx),
+    titlePx: pxOf(f.titlePx),
+    subtitlePx: pxOf(f.subtitlePx),
     figure: video ? pick(true, f.film?.video, f.figureAlt) : pick(custom || image, f.figure, f.figureAlt),
     frameLeft: pick(custom, f.frameLeft, f.frameLeftAlt),
     frameRight: pick(custom, f.frameRight, f.frameRightAlt),
@@ -641,6 +674,9 @@ function BannerEditor({
     ctaLabel: form.ctaLabel.trim(),
     ctaUrl: form.ctaUrl.trim(),
     ctaEnabled: form.ctaEnabled,
+    eyebrowPx: pxOf(form.eyebrowPx),
+    titlePx: pxOf(form.titlePx),
+    subtitlePx: pxOf(form.subtitlePx),
   };
   const urlOk = HERO_CTA_URL.test(text.ctaUrl);
   const detail = pid ? details[pid] : undefined;
@@ -693,6 +729,9 @@ function BannerEditor({
     if (form.kind === "IMAGE" && !form.figure) return setError("화면을 덮을 큰 사진을 올려 주세요.");
     if (form.kind === "VIDEO" && !form.film) return setError("화면을 덮을 영상을 올려 주세요.");
     if (!urlOk) return setError("버튼 주소는 /로 시작하는 사이트 안 주소나 https:// 주소만 쓸 수 있습니다.");
+    for (const f of SIZE_FIELDS)
+      if (!pxOk(form[f.key], f.range))
+        return setError(`${f.label} 글자 크기는 ${f.range.min}~${f.range.max}px 사이로 적어 주세요. 비우면 기본 크기입니다.`);
     setBusy(true);
     try {
       const input = inputOf(form);
@@ -939,6 +978,51 @@ function BannerEditor({
             hint="엔터로 줄을 나눌 수 있습니다. PC 화면은 나눈 그대로, 휴대폰은 화면 폭에 맞춰 자동으로 줄이 바뀝니다."
             onChange={(v) => set({ subtitle: v })}
           />
+
+          {/* 글자 크기 (V37) — PC 에만. 비우면 기본(디자이너 기준). 휴대폰은 화면 폭에 맞춘 자동 크기 그대로 */}
+          <fieldset className="md:col-span-2">
+            <div className="flex flex-wrap items-baseline justify-between gap-3">
+              <legend className="text-primary text-sm font-semibold">글자 크기 (PC, px)</legend>
+              <button
+                type="button"
+                onClick={() => set({ eyebrowPx: "", titlePx: "", subtitlePx: "" })}
+                className="text-muted hover:text-primary text-2xs underline underline-offset-4"
+              >
+                기본값으로
+              </button>
+            </div>
+            <p className="text-muted text-2xs mt-1 leading-relaxed">
+              비우면 기본 크기입니다{imageLayout ? " (작은 줄 16 · 큰 제목 52 · 제목 아래 줄 18)" : ""}. PC 화면에만 적용되고, 휴대폰은 화면 폭에 맞춰 자동으로 정해집니다.
+            </p>
+            <div className="mt-3 grid grid-cols-3 gap-3">
+              {SIZE_FIELDS.map((f) => {
+                const ok = pxOk(form[f.key], f.range);
+                return (
+                  <div key={f.key} className="flex flex-col gap-1.5">
+                    <label htmlFor={`banner-${f.key}`} className="text-primary text-xs font-medium">
+                      {f.label}
+                    </label>
+                    <input
+                      id={`banner-${f.key}`}
+                      type="number"
+                      inputMode="numeric"
+                      min={f.range.min}
+                      max={f.range.max}
+                      value={form[f.key]}
+                      placeholder={imageLayout ? f.base : "기본"}
+                      aria-invalid={!ok}
+                      aria-describedby={`banner-${f.key}-range`}
+                      onChange={(e) => set({ [f.key]: e.target.value } as Partial<Form>)}
+                      className={`${field} tabular-nums ${ok ? "" : "border-error"}`}
+                    />
+                    <p id={`banner-${f.key}-range`} className={`text-2xs ${ok ? "text-muted" : "text-error"}`}>
+                      {f.range.min}~{f.range.max}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </fieldset>
 
           {/* 버튼 사용 (2026-10-17 요청, 10-19 라디오로) — 숨기면 아래 글자 · 주소 칸이 접히고 손님 화면에 버튼이 안 나간다. 값은 남는다 */}
           <fieldset className="md:col-span-2">

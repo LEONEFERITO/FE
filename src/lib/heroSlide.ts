@@ -40,13 +40,21 @@ export interface HeroSlide {
   title: string;
   /** 이름 아래 줄 (가격 등). 비면 그리지 않는다 */
   subtitle: string;
+  /** PC 글자 크기 px (서버 V37) — null 이면 기본 크기. 휴대폰은 늘 기본(자동) 크기 */
+  sizes: TextSizes;
   /** 버튼. null 이면 그리지 않는다 — 관리자가 그 배너의 「버튼 사용」을 껐다(서버 V35) */
   primary: { label: string; href: string } | null;
   /** 오른쪽 아래 캡션의 둘째 줄. null 이면 LEONE FERITO 한 줄만 */
   captionSub: string | null;
 }
 
-/** 배너 문구 — 관리자가 적는 다섯 줄 + 버튼 사용 여부. 비운 줄은 기본값(상품 이름 · 가격 등)이 나간다. */
+export interface TextSizes {
+  eyebrow: number | null;
+  title: number | null;
+  subtitle: number | null;
+}
+
+/** 배너 문구 — 관리자가 적는 다섯 줄 + 버튼 사용 여부 + PC 글자 크기. 비운 줄은 기본값(상품 이름 · 가격 등)이 나간다. */
 export interface BannerText {
   eyebrow: string;
   title: string;
@@ -54,7 +62,17 @@ export interface BannerText {
   ctaLabel: string;
   ctaUrl: string;
   ctaEnabled: boolean;
+  /** PC 글자 크기 px (서버 V37). 없거나 null 이면 기본 크기 */
+  eyebrowPx?: number | null;
+  titlePx?: number | null;
+  subtitlePx?: number | null;
 }
+
+const sizesOf = (text?: BannerText): TextSizes => ({
+  eyebrow: text?.eyebrowPx ?? null,
+  title: text?.titlePx ?? null,
+  subtitle: text?.subtitlePx ?? null,
+});
 
 /** 버튼 — 끄면 null, 켜면 글자(비우면 「자세히 보기」)와 주소(안전하지 않으면 fallback) */
 const primaryOf = (text: BannerText, fallbackHref: string) =>
@@ -97,6 +115,7 @@ export function slideFromProduct(product: SlideProduct, text?: BannerText): Hero
     title: text?.title || name,
     subtitle: text?.subtitle || (product.priceKrw !== null ? `${KRW.format(product.priceKrw)}원` : "가격 문의"),
     // 문구가 없으면(배너 없이 진열 순서 맨 앞 상품) 버튼은 상품 페이지로
+    sizes: sizesOf(text),
     primary: text ? primaryOf(text, href) : { label: "자세히 보기", href },
     // fit.ko 가 이미 "페리토 라인" 이다 — 뒤에 "라인" 을 또 붙이면 "라인 라인" 이 된다
     captionSub: fit ? `${fit.ko} · ${fit.kind}` : null,
@@ -119,6 +138,7 @@ export function slideFromCustom(
     eyebrow: banner.eyebrow,
     title: banner.title,
     subtitle: banner.subtitle,
+    sizes: sizesOf(banner),
     primary: primaryOf(banner, "/products/"),
     captionSub: null,
   };
@@ -139,6 +159,7 @@ export function slideFromImage(
     eyebrow: banner.eyebrow,
     title: banner.title,
     subtitle: banner.subtitle,
+    sizes: sizesOf(banner),
     primary: primaryOf(banner, "/products/"),
     captionSub: null,
   };
@@ -170,6 +191,7 @@ export function slideFromVideo(
     eyebrow: banner.eyebrow,
     title: banner.title,
     subtitle: banner.subtitle,
+    sizes: sizesOf(banner),
     primary: primaryOf(banner, "/products/"),
     captionSub: null,
   };

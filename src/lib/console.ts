@@ -213,6 +213,10 @@ export interface HeroBannerAdmin {
   ctaUrl: string;
   /** 버튼을 내보내는가 (서버 V35). 끄면 글자 · 주소는 보관만 */
   ctaEnabled: boolean;
+  /** PC 글자 크기 px (서버 V37). null 이면 기본 크기 */
+  eyebrowPx: number | null;
+  titlePx: number | null;
+  subtitlePx: number | null;
   figure: HeroBannerPhoto | null;
   frameLeft: HeroBannerPhoto | null;
   frameRight: HeroBannerPhoto | null;
@@ -238,6 +242,10 @@ export interface HeroBannerInput {
   ctaUrl: string;
   /** 버튼을 내보내는가 (서버 V35). 끄면 글자 · 주소는 보관만 */
   ctaEnabled: boolean;
+  /** PC 글자 크기 px (서버 V37). null 이면 기본 크기 */
+  eyebrowPx: number | null;
+  titlePx: number | null;
+  subtitlePx: number | null;
   figure: { mediaId: string; alt: string } | null;
   frameLeft: { mediaId: string; alt: string } | null;
   frameRight: { mediaId: string; alt: string } | null;
@@ -249,6 +257,12 @@ export interface HeroBannerInput {
 
 /** 서버 hero_banner 의 CHECK 와 같다 */
 export const HERO_LIMITS = { eyebrow: 40, title: 60, subtitle: 150, ctaLabel: 20, ctaUrl: 300, alt: 200 } as const;
+/** PC 글자 크기 px 범위 — 서버 V37 CHECK · BannerInput @Min/@Max 와 같다 */
+export const HERO_SIZE = {
+  eyebrow: { min: 10, max: 40 },
+  title: { min: 24, max: 120 },
+  subtitle: { min: 12, max: 40 },
+} as const;
 /** 서버 SiteImageService.MAX_BANNERS 와 같다 */
 export const MAX_HERO_BANNERS = 10;
 /** 서버와 같은 규칙: 비우거나, 사이트 안 주소(/…, // 는 안 됨) 또는 https 주소 */
