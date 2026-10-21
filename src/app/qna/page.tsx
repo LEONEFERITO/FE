@@ -113,7 +113,8 @@ export default function QnaPage() {
                   className="border-subtle hover:border-accent ease-fluid flex flex-col items-center gap-4 border bg-white p-8 text-center transition-colors duration-300"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/brand/leoneferito-monogram.webp" alt="" aria-hidden="true" className="h-14 w-14 object-contain" />
+                  {/* 더맨리 사자 로고(금색, 투명 바탕) — 2026-10-21 고객 전달 */}
+                  <img src="/brand/themanly-lion.webp" alt="" aria-hidden="true" className="h-16 w-auto object-contain" />
                   <p className="text-secondary text-sm leading-relaxed">
                     개인의 몸에 꼭 맞는 맞춤 정장을 원하시면
                     <br />
