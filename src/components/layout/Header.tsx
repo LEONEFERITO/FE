@@ -98,6 +98,25 @@ const accountLabel = (item: { href: string; label: string }, cartCount: number) 
 export function Header({ overHero = false, tone = overHero ? undefined : "wine" }: { overHero?: boolean; tone?: "wine" }) {
   const wine = tone === "wine";
   const [open, setOpen] = useState(false);
+
+  /*
+   * 휴대폰 맨 위 상태바 자리도 헤더 색으로 (2026-10-21 아이폰 캡처 — 검정 헤더 위가 흰 띠로 비었다).
+   * 그 자리는 브라우저가 칠한다: 안드로이드 크롬 · 예전 iOS 는 <meta name="theme-color">, iOS 26 Safari 는 그걸 무시하고
+   * 페이지 바탕(canvas)색을 쓴다. 그래서 둘 다 헤더 색으로 맞춘다. html 바탕은 body 가 위를 덮어 본문에는 안 보이고,
+   * 상태바 자리 · 위아래로 당겼을 때(오버스크롤)만 보인다. 메인은 검정, 나머지는 와인.
+   * theme-color 는 layout 의 viewport 로 선언하지 않는다 — Next 가 페이지를 옮길 때 자기 것을 다시 넣어 둘이 되고, 앞의 것이 이긴다.
+   */
+  useEffect(() => {
+    const color = wine ? "#5E1F21" : "#000000";
+    let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "theme-color";
+      document.head.appendChild(meta);
+    }
+    meta.content = color;
+    document.documentElement.style.backgroundColor = color;
+  }, [wine]);
   // 분류 메뉴 — 관리자 › 분류 순서대로(빌드 때 받은 값, components/layout/CategoryOrder)
   const CATEGORY_GROUPS = useCategoryGroups();
   // 장바구니 줄 수 — 페이지를 열 때 한 번 받고, 이후는 담기 · 지우기가 돌려준 장바구니로 바뀐다(lib/cartCount)
