@@ -108,3 +108,9 @@ export const SNS: { instagram: string | null; youtube: string | null } = {
   instagram: "https://www.instagram.com/leoneferito_/",
   youtube: "https://www.youtube.com/@THEMANLY_OFFICIAL",
 };
+
+/**
+ * QnA 페이지의 "더맨리" 상자가 여는 곳 (2026-10-21 디자이너 "현재의 더맨리 웹사이트로 바로 연결").
+ * TODO(고객확인) 더맨리 웹사이트 주소를 받으면 여기만 바꾼다. 그 전까지는 매장 네이버 지도.
+ */
+export const TAILOR_SHOP_URL: string = OFFLINE_SHOP.mapUrl ?? "https://naver.me/xJGvF38R";

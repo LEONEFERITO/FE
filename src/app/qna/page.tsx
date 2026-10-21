@@ -1,18 +1,14 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import { ChatCircle } from "@phosphor-icons/react/dist/ssr";
 
-import { FaqChat } from "@/components/content/FaqChat";
+import { FaqAccordion } from "@/components/content/FaqAccordion";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Reveal } from "@/components/motion/Reveal";
 import { PageBand } from "@/components/ui/PageBand";
-import { KAKAO_CHANNEL } from "@/data/business";
+import { KAKAO_CHANNEL, TAILOR_SHOP_URL } from "@/data/business";
 import { shareMetadata } from "@/lib/metadata";
-import { pendingLabel } from "@/lib/pending";
-import { LINE_LABEL } from "@/types/product";
-import { SHIPPING_LINES } from "@/data/shipping";
 
 /**
  * QnA (요구사항 3).
@@ -34,71 +30,23 @@ export const metadata: Metadata = shareMetadata({
   description: "주문·제작, 사이즈, 배송·교환에 대해 자주 묻는 질문.",
 });
 
+/** 기본 질문 — 2026-10-21 디자이너가 보낸 문안 그대로. 관리자 FAQ 에 질문을 올리면 그쪽이 나온다 */
 const FAQ: { q: string; a: React.ReactNode }[] = [
   {
-    q: "주문하면 언제 받을 수 있나요?",
-    a: (
-      <>
-        주문을 확인한 뒤 제작에 들어갑니다. 제작 기간은 상품마다 다르며, 각 상품 페이지와
-        결제 전에 표시됩니다. <span className="text-muted">{pendingLabel("제작 기간")}</span>
-      </>
-    ),
+    q: "기성 수트와 맞춤 수트 중 어떤 것이 더 좋나요?",
+    a: "두 방식 모두 장점이 있습니다. 기성 수트는 정해진 사이즈 중에서 선택해 비교적 간편하게 구매할 수 있고, 맞춤 수트는 개인의 체형과 취향을 더욱 세밀하게 반영할 수 있습니다. 예산과 착용 목적, 원하는 핏에 따라 적합한 방식을 선택하시는 것이 좋습니다.",
   },
   {
-    q: "레오네와 페리토, 어떤 걸 골라야 하나요?",
-    a: (
-      <>
-        <b className="text-primary">레오네</b>는 {LINE_LABEL.LEONE.description}{" "}
-        <b className="text-primary">페리토</b>는 {LINE_LABEL.FERITO.description} 운동으로
-        어깨·가슴·허벅지가 발달했는데 기성복 허리가 남는다면 페리토입니다.
-      </>
-    ),
+    q: "기성 수트도 수선해서 입을 수 있나요?",
+    a: "네. 제품의 디자인과 봉제 구조에 따라 소매 길이, 바지 길이, 허리둘레 등 일부 항목은 수선이 가능합니다. 다만 수선 가능 범위는 제품마다 다를 수 있습니다.",
   },
   {
-    q: "사이즈가 안 맞으면 교환되나요?",
-    a: (
-      <>
-        사이즈가 맞지 않으면 교환해 드립니다. 배송을 받은 뒤{" "}
-        <Link href="/mypage/" className="text-accent underline underline-offset-4">마이페이지</Link> › 주문
-        상세에서 신청하면 진행 상황을 그 화면에서 볼 수 있습니다. {SHIPPING_LINES.exchange}{" "}
-        {SHIPPING_LINES.exchangeFee} {SHIPPING_LINES.condition}
-      </>
-    ),
+    q: "온라인으로 구매해도 사이즈를 선택하기 어렵지 않을까요?",
+    a: "평소 착용하시는 수트 사이즈와 신체 치수, 원하시는 핏을 참고해 사이즈 선택을 도와드릴 수 있습니다. 평소 잘 맞는 수트의 사이즈나 착용 사진을 함께 보내주시면 더욱 구체적인 안내가 가능합니다.",
   },
   {
-    q: "주문 제작인데 취소할 수 있나요?",
-    a: (
-      <>
-        제작이 시작되기 전에는 취소할 수 있습니다. 주문에 따라 제작하는 상품은 주문 전에 따로
-        알려 드리고 동의를 받은 경우에 한해, 제작이 시작된 뒤 단순 변심에 의한 취소·반품이
-        제한됩니다(전자상거래법 제17조 제2항, 같은 법 시행령 제21조). 제품 하자나 오배송은
-        교환·반품이 가능합니다. 자세한 기준은{" "}
-        <Link
-          href="/terms#article-16"
-          className="text-accent hover:text-accent-hover underline underline-offset-4"
-        >
-          이용약관 제16조
-        </Link>
-        에 있습니다.
-      </>
-    ),
-  },
-  {
-    q: "수선은 어디서 받나요?",
-    a: (
-      <>
-        기장·허리처럼 정교한 수선이 필요하면 테일러샵 <b className="text-primary">더맨리</b>로
-        안내해 드립니다. <span className="text-muted">{pendingLabel("네이버플레이스 링크")}</span>
-      </>
-    ),
-  },
-  {
-    q: "배송비는 얼마인가요?",
-    a: (
-      <>
-        {SHIPPING_LINES.fee}입니다. {SHIPPING_LINES.remote}. {SHIPPING_LINES.dispatch}
-      </>
-    ),
+    q: "제품 교환이나 반품은 어떻게 진행되나요?",
+    a: "교환 및 반품은 구매 경로와 제품 상태, 적용되는 판매 정책에 따라 안내해 드립니다. 구매 전 상세 정책을 확인해 주시고, 관련 문의는 주문 정보와 함께 채널로 남겨주시면 안내해 드리겠습니다.",
   },
 ];
 
@@ -114,26 +62,32 @@ export default function QnaPage() {
           description="여기서 답을 못 찾으시면 카카오톡 채널로 바로 물어보실 수 있습니다."
         />
 
-        <div className="on-cream">
-          <div className="mx-auto grid max-w-[1320px] gap-8 px-5 py-12 md:grid-cols-[minmax(0,1fr)_minmax(0,360px)] md:gap-10 md:px-15 md:py-16">
+        {/* 2026-10-21 디자이너 시안: 왼쪽 "LEONE FERITO 안내" 아코디언, 오른쪽 카카오톡 상자 + 더맨리 상자(상자 전체가 링크) */}
+        <div className="on-cream on-white">
+          <div className="mx-auto grid max-w-[1320px] gap-8 px-5 py-12 md:grid-cols-[minmax(0,1fr)_minmax(0,360px)] md:gap-12 md:px-15 md:py-16">
             <Reveal className="min-w-0">
-              <FaqChat fallback={FAQ} />
+              <h2 className="font-display text-primary flex items-center gap-3 text-xl">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/brand/leoneferito-monogram.webp" alt="" aria-hidden="true" className="h-6 w-6 object-contain" />
+                LEONE FERITO 안내
+              </h2>
+              <div className="mt-5">
+                <FaqAccordion fallback={FAQ} />
+              </div>
             </Reveal>
 
             <div className="flex min-w-0 flex-col gap-4">
               <Reveal delay={100}>
-                <div className="border-subtle bg-surface flex flex-col gap-4 rounded-2xl border p-6">
-                  <h2 className="font-display text-primary text-xl">답을 못 찾으셨나요</h2>
+                <div className="border-subtle flex flex-col gap-4 border bg-white p-6 text-center">
                   <p className="text-secondary text-sm leading-relaxed">
-                    카카오톡 채널 <b className="text-primary">{KAKAO_CHANNEL.name}</b>로 바로 문의하실 수
-                    있습니다.
+                    카카오톡 채널 <b className="text-primary">{KAKAO_CHANNEL.name}</b>로 바로 문의하실 수 있습니다.
                   </p>
-                  {/* 카카오 로그인 버튼(SocialButtons)과 같은 노랑 — 손님이 "카카오로 간다"를 색으로 먼저 읽는다. */}
+                  {/* 카카오 노랑 — 손님이 "카카오로 간다" 를 색으로 먼저 읽는다 */}
                   <a
                     href={KAKAO_CHANNEL.chat}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="ease-fluid inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#FEE500] px-5 text-sm font-medium text-[#191919] transition-colors duration-300 hover:bg-[#F5DC00] active:scale-[0.98]"
+                    className="ease-fluid inline-flex min-h-12 items-center justify-center gap-2 bg-[#FEE500] px-5 text-sm font-medium text-[#191919] transition-colors duration-300 hover:bg-[#F5DC00] active:scale-[0.98]"
                   >
                     <ChatCircle size={18} weight="fill" aria-hidden="true" />
                     카카오톡으로 문의하기
@@ -151,20 +105,22 @@ export default function QnaPage() {
               </Reveal>
 
               <Reveal delay={160}>
-                <div className="border-strong rounded-2xl border border-dashed p-6">
-                  <h2 className="text-primary text-sm font-medium">테일러샵 방문</h2>
-                  <p className="text-secondary mt-2 text-sm leading-relaxed">
-                    정교한 맞춤을 원하시면 <b className="text-primary">더맨리</b>로 안내해
-                    드립니다.
+                {/* 더맨리 상자 — 상자 어디를 눌러도 더맨리로 (2026-10-21 디자이너 "이 네모 영역 전체 어디를 눌러도 연결") */}
+                <a
+                  href={TAILOR_SHOP_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="border-subtle hover:border-accent ease-fluid flex flex-col items-center gap-4 border bg-white p-8 text-center transition-colors duration-300"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/brand/leoneferito-monogram.webp" alt="" aria-hidden="true" className="h-14 w-14 object-contain" />
+                  <p className="text-secondary text-sm leading-relaxed">
+                    개인의 몸에 꼭 맞는 맞춤 정장을 원하시면
+                    <br />
+                    <b className="text-primary">더맨리</b>로 안내해 드립니다.
                   </p>
-                  {/* 이용 안내(/guide)가 없어져(2026-10-17) 브랜드 페이지의 테일러샵 안내로 보낸다 */}
-                  <Link
-                    href="/brand/#tailoring"
-                    className="text-accent hover:text-accent-hover ease-fluid mt-3 inline-flex min-h-11 items-center text-xs underline underline-offset-4 transition-colors duration-300"
-                  >
-                    매장 위치 · 운영시간 보기
-                  </Link>
-                </div>
+                  <span className="sr-only">(더맨리, 새 창)</span>
+                </a>
               </Reveal>
             </div>
           </div>
