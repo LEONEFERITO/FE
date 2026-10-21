@@ -244,6 +244,7 @@ function Counted({
   max,
   placeholder,
   hint,
+  multiline = false,
   onChange,
 }: {
   id: string;
@@ -252,6 +253,8 @@ function Counted({
   max: number;
   placeholder?: string;
   hint?: string;
+  /** 여러 줄 — 엔터로 줄을 나눈다(제목 아래 줄, 2026-10-21 디자이너 "엔터는 못 치나요?") */
+  multiline?: boolean;
   onChange: (v: string) => void;
 }) {
   return (
@@ -264,7 +267,19 @@ function Counted({
           {value.length}/{max}
         </span>
       </div>
-      <input id={id} value={value} maxLength={max} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} className={field} />
+      {multiline ? (
+        <textarea
+          id={id}
+          value={value}
+          maxLength={max}
+          rows={3}
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value)}
+          className={`${field} py-2.5 leading-relaxed`}
+        />
+      ) : (
+        <input id={id} value={value} maxLength={max} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} className={field} />
+      )}
       {hint && <p className="text-muted text-2xs leading-relaxed">{hint}</p>}
     </div>
   );
@@ -914,7 +929,16 @@ function BannerEditor({
         <div className="mt-6 grid gap-6 md:grid-cols-2">
           <Counted id="banner-eyebrow" label="작은 줄 (제목 위)" value={form.eyebrow} max={HERO_LIMITS.eyebrow} placeholder={productText ? "비우면 분류 · 라인" : "예: 26FW COLLECTION"} onChange={(v) => set({ eyebrow: v })} />
           <Counted id="banner-title" label="큰 제목" value={form.title} max={HERO_LIMITS.title} placeholder={productText ? "비우면 상품 이름" : "예: 가을 아우터"} onChange={(v) => set({ title: v })} />
-          <Counted id="banner-subtitle" label="제목 아래 줄" value={form.subtitle} max={HERO_LIMITS.subtitle} placeholder={productText ? "비우면 가격" : ""} onChange={(v) => set({ subtitle: v })} />
+          <Counted
+            id="banner-subtitle"
+            label="제목 아래 줄"
+            value={form.subtitle}
+            max={HERO_LIMITS.subtitle}
+            placeholder={productText ? "비우면 가격" : ""}
+            multiline
+            hint="엔터로 줄을 나눌 수 있습니다. PC 화면은 나눈 그대로, 휴대폰은 화면 폭에 맞춰 자동으로 줄이 바뀝니다."
+            onChange={(v) => set({ subtitle: v })}
+          />
 
           {/* 버튼 사용 (2026-10-17 요청, 10-19 라디오로) — 숨기면 아래 글자 · 주소 칸이 접히고 손님 화면에 버튼이 안 나간다. 값은 남는다 */}
           <fieldset className="md:col-span-2">
