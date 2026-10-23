@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Gelasio, Inria_Serif, Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 import { CategoryOrderProvider } from "@/components/layout/CategoryOrder";
@@ -72,6 +72,14 @@ const korean = Noto_Sans_KR({
  *   - 브랜드 스토리·슬로건: CLIENT_QUESTIONS F-2
  *   - 도메인 (metadataBase / OG 절대경로에 필요): CLIENT_QUESTIONS G-1
  */
+/**
+ * viewport-fit=cover — 아이폰 상태바 밑까지 페이지를 깔고, 그 자리는 Header 의 상태바 덮개가 헤더 색으로 덮는다(2026-10-23).
+ * 안 하면 iOS 26 Safari 가 상태바 뒤로 본문을 비춰 보인다. 대신 body 를 상태바 높이만큼 내려 시작한다(아래 body pt).
+ */
+export const viewport: Viewport = {
+  viewportFit: "cover",
+};
+
 export const metadata: Metadata = {
   title: {
     default: "LEONE FERITO",
@@ -123,7 +131,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
       className={`${display.variable} ${body.variable} ${card.variable} ${korean.variable} h-full antialiased`}
     >
-      <body className="bg-page text-primary flex min-h-full flex-col">
+      <body className="bg-page text-primary flex min-h-full flex-col pt-[env(safe-area-inset-top)]">
         {/*
           스킵 링크 — 키보드 사용자가 헤더 링크 여섯 개를 건너뛰고 본문으로 간다.
           body 의 **첫 초점 요소**여야 하므로 스크립트보다 앞에 둔다.
