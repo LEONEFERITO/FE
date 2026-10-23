@@ -300,6 +300,18 @@ body::after {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
+/*
+ * 터치 기기(휴대폰 · 태블릿)에서는 그레인을 끈다 (2026-10-23).
+ * iOS 26 Safari 는 화면 맨 위에 붙은 fixed 요소 중 **가장 위의 것**의 색을 상태바 자리로 끌어올린다.
+ * 화면 전체를 덮는 이 그레인(fixed · z 60)이 헤더보다 위라 Safari 가 이걸 고르고, 이건 투명이라
+ * 상태바 뒤로 본문이 그대로 비쳤다 — 헤더를 fixed 로 바꿔도 안 고쳐진 이유. 3.5% 노이즈라 작은 화면에서는 보이지도 않는다.
+ */
+@media (hover: none) {
+  body::after {
+    display: none;
+  }
+}
+
 /* ── 스크롤 진입 ───────────────────────────────────────────
  * 요소가 화면에 정적으로 그냥 나타나지 않는다. 무게감 있게 올라오며 초점이 맞는다.
  * transform / opacity / filter 만 쓴다 — top·height 를 애니메이션하면 레이아웃이 매번 재계산된다.
