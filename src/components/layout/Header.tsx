@@ -211,19 +211,13 @@ export function Header({ overHero = false, tone = overHero ? undefined : "wine" 
         2026-10-20 디자이너: 메인만 이 검정이고(히어로 위에서는 투명), 메인을 뺀 모든 페이지는 와인 바(tone="wine" 이 기본).
       */}
       {/*
-        상태바 덮개 (2026-10-23 — 색만 맞춰서는 iOS 26 Safari 의 다른 페이지에서 상태바 뒤로 본문이 비쳤다).
-        viewport-fit=cover(layout) 로 페이지가 상태바 밑까지 깔리고, 그 높이(env(safe-area-inset-top))만큼 이 판이 헤더 색으로 덮는다.
-        body 는 그만큼 아래에서 시작하고 헤더도 그 아래에 붙는다. 상태바가 없는 PC · 안드로이드는 높이 0 이라 아무것도 안 바뀐다.
-        히어로 위(투명 헤더)에서는 덮개도 투명 — 바탕(html, 위 effect)의 검정이 보인다.
+        헤더는 sticky 가 아니라 **fixed** 다 (2026-10-23 아이폰 캡처 — 상태바 뒤로 위로 지나간 본문("BEST")이 비쳤다).
+        iOS 26 Safari 는 상태바를 반투명으로 두고 화면 위쪽 끝에 붙은 **fixed** 요소의 바탕색을 그 자리로 끌어올려 덮는다.
+        sticky 헤더는 그 대상이 아니었다(색 지정 · env(safe-area-inset-top) 덮개 둘 다 효과 없음). 자리는 아래 빈 칸이 대신 잡는다.
       */}
-      <div
-        aria-hidden="true"
-        className={`ease-fluid pointer-events-none fixed inset-x-0 top-0 z-40 h-[env(safe-area-inset-top)] transition-colors duration-700 ${
-          wine ? "bg-[#5E1F21]" : light ? "bg-transparent" : "bg-[#000000]"
-        }`}
-      />
+      <div aria-hidden="true" className="h-[57px] shrink-0 md:h-[73px]" />
       <header
-        className={`ease-fluid sticky top-[env(safe-area-inset-top)] z-40 w-full border-b transition-colors duration-700 ${
+        className={`ease-fluid fixed inset-x-0 top-0 z-40 w-full border-b transition-colors duration-700 ${
           // 색 묶음 클래스가 background 를 직접 깔아서(레이어 밖 CSS) 유틸리티보다 세다 — 투명 · 와인은 ! 로 이긴다
           wine
             ? "on-black border-transparent bg-[#5E1F21]!"
