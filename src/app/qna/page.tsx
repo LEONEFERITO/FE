@@ -9,6 +9,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { PageBand } from "@/components/ui/PageBand";
 import { KAKAO_CHANNEL, TAILOR_SHOP_URL } from "@/data/business";
 import { shareMetadata } from "@/lib/metadata";
+import { faqStructuredData, JsonLd } from "@/lib/structuredData";
 
 /**
  * QnA (요구사항 3).
@@ -27,11 +28,13 @@ import { shareMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = shareMetadata({
   title: "QnA",
-  description: "주문·제작, 사이즈, 배송·교환에 대해 자주 묻는 질문.",
+  description:
+    "레오네페리토 자주 묻는 질문 — 기성 수트와 맞춤 수트의 차이, 기성 수트 수선, 온라인 사이즈 선택, 교환·반품 안내. 더 궁금한 점은 카카오톡 채널로 물어보세요.",
+  path: "/qna/",
 });
 
 /** 기본 질문 — 2026-10-21 디자이너가 보낸 문안 그대로. 관리자 FAQ 에 질문을 올리면 그쪽이 나온다 */
-const FAQ: { q: string; a: React.ReactNode }[] = [
+const FAQ: { q: string; a: string }[] = [
   {
     q: "기성 수트와 맞춤 수트 중 어떤 것이 더 좋나요?",
     a: "두 방식 모두 장점이 있습니다. 기성 수트는 정해진 사이즈 중에서 선택해 비교적 간편하게 구매할 수 있고, 맞춤 수트는 개인의 체형과 취향을 더욱 세밀하게 반영할 수 있습니다. 예산과 착용 목적, 원하는 핏에 따라 적합한 방식을 선택하시는 것이 좋습니다.",
@@ -54,6 +57,8 @@ export default function QnaPage() {
   return (
     <>
       <Header />
+      {/* 화면의 질문 · 답 그대로 FAQ 구조화 데이터 — AI 검색이 답을 인용하기 좋게 (lib/structuredData) */}
+      <JsonLd data={faqStructuredData(FAQ)} />
 
       <main id="main" className="flex-1">
         <PageBand
@@ -112,8 +117,8 @@ export default function QnaPage() {
                   rel="noopener noreferrer"
                   className="border-subtle hover:border-accent ease-fluid flex flex-col items-center gap-4 border bg-white p-8 text-center transition-colors duration-300"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   {/* 더맨리 사자 로고(금색, 투명 바탕) — 2026-10-21 고객 전달 */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src="/brand/themanly-lion.webp" alt="" aria-hidden="true" className="h-16 w-auto object-contain" />
                   <p className="text-secondary text-sm leading-relaxed">
                     개인의 몸에 꼭 맞는 맞춤 정장을 원하시면

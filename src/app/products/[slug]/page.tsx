@@ -11,7 +11,8 @@ import { PurchasePanel } from "@/components/product/PurchasePanel";
 import { SizeChart } from "@/components/product/SizeChart";
 import { getCatalog, getCatalogProduct } from "@/lib/catalog";
 import { openGraphBase } from "@/lib/metadata";
-import { LINE_LABEL, type Product } from "@/types/product";
+import { JsonLd, productStructuredData } from "@/lib/structuredData";
+import { CATEGORY_LABEL, LINE_LABEL, type Product } from "@/types/product";
 
 /**
  * 상품 상세.
@@ -47,11 +48,15 @@ export async function generateMetadata({
   const name = product.name ?? "제품 준비 중";
   const fit = LINE_LABEL[product.line];
 
+  // 2026-10-26 SEO: 설명 앞에 상품 이름 · 라인 · 분류를 두고, 요약(관리자 입력)이 있으면 그 뒤에 잇는다
+  const category = CATEGORY_LABEL[product.category];
+  const description = `${name} — ${fit.ko} ${category.ko}. ${
+    product.summary?.trim() || fit.description
+  } 사이즈별 상세 실측(어깨·가슴·허리·총장)과 모델 착용 정보를 공개합니다.`;
   return {
     title: name,
-    description:
-      product.summary ??
-      `${fit.ko} 핏 · ${fit.description} 사이즈별 상세 실측과 모델 착용 정보를 함께 제공합니다.`,
+    description,
+    alternates: { canonical: `/products/${product.slug}/` },
     /*
      * og 는 교체되는 키다 — 루트(layout.tsx)의 값이 섞여 들어오지 않으므로
      * siteName · locale 을 openGraphBase() 로 다시 얹는다. 빠뜨리면 카톡 카드에서
@@ -67,6 +72,7 @@ export async function generateMetadata({
       ...openGraphBase(product.images[0]?.url),
       title: `${name} | LEONE FERITO`,
       description: `${fit.ko} 핏 · 사이즈별 상세 실측 제공`,
+      url: `/products/${product.slug}/`,
     },
   };
 }
@@ -82,6 +88,8 @@ export default async function ProductDetailPage({
   return (
     <>
       <Header />
+      {/* 상품 · 가격 · 재고 · 이동 경로 구조화 데이터 (lib/structuredData) */}
+      <JsonLd data={productStructuredData(product)} />
 
       <main id="main" className="flex-1">
         {/*

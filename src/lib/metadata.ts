@@ -22,9 +22,12 @@ import { SITE_URL } from "@/lib/site";
 
 const BRAND = "LEONE FERITO";
 
-/** 루트 설명. layout.tsx 의 description 과 og:description 이 같은 문장을 쓴다. */
+/**
+ * 루트 설명. layout.tsx 의 description 과 og:description 이 같은 문장을 쓴다.
+ * 2026-10-26 SEO: 검색 결과 두 줄(한글 약 80~120자)에 브랜드 한글 이름 · 무엇을 파는지 · 다른 점이 다 들어가게.
+ */
 export const BRAND_DESCRIPTION =
-  "운동으로 달라진 체형을 위한 남성 기성복. 핏과 실측을 모두 공개합니다.";
+  "레오네페리토(LEONE FERITO)는 운동으로 달라진 체형을 위한 남성 기성복입니다. 어깨·가슴은 넉넉하게, 허리는 날렵하게 — 수트·셔츠·트라우저 전 제품의 사이즈별 실측을 공개합니다.";
 
 /**
  * 공유 기본 이미지.
@@ -87,16 +90,23 @@ export function shareMetadata(input: {
   image?: string | null;
   /** 페이지가 따로 색인을 막을 때 (약관 초안 등). */
   robots?: Metadata["robots"];
+  /**
+   * 이 페이지의 대표 주소(예: "/qna/"). 검색엔진에 "이 주소가 원본" 이라고 알린다(canonical) —
+   * ?sub=… 같은 꼬리가 붙은 주소가 따로 색인돼 점수가 나뉘지 않게. 절대 주소는 metadataBase 가 만든다.
+   */
+  path?: string;
 }): Metadata {
-  const { title, description, image, robots } = input;
+  const { title, description, image, robots, path } = input;
   return {
     ...(title ? { title } : {}),
     description,
     ...(robots ? { robots } : {}),
+    ...(path ? { alternates: { canonical: path } } : {}),
     openGraph: {
       ...openGraphBase(image),
       title: title ? `${title} | ${BRAND}` : BRAND,
       description,
+      ...(path ? { url: path } : {}),
     },
   };
 }

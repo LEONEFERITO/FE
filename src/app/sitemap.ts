@@ -7,8 +7,7 @@ import { SITE_URL } from "@/lib/site";
 /**
  * sitemap.xml — 손님이 검색으로 들어올 공개 페이지만. 로그인 · 주문 · 관리자 화면은 넣지 않는다.
  *
- * 도메인(NEXT_PUBLIC_SITE_URL)이 없으면 빈 목록이다. 오픈 전에는 public/robots.txt 가 전면 차단 중이라
- * 어차피 읽히지 않는다 — 오픈할 때 robots.txt 를 Allow 로 바꾸고 이 주소를 적는다.
+ * 도메인(NEXT_PUBLIC_SITE_URL)이 없으면 빈 목록이다. robots.ts 가 이 주소를 크롤러에 알린다(2026-10-26 검색 허용).
  */
 export const dynamic = "force-static";
 
@@ -22,9 +21,8 @@ const PAGES = [
   "/brand/",
   "/lookbook/",
   "/qna/",
-  "/terms/",
-  "/privacy/",
-  "/cookies/",
+  "/notice/",
+  // 약관 · 개인정보처리방침 · 쿠키 정책은 noindex 라 넣지 않는다 — 색인 막은 주소를 지도에 올리면 서치콘솔이 오류로 센다
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

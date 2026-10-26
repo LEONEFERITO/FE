@@ -19,6 +19,8 @@ import { AUTH_CONNECTED } from "@/lib/auth";
 export const metadata: Metadata = {
   title: "회원가입",
   description: "LEONE FERITO 회원가입.",
+  // 개인 화면 — 검색에 내지 않는다(2026-10-26 사이트 전체 noindex 를 풀면서)
+  robots: { index: false, follow: false },
 };
 
 export default function SignupPage() {

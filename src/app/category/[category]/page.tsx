@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { CategoryProducts, CategoryProductsFromUrl } from "@/components/product/CategoryProducts";
-import { CATEGORY_NAV, CATEGORY_SUBS } from "@/data/categories";
+import { CATEGORY_NAV, CATEGORY_SUBS, categoryHref } from "@/data/categories";
 import { getCatalog } from "@/lib/catalog";
 import { shareMetadata } from "@/lib/metadata";
 import { CATEGORY_LABEL } from "@/types/product";
@@ -42,7 +42,8 @@ export async function generateMetadata({
   const ko = CATEGORY_LABEL[entry.category].ko;
   return shareMetadata({
     title: `${entry.title} · ${ko}`,
-    description: `LEONE FERITO ${ko}. 상품마다 핏 종류와 사이즈별 상세 실측을 공개합니다.`,
+    description: `레오네페리토 남성 ${ko} — 운동으로 달라진 체형에 맞춘 기성 ${ko}. 상품마다 핏 종류와 사이즈별 상세 실측(어깨·가슴·허리·총장)을 공개합니다.`,
+    path: categoryHref(entry.slug),
   });
 }
 

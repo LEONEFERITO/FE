@@ -41,7 +41,9 @@ import type { Category, Product, ProductLine } from "@/types/product";
 
 export const metadata: Metadata = shareMetadata({
   title: "룩북",
-  description: "레오네 페리토 룩북 — LEONE · FERITO 컬렉션 스타일링.",
+  description:
+    "레오네페리토 룩북 — 클래식 라인 LEONE 과 애슬레틱 라인 FERITO 의 수트·셔츠·트라우저 스타일링과 착용 컷.",
+  path: "/lookbook/",
 });
 
 interface Cut {

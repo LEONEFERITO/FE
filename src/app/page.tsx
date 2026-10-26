@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -16,6 +17,7 @@ import { pickHeroSlides } from "@/lib/heroSlide";
 import { getWhy } from "@/lib/why";
 import { getCatalog } from "@/lib/catalog";
 import { getSiteImages } from "@/lib/siteImages";
+import { homeStructuredData, JsonLd } from "@/lib/structuredData";
 
 /**
  * 메인.
@@ -75,6 +77,11 @@ function whyBackground(): string | null {
   }
 }
 
+/** 홈의 대표 주소(canonical) — 루트 layout 에 두면 모든 페이지가 물려받아 "원본은 홈" 이 돼 버린다 */
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
+
 export default async function Home() {
   /** WHY 구간 — 관리자가 고친 문구와 사진. 빌드 때 받는다(lib/why.ts). */
   const why = await getWhy();
@@ -95,6 +102,8 @@ export default async function Home() {
       */}
       {/* 히어로 위에서는 헤더가 투명, 배너를 지나면 원래 색 — why 를 뺀 세 히어로 모두 data-hero 를 갖는다 */}
       <Header overHero={HERO_VARIANT !== "why"} />
+      {/* 브랜드 · 사이트 · 오프라인 매장 구조화 데이터 (lib/structuredData) */}
+      <JsonLd data={homeStructuredData()} />
 
       <main id="main" className="flex-1">
         {HERO_VARIANT === "why" ? (

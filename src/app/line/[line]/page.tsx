@@ -62,7 +62,8 @@ export async function generateMetadata({ params }: PageProps<"/line/[line]">): P
   const label = LINE_LABEL[key];
   return shareMetadata({
     title: `${label.en} · ${label.ko}`,
-    description: `${label.kind} 라인. ${LINE_INTRO[key].tagline}`,
+    description: `레오네페리토 ${label.kind} 라인 ${label.en}(${label.ko}) — ${LINE_INTRO[key].tagline}. ${LINE_INTRO[key].body[0]}`,
+    path: `/line/${line}/`,
   });
 }
 

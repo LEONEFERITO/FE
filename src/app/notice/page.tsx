@@ -8,7 +8,8 @@ import { shareMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = shareMetadata({
   title: "공지사항",
-  description: "LEONE FERITO 공지사항 — 배송 일정, 휴무, 정책 안내.",
+  description: "레오네페리토 공지사항 — 배송 일정, 매장 휴무, 교환·반품 정책 등 새 소식.",
+  path: "/notice/",
 });
 
 export default function NoticePage() {

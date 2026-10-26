@@ -20,7 +20,8 @@ import { shareMetadata } from "@/lib/metadata";
 export const metadata: Metadata = shareMetadata({
   title: "제품",
   description:
-    "운동으로 달라진 체형을 위한 남성 기성복. 상품마다 핏 종류와 사이즈별 상세 실측을 공개합니다.",
+    "레오네페리토 전체 제품 — 수트, 자켓, 셔츠, 트라우저, 구두와 액세서리. 운동으로 달라진 체형을 위한 남성 기성복으로, 제품마다 핏 종류와 사이즈별 상세 실측을 공개합니다.",
+  path: "/products/",
 });
 
 export default async function ProductsPage() {

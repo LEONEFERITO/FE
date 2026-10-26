@@ -73,11 +73,28 @@ const korean = Noto_Sans_KR({
  *   - 도메인 (metadataBase / OG 절대경로에 필요): CLIENT_QUESTIONS G-1
  */
 export const metadata: Metadata = {
+  // 2026-10-26 SEO: 한글 이름으로 찾는 손님이 많아 제목에 "레오네페리토" 를 같이 둔다. 하위 페이지는 "제품 | LEONE FERITO 레오네페리토"
   title: {
-    default: "LEONE FERITO",
-    template: "%s | LEONE FERITO",
+    default: "LEONE FERITO 레오네페리토 | 운동한 체형을 위한 남성 기성복",
+    template: "%s | LEONE FERITO 레오네페리토",
   },
   description: BRAND_DESCRIPTION,
+  applicationName: "LEONE FERITO",
+  keywords: ["레오네페리토", "LEONE FERITO", "남성 기성복", "운동 체형 수트", "남자 수트", "남성 셔츠", "트라우저", "실측 공개", "더맨리"],
+
+  /*
+    검색 사이트 소유 확인 — 구글 서치콘솔 · 네이버 서치어드바이저에서 받은 코드.
+    서버 .env 에 NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION · NEXT_PUBLIC_NAVER_SITE_VERIFICATION 으로 넣으면
+    다음 빌드부터 <meta> 가 붙는다. 없으면 태그를 안 낸다.
+  */
+  verification: {
+    ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+      ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+      : {}),
+    ...(process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION
+      ? { other: { "naver-site-verification": process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION } }
+      : {}),
+  },
 
   // 도메인(NEXT_PUBLIC_SITE_URL · lib/site.ts)이 있으면 지정한다. 없으면 og:image 가 상대경로로 나가
   // 카톡·인스타가 이미지를 읽지 못한다 — TODO(고객확인) G-1 도메인.
@@ -93,20 +110,15 @@ export const metadata: Metadata = {
   */
   openGraph: {
     ...openGraphBase(),
-    title: "LEONE FERITO",
+    title: "LEONE FERITO 레오네페리토",
     description: BRAND_DESCRIPTION,
   },
 
   /*
-    검색 노출 차단 — **오픈 전까지 유지한다.**
-
-    지금 화면에는 "제품명 확인 중 · 가격 문의 · 실측 등록 전" 이 그대로 떠 있다.
-    미리보기 주소가 색인되면 그 문구가 브랜드명 검색 결과가 되고, 한 번 색인된 것은
-    지워도 한동안 남는다. 정식 도메인으로 오픈할 때 이 블록을 지운다.
-
-    robots.txt(public/) 와 짝이다 — 크롤러에 따라 보는 곳이 다르다.
+    검색 노출 — 2026-10-26 허용(오픈 전 전면 차단 noindex 를 풀었다). 개인 화면(로그인 · 주문 · 관리자 등)은
+    robots.ts 가 막고, 각 페이지도 noindex 를 따로 단다. 이미지 미리보기는 크게(max-image-preview) 허락한다.
   */
-  robots: { index: false, follow: false, nocache: true },
+  robots: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

@@ -48,8 +48,10 @@ import { getSiteImages } from "@/lib/siteImages";
 
 export const metadata: Metadata = shareMetadata({
   title: "브랜드",
+  // 뒤 문장은 고객 브랜드 문구 그대로(2026-10), 앞에 브랜드 · 매장 정보를 붙였다(2026-10-26 SEO)
   description:
-    "상위 0.1%의 남자. 잘 관리된 몸매와 외모, 섹시한 핏으로 소화하는 럭셔리 스타일.",
+    "레오네페리토 브랜드 이야기와 오프라인 매장(수원 영통 더맨리) 안내. 상위 0.1%의 남자. 잘 관리된 몸매와 외모, 섹시한 핏으로 소화하는 럭셔리 스타일.",
+  path: "/brand/",
 });
 
 // 슬로건 두 줄은 data/brand.ts — 메인의 브랜드 구간과 같은 문장을 쓴다.
