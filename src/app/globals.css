@@ -1464,3 +1464,110 @@ html[data-motion="on"] .brand-line {
     display: none;
   }
 }
+
+/* ════════════════════════════════════════════════════════
+ * 로그인 · 회원가입 카드 (components/auth/AuthCard) — 2026-10-26
+ *
+ * 움직이는 건 transform · opacity 뿐이다(합성 단계에서 끝나 메인 스레드를 막지 않는다).
+ * 패널만 will-change 로 자기 레이어를 갖는다 — 밀리는 동안 아래 폼을 다시 그리지 않는다.
+ * ════════════════════════════════════════════════════════ */
+.auth-panel {
+  background: linear-gradient(160deg, #5e1f21 0%, #3a1114 55%, #170a0e 100%);
+}
+@media (min-width: 768px) {
+  .auth-panel {
+    will-change: transform;
+  }
+  /* 처음 그릴 때는 제자리 — 전환을 누른 뒤(auth-moved)부터 미끄러진다 */
+  .auth-moved .auth-panel {
+    transition: translate 0.72s cubic-bezier(0.7, 0, 0.25, 1);
+  }
+}
+
+/* 물결 — 큰 그라데이션 판 두 장이 transform 으로만 천천히 흐른다. 판이 카드보다 커서 가장자리가 안 보인다 */
+.auth-wave::before,
+.auth-wave::after {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  will-change: transform;
+}
+.auth-wave::before {
+  background: radial-gradient(ellipse 45% 35% at 30% 75%, rgb(184 64 64 / 0.38), transparent 70%);
+  animation: auth-wave-a 16s ease-in-out infinite alternate;
+}
+.auth-wave::after {
+  background: radial-gradient(ellipse 40% 30% at 70% 30%, rgb(214 178 106 / 0.16), transparent 70%);
+  animation: auth-wave-b 21s ease-in-out infinite alternate;
+}
+@keyframes auth-wave-a {
+  to {
+    transform: translate3d(12%, -8%, 0) rotate(8deg);
+  }
+}
+@keyframes auth-wave-b {
+  to {
+    transform: translate3d(-10%, 10%, 0) rotate(-6deg);
+  }
+}
+
+/* 패널 문구 — 바뀌는 쪽은 살짝 옆에서 들어오며 나타난다 */
+.auth-panel-text {
+  transition:
+    opacity 0.45s ease,
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.auth-panel-text.auth-off {
+  opacity: 0;
+  transform: translate3d(0, 8px, 0);
+}
+.auth-moved .auth-panel-text.auth-on {
+  transition-delay: 0.25s;
+}
+
+/* 폼 — PC 는 두 폼이 늘 자리에 있고 가려진 쪽이 흐려진다. 폰은 지금 폼만 보이고(hidden), 바뀔 때 옆에서 밀려 들어온다 */
+@media (min-width: 768px) {
+  .auth-form {
+    transition: opacity 0.5s ease;
+  }
+  .auth-form.auth-off {
+    opacity: 0;
+  }
+  .auth-moved .auth-form.auth-on {
+    transition-delay: 0.3s;
+  }
+}
+@media (max-width: 767.98px) {
+  .auth-moved .auth-form.auth-on {
+    animation: auth-slide-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  [data-mode="login"].auth-moved .auth-form.auth-on {
+    animation-name: auth-slide-in-left;
+  }
+}
+@keyframes auth-slide-in {
+  from {
+    opacity: 0;
+    transform: translate3d(24px, 0, 0);
+  }
+}
+@keyframes auth-slide-in-left {
+  from {
+    opacity: 0;
+    transform: translate3d(-24px, 0, 0);
+  }
+}
+
+/* «동작 줄이기» — 미끄러짐 · 물결 없이 바로 바뀐다 */
+@media (prefers-reduced-motion: reduce) {
+  .auth-wave::before,
+  .auth-wave::after {
+    animation: none;
+  }
+  .auth-moved .auth-panel,
+  .auth-panel-text,
+  .auth-form {
+    transition: none !important;
+    animation: none !important;
+  }
+}

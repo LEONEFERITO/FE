@@ -55,7 +55,11 @@ function validate(email: string, password: string): Errors {
   return errors;
 }
 
-export function LoginForm() {
+/**
+ * {@code onSwitch} — 로그인 · 회원가입 한 카드(AuthCard) 안에서는 페이지를 옮기지 않고 패널을 밀어 바꾼다.
+ * 없으면(다른 곳에서 단독으로 쓸 때) 예전처럼 /signup 링크.
+ */
+export function LoginForm({ onSwitch }: { onSwitch?: () => void } = {}) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -232,12 +236,18 @@ export function LoginForm() {
 
       <p className="text-secondary mt-2 text-center text-2xs">
         아직 회원이 아니신가요?{" "}
-        <Link
-          href="/signup"
-          className="text-accent hover:text-accent ease-fluid underline underline-offset-4 transition-colors duration-300"
-        >
-          회원가입
-        </Link>
+        {onSwitch ? (
+          <button type="button" onClick={onSwitch} className="text-accent ease-fluid underline underline-offset-4 transition-colors duration-300">
+            회원가입
+          </button>
+        ) : (
+          <Link
+            href="/signup"
+            className="text-accent hover:text-accent ease-fluid underline underline-offset-4 transition-colors duration-300"
+          >
+            회원가입
+          </Link>
+        )}
       </p>
     </form>
   );

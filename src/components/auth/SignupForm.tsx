@@ -100,7 +100,8 @@ function validate(v: {
   return errors;
 }
 
-export function SignupForm() {
+/** {@code onSwitch} — LoginForm 과 같다. 한 카드 안에서는 패널을 밀어 로그인으로 */
+export function SignupForm({ onSwitch }: { onSwitch?: () => void } = {}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -169,13 +170,24 @@ export function SignupForm() {
         <p className="text-secondary mt-3 text-sm leading-relaxed">
           이제 로그인하실 수 있습니다.
         </p>
-        <Link
-          href="/login"
-          className="group bg-accent text-on-accent hover:bg-accent-hover shadow-button ease-fluid mt-7 inline-flex min-h-12 items-center gap-3 rounded-full px-7 text-sm transition-all duration-500 hover:-translate-y-px"
-        >
-          로그인하러 가기
-          <ArrowRight size={14} weight="light" aria-hidden="true" />
-        </Link>
+        {onSwitch ? (
+          <button
+            type="button"
+            onClick={onSwitch}
+            className="group bg-accent text-on-accent hover:bg-accent-hover shadow-button ease-fluid mt-7 inline-flex min-h-12 items-center gap-3 rounded-full px-7 text-sm transition-all duration-500 hover:-translate-y-px"
+          >
+            로그인하러 가기
+            <ArrowRight size={14} weight="light" aria-hidden="true" />
+          </button>
+        ) : (
+          <Link
+            href="/login"
+            className="group bg-accent text-on-accent hover:bg-accent-hover shadow-button ease-fluid mt-7 inline-flex min-h-12 items-center gap-3 rounded-full px-7 text-sm transition-all duration-500 hover:-translate-y-px"
+          >
+            로그인하러 가기
+            <ArrowRight size={14} weight="light" aria-hidden="true" />
+          </Link>
+        )}
       </div>
     );
   }
@@ -336,12 +348,18 @@ export function SignupForm() {
 
       <p className="text-secondary mt-2 text-center text-2xs">
         이미 회원이신가요?{" "}
-        <Link
-          href="/login"
-          className="text-accent ease-fluid underline underline-offset-4 transition-colors duration-300"
-        >
-          로그인
-        </Link>
+        {onSwitch ? (
+          <button type="button" onClick={onSwitch} className="text-accent ease-fluid underline underline-offset-4 transition-colors duration-300">
+            로그인
+          </button>
+        ) : (
+          <Link
+            href="/login"
+            className="text-accent ease-fluid underline underline-offset-4 transition-colors duration-300"
+          >
+            로그인
+          </Link>
+        )}
       </p>
     </form>
   );
