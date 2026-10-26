@@ -33,6 +33,7 @@ const ITEMS = [
       { href: "/admin/display/lookbook/", label: "룩북" },
       { href: "/admin/display/brand/", label: "브랜드 페이지" },
       { href: "/admin/display/offline/", label: "매장 사진" },
+      { href: "/admin/display/auth/", label: "로그인 화면" },
     ],
   },
   { key: "why", href: "/admin/display/why/", label: "메인 WHY 구간" },

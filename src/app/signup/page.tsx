@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import { getSiteImages } from "@/lib/siteImages";
 
 /**
  * 회원가입. 화면은 로그인 · 회원가입 한 카드(components/auth/AuthCard) — 2026-10-26 고객 레퍼런스 영상.
@@ -16,7 +17,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function SignupPage() {
+export default async function SignupPage() {
+  // 패널 배경 사진 — 관리자 › 사이트 사진 › 로그인 화면(V38). 없으면 와인 그라데이션만
+  const panelPhoto = (await getSiteImages()).AUTH_PANEL;
   return (
     <>
       <Header />
@@ -24,7 +27,7 @@ export default function SignupPage() {
       {/* 로그인 · 회원가입 한 카드 — 패널이 미끄러지며 바뀐다(2026-10-26). 이 주소로 들어오면 회원가입 쪽이 열린다 */}
       <main id="main" className="on-cream bg-band flex flex-1 items-center justify-center px-4 py-10 md:px-10 md:py-16">
         <div className="w-full max-w-[960px]">
-          <AuthCard initial="signup" />
+          <AuthCard initial="signup" panelPhoto={panelPhoto} />
         </div>
       </main>
 

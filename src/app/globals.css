@@ -1474,6 +1474,10 @@ html[data-motion="on"] .brand-line {
 .auth-panel {
   background: linear-gradient(160deg, #5e1f21 0%, #3a1114 55%, #170a0e 100%);
 }
+/* 관리자 배경 사진 위 와인 막 — 사진이 비쳐 보이되 크림 글자가 읽힐 만큼(위는 옅게, 아래는 진하게) */
+.auth-photo-veil {
+  background: linear-gradient(160deg, rgb(94 31 33 / 0.72) 0%, rgb(58 17 20 / 0.8) 55%, rgb(23 10 14 / 0.9) 100%);
+}
 @media (min-width: 768px) {
   .auth-panel {
     will-change: transform;

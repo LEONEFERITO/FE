@@ -136,6 +136,20 @@ export const SITE_IMAGE_GROUPS: SiteImageGroup[] = [
       },
     ],
   },
+  {
+    key: "auth",
+    href: "/admin/display/auth/",
+    title: "로그인 화면 사진",
+    description: "로그인 · 회원가입 카드에서 미끄러지는 와인 패널의 배경 사진입니다. 위에 와인색이 반투명으로 덮이고 문구가 얹힙니다. 비우면 사진 없이 와인 그라데이션만 나갑니다.",
+    previewHref: "/login/",
+    columns: 2,
+    sections: [
+      {
+        title: "패널 배경",
+        slots: [{ slot: "AUTH_PANEL", label: "배경 사진", hint: "세로 사진이 잘 맞습니다(PC 패널은 세로로 길고, 휴대폰은 위쪽 띠라 가운데가 잘려 나갑니다). 가운데에 문구가 얹히므로 가운데가 너무 밝지 않은 사진이 좋습니다.", aspect: "portrait" }],
+      },
+    ],
+  },
 ];
 
 export const siteImageGroup = (key: string) => SITE_IMAGE_GROUPS.find((g) => g.key === key);

@@ -6,6 +6,7 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
 import { Logo } from "@/components/brand/Logo";
 import { AUTH_CONNECTED } from "@/lib/auth";
+import type { SiteImage } from "@/lib/siteImages";
 
 type Mode = "login" | "signup";
 
@@ -33,7 +34,7 @@ const SignupFormMemo = memo(SignupForm);
  * /login · /signup 은 그대로 있다. 바꿀 때 주소창만 바꾼다(history.replaceState — 페이지를 다시 받지 않는다).
  * ?next= 같은 꼬리는 그대로 둔다.
  */
-export function AuthCard({ initial }: { initial: Mode }) {
+export function AuthCard({ initial, panelPhoto = null }: { initial: Mode; panelPhoto?: SiteImage | null }) {
   const [mode, setMode] = useState<Mode>(initial);
   // 처음 그릴 때는 미끄러지지 않는다 — 전환을 누른 뒤부터만 애니메이션
   const [moved, setMoved] = useState(false);
@@ -73,6 +74,17 @@ export function AuthCard({ initial }: { initial: Mode }) {
           login ? "md:translate-x-full" : "md:translate-x-0"
         }`}
       >
+        {/*
+          관리자가 올린 배경 사진(V38) — 패널과 함께 움직이고(같은 레이어), 위에 와인을 반투명으로 덮어 글자가 읽히게 한다.
+          장식이라 설명은 읽히지 않게(alt=""). 사진이 없으면 그라데이션만.
+        */}
+        {panelPhoto && (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={panelPhoto.url} alt="" aria-hidden="true" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+            <div aria-hidden="true" className="auth-photo-veil absolute inset-0" />
+          </>
+        )}
         <div aria-hidden="true" className="auth-wave pointer-events-none absolute inset-0" />
         <div className="relative grid">
           <PanelText
