@@ -59,7 +59,8 @@ export const KAKAO_CHANNEL = {
  * 퀵메뉴 "전화 연결" 번호. 대표 전화가 두 개라 그중 앞 번호를 쓴다.
  * TODO(고객확인) 손님 전화를 받을 번호가 어느 쪽인지.
  */
-export const CALL_NUMBER = "010-2434-7794";
+// 2026-10-28 고객 요청으로 뒤 번호로 바꿨다(대표 전화 둘 중 010-9291-0518)
+export const CALL_NUMBER = "010-9291-0518";
 
 /** 푸터에 표시하는 순서. */
 export const BUSINESS_FIELDS: { key: keyof BusinessInfo; label: string }[] = [
