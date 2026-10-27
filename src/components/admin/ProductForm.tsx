@@ -181,6 +181,13 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
   );
   const [sizeChartAlt, setSizeChartAlt] = useState(src?.sizeChartAlt ?? "");
   const [instagramUrl, setInstagramUrl] = useState(initial?.instagramUrl ?? "");
+  // 관리자 전용 정보(V39) — 복제도 원본 값을 이어받는다
+  const [adminName, setAdminName] = useState(src?.internal?.adminName ?? "");
+  const [fabricSupplier, setFabricSupplier] = useState(src?.internal?.fabricSupplier ?? "");
+  const [fabricCollection, setFabricCollection] = useState(src?.internal?.fabricCollection ?? "");
+  const [fabricCode, setFabricCode] = useState(src?.internal?.fabricCode ?? "");
+  const [workshop, setWorkshop] = useState(src?.internal?.workshop ?? "");
+  const [costKrw, setCostKrw] = useState(src?.internal?.costKrw?.toString() ?? "");
   /*
    * 사이즈. 새 상품은 브랜드 기본 전개(95~110)로 시작한다 — 빈 목록에서 넷을 치는 것보다
    * 넷에서 하나 지우는 편이 빠르고, 빠뜨릴 일이 없다. 수정이면 서버 값 그대로.
@@ -255,6 +262,12 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
     if (countGraphemes(manufacturer) > LIMITS.notice) e.manufacturer = "너무 깁니다.";
     if (countGraphemes(countryOfOrigin) > LIMITS.notice) e.countryOfOrigin = "너무 깁니다.";
     if (countGraphemes(manufacturedOn) > LIMITS.notice) e.manufacturedOn = "너무 깁니다.";
+    if (countGraphemes(adminName) > LIMITS.name * 2) e.adminName = "너무 깁니다.";
+    if (countGraphemes(fabricSupplier) > LIMITS.notice) e.fabricSupplier = "너무 깁니다.";
+    if (countGraphemes(fabricCollection) > LIMITS.notice) e.fabricCollection = "너무 깁니다.";
+    if (countGraphemes(fabricCode) > LIMITS.notice) e.fabricCode = "너무 깁니다.";
+    if (countGraphemes(workshop) > LIMITS.notice) e.workshop = "너무 깁니다.";
+    if (costKrw.trim() && !/^[0-9]{1,10}$/.test(costKrw.replace(/[,\s원]/g, ""))) e.costKrw = "숫자로 적어 주세요 (예: 61000).";
     if (countGraphemes(description) > LIMITS.body) e.description = "너무 깁니다.";
 
     /*
@@ -363,6 +376,14 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
       sizeChartMediaId: sizeChart?.mediaId ?? null,
       sizeChartAlt: sizeChartAlt.trim(),
       instagramUrl: instagramUrl.trim(),
+      internal: {
+        adminName: adminName.trim() || null,
+        fabricSupplier: fabricSupplier.trim() || null,
+        fabricCollection: fabricCollection.trim() || null,
+        fabricCode: fabricCode.trim() || null,
+        workshop: workshop.trim() || null,
+        costKrw: costKrw.trim() ? Number(costKrw.replace(/[,\s원]/g, "")) : null,
+      },
     };
   }
 
@@ -837,6 +858,25 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
               placeholder="2026년 9월"
               error={submitted ? errors.manufacturedOn : undefined}
             />
+          </div>
+        </fieldset>
+
+        {/*
+          ── 관리자 전용 정보 (V39, 2026-10-27 고객 일괄 등록 양식) ───
+          손님 화면 · 손님 API 에는 나가지 않는다. 엑셀 일괄 등록으로 들어온 값이 여기 보이고, 여기서 고친다.
+        */}
+        <fieldset className="border-subtle flex flex-col gap-6 border-t pt-7">
+          <legend className="text-primary text-sm font-medium">관리자 전용 정보</legend>
+          <p className="text-muted text-2xs -mt-3 leading-relaxed">
+            손님에게는 보이지 않습니다. 원가 · 원단 · 공임처 관리용입니다.
+          </p>
+          <div className="grid gap-6 md:grid-cols-2">
+            <CountedField label="관리용 상품명" value={adminName} onChange={setAdminName} max={LIMITS.name * 2} placeholder="ST-BK-2610" error={submitted ? errors.adminName : undefined} />
+            <CountedField label="원가 (원)" value={costKrw} onChange={setCostKrw} max={12} placeholder="61000" error={submitted ? errors.costKrw : undefined} />
+            <CountedField label="원단 공급사" value={fabricSupplier} onChange={setFabricSupplier} max={LIMITS.notice} error={submitted ? errors.fabricSupplier : undefined} />
+            <CountedField label="원단 컬렉션" value={fabricCollection} onChange={setFabricCollection} max={LIMITS.notice} error={submitted ? errors.fabricCollection : undefined} />
+            <CountedField label="원단 품번" value={fabricCode} onChange={setFabricCode} max={LIMITS.notice} error={submitted ? errors.fabricCode : undefined} />
+            <CountedField label="공임처" value={workshop} onChange={setWorkshop} max={LIMITS.notice} error={submitted ? errors.workshop : undefined} />
           </div>
         </fieldset>
 

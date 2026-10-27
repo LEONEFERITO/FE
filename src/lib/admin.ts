@@ -256,6 +256,18 @@ export interface ProductDraft {
   sizeChartAlt: string;
   /** 인스타그램 게시물. 빈 칸이면 null 로 나간다(blankToNull) — 상세에서 버튼이 숨는다. */
   instagramUrl: string;
+  /** 관리자 전용 정보(V39). 안 보내면 서버가 저장된 값을 그대로 둔다 */
+  internal?: ProductInternal;
+}
+
+/** 관리자 전용 상품 정보 (서버 V39) — 손님에게 안 보인다. 고객 일괄 등록 양식(2026-10-27)의 여섯 칸 */
+export interface ProductInternal {
+  adminName: string | null;
+  fabricSupplier: string | null;
+  fabricCollection: string | null;
+  fabricCode: string | null;
+  workshop: string | null;
+  costKrw: number | null;
 }
 
 /**
@@ -477,6 +489,8 @@ export interface AdminProductEdit {
   sizeChartUrl: string | null;
   sizeChartAlt: string | null;
   instagramUrl: string | null;
+  /** 관리자 전용 정보(V39). 예전 서버면 없다 */
+  internal?: ProductInternal | null;
   images: { mediaId: string; url: string; kind: string; alt: string; sortOrder: number }[];
   skus: {
     size: string;

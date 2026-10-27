@@ -14,7 +14,8 @@ import {
 } from "@/lib/admin";
 
 /**
- * 상품 일괄 등록 (2026-10-16 "엑셀로 한번에") — 양식을 내려받아 엑셀에서 채우고, CSV 로 저장해 올린다.
+ * 상품 일괄 등록 (2026-10-16 "엑셀로 한번에") — 양식을 엑셀에서 채워 올린다.
+ * 2026-10-27: 엑셀 파일(.xlsx)을 그대로 올린다(CSV 도 된다). 고객 양식 "브랜드 제품 일괄 등록" 의 칸 이름을 서버가 알아본다.
  * 한 줄이라도 틀리면 서버가 아무것도 저장하지 않고 줄 · 칸 · 이유를 전부 돌려준다 — 그 목록을 그대로 보여 준다.
  * 맞으면 전부 초안으로 생기고, 만든 상품 목록에서 하나씩 열어 사진을 붙이고 공개한다.
  */
@@ -33,16 +34,16 @@ export function AdminProductImport() {
   const [dragging, setDragging] = useState(false);
   const picker = useRef<HTMLInputElement>(null);
 
-  /** 고른 · 끌어다 놓은 파일 — CSV 가 아니면 바로 알려 준다(엑셀 .xlsx 를 그대로 올리는 실수가 가장 흔하다) */
+  /** 고른 · 끌어다 놓은 파일 — 엑셀(.xlsx) 또는 CSV. 옛 엑셀(.xls)은 서버가 못 읽어 바로 알려 준다 */
   function choose(f: File | undefined) {
     if (!f) return;
-    if (!/\.csv$/i.test(f.name)) {
+    if (!/\.(xlsx|csv)$/i.test(f.name)) {
       setFile(null);
       setState({
         kind: "error",
-        message: f.name.match(/\.xlsx?$/i)
-          ? "엑셀 파일(.xlsx)은 바로 올릴 수 없습니다. 엑셀에서 '다른 이름으로 저장 → CSV' 로 저장한 파일을 올려 주세요."
-          : "CSV 파일(.csv)만 올릴 수 있습니다.",
+        message: /\.xls$/i.test(f.name)
+          ? "옛 엑셀 형식(.xls)은 읽지 못합니다. 엑셀에서 '다른 이름으로 저장 → Excel 통합 문서(.xlsx)' 로 저장해 올려 주세요."
+          : "엑셀(.xlsx) 또는 CSV 파일만 올릴 수 있습니다.",
       });
       return;
     }
@@ -84,14 +85,16 @@ export function AdminProductImport() {
     <div className="flex max-w-3xl flex-col gap-8">
       <ol className="text-secondary flex flex-col gap-2 text-sm leading-relaxed">
         <li>
-          <b className="text-primary">1.</b> 양식을 내려받아 엑셀에서 엽니다. 예시 두 줄은 지우고 한 줄에 상품 하나씩 적습니다.
+          <b className="text-primary">1.</b> 「브랜드 제품 일괄 등록」 엑셀 양식(또는 아래 양식)에 한 줄에 상품 하나씩 적습니다. 내려받은 양식의 예시 두 줄은 지웁니다.
         </li>
         <li>
-          <b className="text-primary">2.</b> <b>분류</b>는 수트 · 재킷 · 트라우저 · 셔츠 · 신발 · 액세서리, <b>라인</b>은 레오네 · 페리토.
-          <b> 사이즈</b>는 <code>95/100/105</code> 처럼 빗금으로 나눕니다. <b>주소</b>는 비우면 자동으로 만듭니다.
+          <b className="text-primary">2.</b> <b>대분류</b>는 수트 · 재킷 · 트라우저 · 셔츠 · 신발 · 액세서리, <b>소분류</b>는 레귤러 · 스트레이트 · 플레어 ·
+          옥스퍼드 · 로퍼, <b>라인</b>은 레오네 · 페리토. <b>사이즈</b>는 <code>95/100/105</code> 처럼 빗금으로 나눕니다.
+          <b> 주소</b>는 상품 페이지 주소의 끝부분(영문 소문자 · 숫자 · 하이픈, 예: <code>shirt-1</code>) — 비우면 자동으로 만듭니다.
+          관리용상품명 · 원단 · 공임처 · 원가는 손님에게 보이지 않습니다.
         </li>
         <li>
-          <b className="text-primary">3.</b> 엑셀에서 <b>다른 이름으로 저장 → CSV</b> (CSV UTF-8 또는 CSV 쉼표로 분리 둘 다 됩니다).
+          <b className="text-primary">3.</b> 엑셀 파일(.xlsx)을 그대로 올립니다. CSV 로 저장한 파일도 됩니다.
         </li>
         <li>
           <b className="text-primary">4.</b> 아래에서 올립니다. 모두 <b>초안</b>으로 생기고, 사진은 상품마다 수정 화면에서 붙여 공개합니다.
@@ -146,9 +149,9 @@ export function AdminProductImport() {
           ) : (
             <>
               <FolderOpen size={36} weight="light" aria-hidden="true" className="text-secondary" />
-              <p className="text-primary text-sm font-medium">CSV 파일을 여기로 끌어다 놓으세요</p>
+              <p className="text-primary text-sm font-medium">엑셀 파일을 여기로 끌어다 놓으세요</p>
               <p id={`${inputId}-hint`} className="text-muted text-2xs">
-                또는 <span className="text-accent underline underline-offset-4">파일 찾기</span> — 엑셀에서 CSV 로 저장한 파일
+                또는 <span className="text-accent underline underline-offset-4">파일 찾기</span> — 엑셀(.xlsx) 또는 CSV
               </p>
             </>
           )}
@@ -156,7 +159,7 @@ export function AdminProductImport() {
             id={inputId}
             ref={picker}
             type="file"
-            accept=".csv,text/csv"
+            accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
             className="sr-only"
             tabIndex={-1}
             onChange={(e) => {
