@@ -24,6 +24,7 @@
 ## 브랜드 · 안내
 
 - [브랜드 소개](https://leoneferito.kr/brand/): 브랜드 이야기와 오프라인 매장 위치
+- [가이드](https://leoneferito.kr/guide/): 라인 비교(LEONE · FERITO), 체중별 사이즈 선택표, 기장 수선 안내, 더맨리 맞춤 제작
 - [룩북](https://leoneferito.kr/lookbook/): 시즌별 착장
 - [자주 묻는 질문](https://leoneferito.kr/qna/): 주문 · 제작, 사이즈, 배송 · 교환 안내
 - [공지사항](https://leoneferito.kr/notice/)

@@ -20,6 +20,7 @@ const PAGES = [
   "/line/ferito/",
   "/brand/",
   "/lookbook/",
+  "/guide/",
   "/qna/",
   "/notice/",
   // 약관 · 개인정보처리방침 · 쿠키 정책은 noindex 라 넣지 않는다 — 색인 막은 주소를 지도에 올리면 서치콘솔이 오류로 센다
