@@ -202,10 +202,11 @@ export function SignupForm({ onSwitch }: { onSwitch?: () => void } = {}) {
         tabIndex={-1}
         role="alert"
         aria-live="assertive"
+        // 비었을 때는 sr-only — 빈 칸이 폼 간격(gap) 하나를 먹지 않게(2026-10-27 한 화면에 넣기)
         className={
           summary
             ? "border-error/40 bg-velvet-tint/60 rounded-xl border px-5 py-4"
-            : ""
+            : "sr-only"
         }
       >
         {summary && (
@@ -221,6 +222,8 @@ export function SignupForm({ onSwitch }: { onSwitch?: () => void } = {}) {
         )}
       </div>
 
+      {/* 2026-10-27 "한 화면에" — 넓은 화면에서는 두 칸씩 나란히(이름 · 휴대폰, 비밀번호 · 확인). 폰은 한 줄씩 */}
+      <div className="grid items-start gap-4 sm:grid-cols-2">
       <Field
         label="이름"
         name="name"
@@ -230,6 +233,18 @@ export function SignupForm({ onSwitch }: { onSwitch?: () => void } = {}) {
         error={errors.name}
         placeholder="홍길동"
       />
+      <Field
+        label="휴대폰 번호 (선택)"
+        type="tel"
+        name="phone"
+        autoComplete="tel"
+        inputMode="tel"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+        error={errors.phone}
+        placeholder="010-1234-5678"
+      />
+      </div>
 
       <Field
         label="이메일"
@@ -242,10 +257,10 @@ export function SignupForm({ onSwitch }: { onSwitch?: () => void } = {}) {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         error={errors.email}
-        hint="주문 안내와 비밀번호 재설정에 사용됩니다."
         placeholder="name@example.com"
       />
 
+      <div className="grid items-start gap-4 sm:grid-cols-2">
       <Field
         label="비밀번호"
         type={visible ? "text" : "password"}
@@ -255,7 +270,7 @@ export function SignupForm({ onSwitch }: { onSwitch?: () => void } = {}) {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         error={errors.password}
-        hint={`${PASSWORD_MIN_LENGTH}자 이상. 길수록 안전합니다 — 기억하기 쉬운 문장을 권합니다.`}
+        hint={`${PASSWORD_MIN_LENGTH}자 이상`}
         trailing={
           <button
             type="button"
@@ -282,19 +297,8 @@ export function SignupForm({ onSwitch }: { onSwitch?: () => void } = {}) {
         onChange={(e) => setConfirm(e.target.value)}
         error={errors.confirm}
       />
+      </div>
 
-      <Field
-        label="휴대폰 번호 (선택)"
-        type="tel"
-        name="phone"
-        autoComplete="tel"
-        inputMode="tel"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-        error={errors.phone}
-        hint="주문·배송 안내에 사용됩니다."
-        placeholder="010-1234-5678"
-      />
 
       {/*
         약관 동의 · 만 14세 확인 — 따로 받는다. 한 칸에 묶으면 무엇에 동의했는지 흐려진다.

@@ -25,7 +25,7 @@ export default async function LoginPage() {
       <Header />
 
       {/* 로그인 · 회원가입 한 카드 — 패널이 미끄러지며 바뀐다(2026-10-26). 이 주소로 들어오면 로그인 쪽이 열린다 */}
-      <main id="main" className="on-cream bg-band flex flex-1 items-center justify-center px-4 py-10 md:px-10 md:py-16">
+      <main id="main" className="on-cream bg-band flex flex-1 items-start justify-center px-4 py-6 md:items-center md:px-10 md:py-6">
         <div className="w-full max-w-[960px]">
           <AuthCard initial="login" panelPhoto={panelPhoto} />
         </div>

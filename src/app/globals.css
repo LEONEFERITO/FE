@@ -1575,3 +1575,36 @@ html[data-motion="on"] .brand-line {
     animation: none !important;
   }
 }
+
+/* 로그인 카드 — 한 화면에 들어오게 폼 간격을 조인다(2026-10-27). 카드 밖의 같은 폼(다른 화면)은 그대로 */
+.auth-form form {
+  row-gap: 1rem;
+}
+.auth-form input:not([type="checkbox"]):not([type="radio"]) {
+  padding-block: 0.7rem;
+}
+/* 폰 토글의 알약 — transform 으로만 미끄러진다 */
+.auth-toggle-pill {
+  transition: translate 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+/* PC 칸 안 스크롤바는 얇게 */
+.auth-form {
+  scrollbar-width: thin;
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-toggle-pill {
+    transition: none;
+  }
+}
+/* 로그인 카드 안에서만 — 동의 줄 · 버튼 · 간편 가입 머리 여백을 줄인다 */
+.auth-form form label.min-h-11 {
+  min-height: 2rem;
+}
+.auth-form form button[type="submit"] {
+  min-height: 3rem;
+}
+.auth-form form .border-t.pt-7 {
+  margin-top: 0;
+  padding-top: 1rem;
+}

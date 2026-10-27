@@ -64,13 +64,29 @@ export function AuthCard({ initial, panelPhoto = null }: { initial: Mode; panelP
   return (
     <div
       data-mode={mode}
-      className={`auth-card relative grid overflow-hidden rounded-[20px] bg-white shadow-[0_24px_60px_-28px_rgba(23,10,14,0.35)] md:grid-cols-2 ${
+      // PC 는 한 화면에 들어오는 높이로 고정(2026-10-27 "화면이 너무 큰데 한 화면에") — 헤더 73 + 위아래 여백 48 을 뺀 만큼,
+      // 너무 낮은 창에서는 560, 큰 모니터에서는 860 까지. 폼이 그보다 길면(회원가입) 그 칸 안에서만 스크롤된다.
+      className={`auth-card relative grid overflow-hidden rounded-[20px] bg-white shadow-[0_24px_60px_-28px_rgba(23,10,14,0.35)] md:h-[clamp(560px,calc(100dvh-121px),860px)] md:grid-cols-2 md:grid-rows-[minmax(0,1fr)] ${
         moved ? "auth-moved" : ""
       }`}
     >
-      {/* ── 패널. PC 에서는 안 쓰는 쪽 절반을 덮고, 폰에서는 맨 위 띠 ── */}
+      {/*
+        ── 폰: 맨 위 토글 (2026-10-27 요청 "모바일은 상단 토글로 전환") ──
+        두 칸짜리 버튼 위를 와인 알약이 transform 으로 미끄러진다. PC 에서는 패널이 이 역할을 해서 숨긴다.
+      */}
+      <div role="tablist" aria-label="로그인 · 회원가입 전환" className="auth-toggle bg-band relative m-4 mb-0 grid grid-cols-2 rounded-full p-1 md:hidden">
+        <span aria-hidden="true" className={`auth-toggle-pill absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full bg-[#5E1F21] ${login ? "" : "translate-x-full"}`} />
+        <button type="button" role="tab" aria-selected={login} onClick={toLogin} className={`relative z-10 min-h-11 rounded-full text-sm font-medium transition-colors duration-300 ${login ? "text-[#F7F1EA]" : "text-secondary"}`}>
+          로그인
+        </button>
+        <button type="button" role="tab" aria-selected={!login} onClick={toSignup} className={`relative z-10 min-h-11 rounded-full text-sm font-medium transition-colors duration-300 ${login ? "text-secondary" : "text-[#F7F1EA]"}`}>
+          회원가입
+        </button>
+      </div>
+
+      {/* ── 패널. PC 에서 안 쓰는 쪽 절반을 덮는다(폰에서는 위 토글) ── */}
       <div
-        className={`auth-panel on-black relative z-20 overflow-hidden px-6 py-8 text-center md:absolute md:inset-y-0 md:left-0 md:flex md:w-1/2 md:items-center md:justify-center md:px-12 md:py-0 ${
+        className={`auth-panel on-black relative z-20 hidden overflow-hidden text-center md:absolute md:inset-y-0 md:left-0 md:flex md:w-1/2 md:items-center md:justify-center md:px-12 ${
           login ? "md:translate-x-full" : "md:translate-x-0"
         }`}
       >
@@ -109,17 +125,17 @@ export function AuthCard({ initial, panelPhoto = null }: { initial: Mode; panelP
         ref={loginRef}
         aria-labelledby="auth-login-heading"
         inert={!login}
-        className={`auth-form px-6 py-10 md:col-start-1 md:row-start-1 md:flex md:items-center md:px-12 md:py-14 ${
+        className={`auth-form px-6 py-8 md:col-start-1 md:row-start-1 md:flex md:items-center md:overflow-y-auto md:px-12 md:py-4 ${
           login ? "auth-on" : "auth-off max-md:hidden"
         }`}
       >
         <div className="mx-auto w-full max-w-[360px]">
-          <h1 id="auth-login-heading" className="font-display text-primary leading-display tracking-display text-3xl">
+          <h1 id="auth-login-heading" className="font-display text-primary leading-display tracking-display text-2xl md:text-[28px]">
             로그인
           </h1>
-          <p className="text-secondary mt-3 text-sm">주문 내역과 사이즈 기록을 이어서 보실 수 있습니다.</p>
+          <p className="text-secondary mt-2 text-sm">주문 내역과 사이즈 기록을 이어서 보실 수 있습니다.</p>
           {!AUTH_CONNECTED && <NotConnected />}
-          <div className="mt-7">
+          <div className="mt-5">
             <LoginFormMemo onSwitch={toSignup} />
           </div>
         </div>
@@ -130,17 +146,17 @@ export function AuthCard({ initial, panelPhoto = null }: { initial: Mode; panelP
         ref={signupRef}
         aria-labelledby="auth-signup-heading"
         inert={login}
-        className={`auth-form px-6 py-10 md:col-start-2 md:row-start-1 md:px-12 md:py-14 ${
+        className={`auth-form px-6 py-8 md:col-start-2 md:row-start-1 md:overflow-y-auto md:px-12 md:py-6 ${
           login ? "auth-off max-md:hidden" : "auth-on"
         }`}
       >
-        <div className="mx-auto w-full max-w-[360px]">
-          <h1 id="auth-signup-heading" className="font-display text-primary leading-display tracking-display text-3xl">
+        <div className="mx-auto w-full max-w-[460px]">
+          <h1 id="auth-signup-heading" className="font-display text-primary leading-display tracking-display text-2xl md:text-[28px]">
             회원가입
           </h1>
-          <p className="text-secondary mt-3 text-sm">주문 내역과 사이즈 기록이 계정에 남습니다.</p>
+          {/* 설명 문장은 뺐다 — 옆 패널이 같은 말을 한다(2026-10-27 한 화면에 넣기) */}
           {!AUTH_CONNECTED && <NotConnected />}
-          <div className="mt-7">
+          <div className="mt-5">
             <SignupFormMemo onSwitch={toLogin} />
           </div>
         </div>
@@ -168,7 +184,7 @@ function PanelText({
       inert={!show}
       className={`auth-panel-text col-start-1 row-start-1 flex flex-col items-center ${show ? "auth-on" : "auth-off"}`}
     >
-      <span className="text-accent-deep hidden md:block">
+      <span className="text-accent-deep">
         <Logo width={150} label="" />
       </span>
       <p className="font-display text-primary text-2xl md:mt-10 md:text-3xl">{title}</p>
