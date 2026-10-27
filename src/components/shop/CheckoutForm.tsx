@@ -24,6 +24,7 @@ import {
   type RecentAddress,
 } from "@/lib/shop";
 import { SHIPPING_LINES } from "@/data/shipping";
+import { leadTimeText } from "@/lib/leadTime";
 
 /**
  * 주문서.
@@ -251,7 +252,7 @@ export function CheckoutForm() {
                 <div className="min-w-0 flex-1">
                   <p className="text-primary text-sm">{l.name}</p>
                   <p className="text-muted text-2xs mt-1">
-                    사이즈 {l.size} · {l.quantity}벌 · 주문 후 약 {l.leadTimeDays}일 제작
+                    사이즈 {l.size} · {l.quantity}벌 · 주문 후 약 {l.leadTimeDays != null ? leadTimeText(l.leadTimeDays, l.leadTimeMinDays) : "—"} 제작
                   </p>
                 </div>
                 <p className="text-primary text-sm tabular-nums">{won(l.lineAmountKrw)}</p>

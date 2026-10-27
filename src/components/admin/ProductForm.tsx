@@ -11,6 +11,7 @@ import {
 } from "@/components/admin/ImageField";
 import { ProductPreview } from "@/components/admin/ProductPreview";
 import { StoryImagesField, type StoryImage } from "@/components/admin/StoryImagesField";
+import { parseLeadTime } from "@/lib/leadTime";
 import {
   DEFAULT_SIZES,
   SizeListField,
@@ -159,7 +160,16 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
   const [style, setStyle] = useState<ProductStyle | null>((src?.style as ProductStyle | null | undefined) ?? null);
   const styleChoices = stylesFor(category);
   const [priceKrw, setPriceKrw] = useState(src?.priceKrw?.toString() ?? "");
-  const [leadTimeDays, setLeadTimeDays] = useState(src?.leadTimeDays?.toString() ?? defaults.leadTimeDays ?? "");
+  // 제작 기간 — "14" 또는 범위 "14~18"(2026-10-27). 서버에는 최대(leadTimeDays) · 최소(leadTimeMinDays)로 나눠 보낸다
+  const [leadTimeDays, setLeadTimeDays] = useState(
+    src?.leadTimeDays != null
+      ? src.leadTimeMinDays != null && src.leadTimeMinDays < src.leadTimeDays
+        ? `${src.leadTimeMinDays}~${src.leadTimeDays}`
+        : src.leadTimeDays.toString()
+      : (defaults.leadTimeDays ?? ""),
+  );
+  const leadParsed = parseLeadTime(leadTimeDays);
+  const lead = leadParsed === "invalid" ? null : leadParsed;
   const [fabric, setFabric] = useState(src?.fabric ?? "");
   const [care, setCare] = useState(src?.care ?? "");
   const [color, setColor] = useState(initial?.color ?? "");
@@ -188,6 +198,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
   const [fabricCode, setFabricCode] = useState(src?.internal?.fabricCode ?? "");
   const [workshop, setWorkshop] = useState(src?.internal?.workshop ?? "");
   const [costKrw, setCostKrw] = useState(src?.internal?.costKrw?.toString() ?? "");
+  const [subCategory, setSubCategory] = useState(src?.internal?.subCategory ?? "");
   /*
    * 사이즈. 새 상품은 브랜드 기본 전개(95~110)로 시작한다 — 빈 목록에서 넷을 치는 것보다
    * 넷에서 하나 지우는 편이 빠르고, 빠뜨릴 일이 없다. 수정이면 서버 값 그대로.
@@ -291,12 +302,8 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
     }
 
     if (priceKrw && !/^\d+$/.test(priceKrw)) e.priceKrw = "숫자만 입력해 주세요.";
-    if (leadTimeDays) {
-      if (!/^\d+$/.test(leadTimeDays)) {
-        e.leadTimeDays = "숫자만 입력해 주세요.";
-      } else if (Number(leadTimeDays) < 1 || Number(leadTimeDays) > 365) {
-        e.leadTimeDays = "1일 ~ 365일 사이로 입력해 주세요.";
-      }
+    if (leadTimeDays && leadParsed === "invalid") {
+      e.leadTimeDays = "숫자(예: 14) 또는 범위(예: 14~18)로, 1~365일 사이로 입력해 주세요.";
     }
 
     return e;
@@ -318,7 +325,8 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
       manufacturer: manufacturer.trim(),
       countryOfOrigin: countryOfOrigin.trim(),
       manufacturedOn: manufacturedOn.trim(),
-      leadTimeDays: leadTimeDays ? Number(leadTimeDays) : null,
+      leadTimeDays: lead?.max ?? null,
+      leadTimeMinDays: lead?.min ?? null,
 
       // ↓ 이 폼에 칸이 없는 값. 수정이면 원래 값을 그대로 돌려보낸다(위 주석 참고). 복제면 복제한 상품의 값.
       listPriceKrw: src?.listPriceKrw ?? null,
@@ -383,6 +391,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
         fabricCode: fabricCode.trim() || null,
         workshop: workshop.trim() || null,
         costKrw: costKrw.trim() ? Number(costKrw.replace(/[,\s원]/g, "")) : null,
+        subCategory: subCategory.trim() || null,
       },
     };
   }
@@ -392,7 +401,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
   const checklist = [
     { label: "상품명", ok: name.trim() !== "" },
     { label: "판매가", ok: /^\d+$/.test(priceKrw) },
-    { label: "제작 기간", ok: /^\d+$/.test(leadTimeDays) },
+    { label: "제작 기간", ok: lead !== null },
     { label: "대표 이미지", ok: images.MAIN !== undefined },
     { label: "사이즈", ok: sizes.length > 0 },
     { label: `상품정보고시 ${noticeFilled}/6`, ok: noticeFilled === 6 },
@@ -678,10 +687,9 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
             label="제작 기간 (일)"
             value={leadTimeDays}
             onChange={setLeadTimeDays}
-            max={3}
-            inputMode="numeric"
-            placeholder="14"
-            hint="주문 후 수령까지. 결제 전에 반드시 표시되는 값입니다."
+            max={7}
+            placeholder="14 또는 14~18"
+            hint="주문 후 수령까지. 범위로 적으면 손님 화면에 「14~18일」로 나가고, 발송 예정은 큰 값으로 계산합니다."
             error={submitted ? errors.leadTimeDays : undefined}
           />
         </div>
@@ -877,6 +885,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
             <CountedField label="원단 컬렉션" value={fabricCollection} onChange={setFabricCollection} max={LIMITS.notice} error={submitted ? errors.fabricCollection : undefined} />
             <CountedField label="원단 품번" value={fabricCode} onChange={setFabricCode} max={LIMITS.notice} error={submitted ? errors.fabricCode : undefined} />
             <CountedField label="공임처" value={workshop} onChange={setWorkshop} max={LIMITS.notice} error={submitted ? errors.workshop : undefined} />
+            <CountedField label="소분류 (태그)" value={subCategory} onChange={setSubCategory} max={40} hint="엑셀의 소분류. 메뉴 분류는 위 「분류」가 정합니다." />
           </div>
         </fieldset>
 
@@ -945,7 +954,8 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
             category={category}
             line={line}
             imageUrl={images.MAIN?.url ?? null}
-            leadTimeDays={leadTimeDays ? Number(leadTimeDays) : null}
+            leadTimeDays={lead?.max ?? null}
+            leadTimeMinDays={lead?.min ?? null}
           />
         </div>
       </div>

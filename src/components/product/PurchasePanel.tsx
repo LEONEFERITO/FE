@@ -11,6 +11,7 @@ import { usePurchase } from "@/components/product/usePurchase";
 import { CATEGORY_LABEL } from "@/types/product";
 import type { Product } from "@/types/product";
 import { SHIPPING_LINES } from "@/data/shipping";
+import { leadTimeText } from "@/lib/leadTime";
 
 /**
  * 구매 패널.
@@ -72,7 +73,7 @@ export function PurchasePanel({ product }: { product: Product }) {
       <p className="text-secondary text-xs">
         {product.leadTimeDays != null ? (
           <>
-            주문 후 제작 · <b className="text-primary font-medium">약 {product.leadTimeDays}일</b> 뒤 출고
+            주문 후 제작 · <b className="text-primary font-medium">약 {leadTimeText(product.leadTimeDays, product.leadTimeMinDays)}</b> 뒤 출고
           </>
         ) : (
           <span className="text-muted">{pendingLabel("제작 기간")}</span>

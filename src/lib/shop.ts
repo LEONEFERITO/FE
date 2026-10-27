@@ -92,6 +92,8 @@ export interface CartLine {
   unitPriceKrw: number | null;
   lineAmountKrw: number;
   leadTimeDays: number | null;
+  /** 제작 기간 최소(서버 V40) */
+  leadTimeMinDays?: number | null;
   /** 지금 주문할 수 있는가. 아니면 unavailableReason 을 보여 주고 합계에서 뺀다. */
   available: boolean;
   unavailableReason: string | null;

@@ -235,6 +235,8 @@ export interface ProductDraft {
   modelWeightKg: number | null;
   modelSize: string;
   leadTimeDays: number | null;
+  /** 제작 기간 최소(서버 V40) — leadTimeDays 가 최대 */
+  leadTimeMinDays?: number | null;
   /** 노출 순서. 폼에 칸이 없어도 수정 때는 원래 값을 그대로 돌려보낸다. */
   displayOrder?: number;
   images: { mediaId: string; kind: string; alt: string; sortOrder?: number }[];
@@ -268,6 +270,8 @@ export interface ProductInternal {
   fabricCode: string | null;
   workshop: string | null;
   costKrw: number | null;
+  /** 소분류 — 자유 태그(V40), 관리자 전용 */
+  subCategory?: string | null;
 }
 
 /**
@@ -484,6 +488,8 @@ export interface AdminProductEdit {
   modelWeightKg: number | null;
   modelSize: string | null;
   leadTimeDays: number | null;
+  /** 제작 기간 최소(서버 V40) — leadTimeDays 가 최대 */
+  leadTimeMinDays?: number | null;
   displayOrder: number;
   sizeChartMediaId: string | null;
   sizeChartUrl: string | null;

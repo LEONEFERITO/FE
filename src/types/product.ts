@@ -212,6 +212,8 @@ export interface Product {
    * 공개된 상품은 서버가 값이 있을 때만 공개를 허락한다.
    */
   leadTimeDays: number | null;
+  /** 제작 기간 최소(서버 V40). 있으면 "최소~leadTimeDays일" — leadTimeDays 가 최대 */
+  leadTimeMinDays?: number | null;
   /** 메인 사진 — 첫 장이 대표 사진이다. 나머지는 착용·디테일 컷 순. 상세 맨 위에 보인다. */
   images: ProductPhoto[];
   /**

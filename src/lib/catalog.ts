@@ -65,6 +65,7 @@ interface ApiDetail {
   care: string | null;
   model: { heightCm: number | null; weightKg: number | null; size: string | null };
   leadTimeDays: number | null;
+  leadTimeMinDays?: number | null;
   sizeChart: { url: string; alt: string; width: number | null; height: number | null } | null;
   instagramUrl: string | null;
   notice: {
@@ -149,6 +150,7 @@ function toProduct(d: ApiDetail): Product {
     intent: d.intent,
     features: d.features,
     leadTimeDays: d.leadTimeDays,
+    leadTimeMinDays: d.leadTimeMinDays ?? null,
     images: photos,
     cutout: d.images.find((i) => i.kind === "CUTOUT")?.url ?? null,
     // 서버가 순서(sortOrder)대로 준다 — 관리자가 놓은 순서 그대로 이어 붙인다

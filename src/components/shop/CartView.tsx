@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 import { loginUrl } from "@/lib/auth";
 import { pendingLabel } from "@/lib/pending";
+import { leadTimeText } from "@/lib/leadTime";
 import {
   MAX_QUANTITY,
   SHOP_CONNECTED,
@@ -140,7 +141,7 @@ export function CartView({ empty }: { empty: React.ReactNode }) {
                     )}
                     <p className="text-muted text-2xs mt-1">
                       사이즈 {line.size}
-                      {line.leadTimeDays != null && <> · 주문 후 약 {line.leadTimeDays}일 제작</>}
+                      {line.leadTimeDays != null && <> · 주문 후 약 {leadTimeText(line.leadTimeDays, line.leadTimeMinDays)} 제작</>}
                     </p>
                   </div>
                   <button

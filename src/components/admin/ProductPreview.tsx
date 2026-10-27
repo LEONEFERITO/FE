@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { CATEGORY_LABEL, LINE_LABEL, type Category, type ProductLine } from "@/types/product";
+import { leadTimeText } from "@/lib/leadTime";
 
 /**
  * 입력한 내용이 실제로 어떻게 보이는지.
@@ -31,6 +32,8 @@ interface Props {
   line: ProductLine;
   imageUrl: string | null;
   leadTimeDays: number | null;
+  /** 제작 기간 최소(V40) */
+  leadTimeMinDays?: number | null;
 }
 
 export function ProductPreview({
@@ -41,6 +44,7 @@ export function ProductPreview({
   line,
   imageUrl,
   leadTimeDays,
+  leadTimeMinDays = null,
 }: Props) {
   const [width, setWidth] = useState<"mobile" | "desktop">("desktop");
 
@@ -142,7 +146,7 @@ export function ProductPreview({
 
       <p className="text-muted text-2xs border-subtle border-t pt-4 leading-relaxed">
         {leadTimeDays
-          ? `주문 후 약 ${leadTimeDays}일 뒤 수령`
+          ? `주문 후 약 ${leadTimeText(leadTimeDays, leadTimeMinDays)} 뒤 수령`
           : "제작 기간을 입력하면 결제 화면에 표시됩니다. 값이 없으면 공개할 수 없습니다."}
       </p>
     </section>

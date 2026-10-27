@@ -10,6 +10,7 @@ import { usePurchase } from "@/components/product/usePurchase";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { pendingLabel } from "@/lib/pending";
 import { CATEGORY_LABEL, type Product } from "@/types/product";
+import { leadTimeText } from "@/lib/leadTime";
 
 /**
  * 빠른 보기 — 목록의 카드를 누르면 상세 페이지로 가지 않고 **그 자리에서 카드가 커지며** 팝업이 된다
@@ -326,7 +327,7 @@ export function QuickView({
             <p className="text-secondary text-xs">
               {product.leadTimeDays != null ? (
                 <>
-                  주문 후 제작 · <b className="text-primary font-medium">약 {product.leadTimeDays}일</b> 뒤 출고
+                  주문 후 제작 · <b className="text-primary font-medium">약 {leadTimeText(product.leadTimeDays, product.leadTimeMinDays)}</b> 뒤 출고
                 </>
               ) : (
                 <span className="text-muted">{pendingLabel("제작 기간")}</span>
