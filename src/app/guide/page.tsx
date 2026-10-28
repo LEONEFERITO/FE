@@ -14,7 +14,7 @@ import { shareMetadata } from "@/lib/metadata";
  *   개인 맞춤 제작 서비스 안내 더맨리 맞춤 안내
  *
  * 글 · 수치는 시안 그대로다. 사이즈 표는 손님 주문에 바로 쓰이는 값이라 시안에서 옮긴 그대로 두고, 바뀌면 여기만 고친다.
- * 노란 형광 표시는 시안의 강조(<mark>)다.
+ * 노란 형광 표시는 시안의 강조(<mark>)다. 글꼴은 Inria Serif + Noto Sans KR(main 에 한 번).
  */
 export const metadata: Metadata = shareMetadata({
   title: "가이드",
@@ -81,7 +81,7 @@ function Section({ id, en, ko, children }: { id: string; en?: string; ko: string
     <section aria-labelledby={id} className="relative pl-5 md:pl-7">
       <span aria-hidden="true" className="absolute inset-y-0 left-0 w-[6px]" style={{ background: WINE }} />
       <h2 id={id} className="text-primary">
-        {en && <span className="font-display block text-[15px] leading-tight md:text-[17px]">{en}</span>}
+        {en && <span className="block text-[15px] leading-tight md:text-[17px]">{en}</span>}
         <span className="block text-[17px] font-bold leading-snug md:text-[19px]">{ko}</span>
       </h2>
       <div className="mt-8">{children}</div>
@@ -94,7 +94,8 @@ export default function GuidePage() {
     <>
       <Header />
 
-      <main id="main" className="on-cream on-white flex-1 bg-white">
+      {/* 글꼴은 페이지 전체가 Inria Serif(영문 · 숫자) + Noto Sans KR(한글) — 2026-10-28 디자이너 "Inria Serif" (globals --font-card) */}
+      <main id="main" className="on-cream on-white flex-1 bg-white font-[family-name:var(--font-card)]">
         {/* 머리 띠 — 시안의 와인 판. 헤더(와인)와 이어진다 */}
         <div className="on-black" style={{ background: "#4A1517" }}>
           <div className="mx-auto max-w-[1100px] px-5 py-14 md:px-10 md:py-20">
@@ -107,7 +108,7 @@ export default function GuidePage() {
           {/* ── Find your Fit ── */}
           <Reveal>
             <Section id="guide-fit" en="Find your Fit" ko="자신에게 가장 잘 맞는 핏을 찾아가는 과정">
-              <p className="font-display text-center text-[26px] md:text-[34px]" style={{ color: "#3B3533" }}>
+              <p className="text-center text-[26px] md:text-[34px]" style={{ color: "#3B3533" }}>
                 LEONE FERITO
               </p>
               {/* 가운데 이름에서 두 라인으로 갈라지는 선 — PC 만 */}
@@ -117,9 +118,9 @@ export default function GuidePage() {
 
               {/* PC: [LEONE] [질문] [FERITO] 세 칸 · 폰: 라인마다 한 묶음 */}
               <div className="mt-6 hidden grid-cols-[1fr_auto_1fr] text-[13px] md:mt-0 md:grid">
-                <p className="font-display py-3 text-center text-[17px] text-white" style={{ background: WINE }}>LEONE</p>
+                <p className="py-3 text-center text-[17px] text-white" style={{ background: WINE }}>LEONE</p>
                 <span />
-                <p className="font-display py-3 text-center text-[17px] text-white" style={{ background: WINE }}>FERITO</p>
+                <p className="py-3 text-center text-[17px] text-white" style={{ background: WINE }}>FERITO</p>
 
                 <p className="border-b border-white bg-[#EBEBEB] px-4 py-3.5 text-center font-medium">{LINES[0].feature}</p>
                 <p className="text-secondary flex items-center gap-2 px-4 text-[12px]">
@@ -137,7 +138,7 @@ export default function GuidePage() {
               <div className="mt-6 flex flex-col gap-6 md:hidden">
                 {LINES.map((l) => (
                   <dl key={l.name} className="text-[13px]">
-                    <dt className="font-display py-3 text-center text-[17px] text-white" style={{ background: WINE }}>
+                    <dt className="py-3 text-center text-[17px] text-white" style={{ background: WINE }}>
                       {l.name}
                     </dt>
                     <dd className="border-b border-white bg-[#EBEBEB] px-4 py-3">
@@ -161,7 +162,7 @@ export default function GuidePage() {
                 {SIZE_TABLES.map((t) => (
                   <div key={t.line}>
                     <p className="flex items-baseline gap-2">
-                      <span className="font-display text-[20px]">{t.line}</span>
+                      <span className="text-[20px]">{t.line}</span>
                       <span className="text-secondary text-[12px]">{t.kind}</span>
                     </p>
                     {/* 폰에서는 표만 옆으로 밀린다 — 페이지 전체가 넘치지 않게 */}
@@ -175,7 +176,7 @@ export default function GuidePage() {
                             <td className="w-[60px]" />
                             <th scope="col" className="w-[90px] py-2.5 font-medium">권장 체중</th>
                             {t.weights.map((w) => (
-                              <th key={w} scope="col" className="font-display py-2.5 font-normal">
+                              <th key={w} scope="col" className="py-2.5 font-normal">
                                 {w}
                               </th>
                             ))}
@@ -195,7 +196,7 @@ export default function GuidePage() {
                                 {r.item}
                               </th>
                               {r.sizes.map((s, k) => (
-                                <td key={k} className="font-display py-2.5">
+                                <td key={k} className="py-2.5">
                                   {s === "-" ? <span aria-label="없음">-</span> : s}
                                 </td>
                               ))}
