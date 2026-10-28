@@ -1,9 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
 
-import { QuickView } from "@/components/product/QuickView";
 import type { Product } from "@/types/product";
 
 /**
@@ -13,8 +11,7 @@ import type { Product } from "@/types/product";
  * 사진 → 이름 → 가격 · 분류. 두 줄, 작게 (2026-10-08 고객 요청 — 레퍼런스 LYFT).
  *
  * 전에는 실측 요약과 사이즈 칩이 카드에 있었다("나한테 맞나" 의 판단 재료를 목록에서부터 준다는 약속).
- * 카드가 너무 길어져 뺐고, 그 둘은 카드를 누르면 열리는 빠른 보기 팝업(QuickView)과 상세 페이지가 맡는다 —
- * 한 번 누르면 바로 사이즈와 실측이 나오니 약속은 그대로다.
+ * 카드가 너무 길어져 뺐고, 그 둘은 상세 페이지가 맡는다.
  *
  * ── D1(판매 범위)이 아직 미확정인 것에 대한 대응 ──────────
  * 가격이 null 이면 "가격 문의" 로 표시한다. 카탈로그+문의로 확정되면 이 카드를
@@ -26,10 +23,9 @@ import type { Product } from "@/types/product";
  * 예전의 "쟁반 위 사진"(헤어라인 테두리 + 고동색 그늘 + hover 에 들림)은 걷어 냈다 — 바탕이 흰색이 되면서
  * 사진 자체가 면이 된다. hover 는 사진이 아주 조금 커지는 것과 이름 색만 남긴다.
  *
- * ── 2026-10-08 고객 요청: 누르면 팝업(빠른 보기) ──────────
- * 사진 · 이름을 누르면 상세로 가지 않고 QuickView 팝업이 **이 카드의 사진 자리에서 커지며** 열린다.
- * 링크(href)는 그대로 둔다 — 크롤러 · JS 없는 환경 · 새 탭 열기(가운데 클릭 · Ctrl+클릭)는 전처럼 상세 페이지로
- * 간다. 보통 클릭만 가로챈다.
+ * ── 누르면 바로 상세 페이지 (2026-10-28 디자이너 "팝업 없이 바로 상세페이지로") ──────────
+ * 2026-10-08 고객 요청으로 누르면 빠른 보기 팝업(QuickView)이 열렸는데, 걷어 냈다 — 사진 · 이름은 그냥 상세 링크다.
+ * QuickView 컴포넌트 파일은 남아 있다(다시 쓰게 되면 이 카드에 붙이면 된다).
  *
  * `inset` — 카드끼리 **틈 없이 붙여** 둘 때(메인의 제품 격자) 글자만 안쪽으로 조금 들인다. 사진은 끝까지 붙는다.
  */
@@ -37,8 +33,6 @@ import type { Product } from "@/types/product";
 const KRW = new Intl.NumberFormat("ko-KR");
 
 export function ProductCard({ product, inset = false }: { product: Product; inset?: boolean }) {
-  const [open, setOpen] = useState(false);
-  const photoRef = useRef<HTMLDivElement>(null);
   const name = product.name ?? "제품명 확인 중";
   const image = product.images[0]?.url;
   const inStock = product.skus.filter((s) => s.orderable).length;
@@ -55,16 +49,7 @@ export function ProductCard({ product, inset = false }: { product: Product; inse
 
   return (
     <article className="group">
-      <Link
-        href={`/products/${product.slug}`}
-        className="block"
-        onClick={(e) => {
-          // 새 탭 · 새 창으로 열려는 클릭은 그대로 둔다
-          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-          e.preventDefault();
-          setOpen(true);
-        }}
-      >
+      <Link href={`/products/${product.slug}`} className="block">
         {/*
           바깥 껍데기 + 안쪽 알맹이. 카드를 배경에 납작하게 얹지 않는다 —
           베이지 헤어라인 쟁반 위에 사진이 놓인 구조라 물성이 생긴다.
@@ -76,7 +61,7 @@ export function ProductCard({ product, inset = false }: { product: Product; inse
           누끼는 히어로에서만 쓴다. 거기는 인물이 글자를 딛고 서야 해서 배경이 없어야 한다.
         */}
         <div>
-          <div ref={photoRef} className="bg-velvet relative aspect-[2/3] overflow-hidden">
+          <div className="bg-velvet relative aspect-[2/3] overflow-hidden">
             {image ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -135,8 +120,6 @@ export function ProductCard({ product, inset = false }: { product: Product; inse
           </p>
         </div>
       </Link>
-
-      <QuickView product={product} open={open} onClose={() => setOpen(false)} originRef={photoRef} />
     </article>
   );
 }
