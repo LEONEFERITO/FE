@@ -11,6 +11,7 @@
  * 공개 키는 서버가 준다 — 결제사나 키를 바꿔도 화면을 다시 빌드하지 않는다. 비밀 키는 서버에만 있다.
  */
 
+import type { SuitPiece } from "@/types/product";
 import { publishCartCount } from "@/lib/cartCount";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
@@ -495,12 +496,13 @@ export const withdrawReturn = (id: string) =>
   request<ReturnView>("POST", `/api/returns/${encodeURIComponent(id)}/withdraw`);
 
 /** 교환받을 사이즈 — 지금 주문할 수 있는 사이즈만. 공개 상품 API 에서 읽는다. */
-export async function orderableSizes(slug: string): Promise<string[]> {
-  const p = await request<{ skus: { size: string; orderable: boolean }[] }>(
+export async function orderableSizes(slug: string): Promise<{ size: string; piece: SuitPiece | null }[]> {
+  const p = await request<{ skus: { size: string; orderable: boolean; soldOut?: boolean; piece?: SuitPiece | null }[] }>(
     "GET",
     `/api/products/${encodeURIComponent(slug)}`,
   );
-  return p.skus.filter((s) => s.orderable).map((s) => s.size);
+  // 수트 구성(서버 V43)은 조각이 붙어 온다 — 교환 화면이 조각마다 고르게 한다
+  return p.skus.filter((s) => s.orderable && !s.soldOut).map((s) => ({ size: s.size, piece: s.piece ?? null }));
 }
 
 export interface AdminReturnRow {

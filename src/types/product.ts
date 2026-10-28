@@ -142,9 +142,14 @@ export interface MeasurementTable {
  * 재고 수량이 아니라 **주문 가능 여부**다. 주문 후 제작이라 "몇 개 남음" 이 존재하지 않는다
  * (BE ProductResponse.Sku). 주문 불가 사이즈도 숨기지 않고 비활성으로 노출한다.
  */
+/** 수트 조각(서버 V43) — 수트 구성 상품은 사이즈마다 하나가 붙는다(lib/suit) */
+export type SuitPiece = "JACKET" | "VEST" | "PANTS";
+
 export interface Sku {
   id: string;
   size: string;
+  /** 수트 조각(서버 V43). 없으면 보통 사이즈 */
+  piece?: SuitPiece | null;
   color: string | null;
   /** 지금 주문할 수 있는가 — 제작 가능하고 품절이 아니다(서버 orderable && !soldOut) */
   orderable: boolean;
@@ -199,6 +204,8 @@ export interface Product {
   priceKrw: number | null;
   /** 정가(원). 할인 중이 아니면 null. */
   listPriceKrw: number | null;
+  /** 수트 2피스(자켓 + 팬츠) 판매가(서버 V43). 없으면 2피스는 팔지 않는다 — 3피스는 priceKrw (lib/suit) */
+  twoPiecePriceKrw?: number | null;
   /** 카드 아래 한 줄. */
   summary: string | null;
   /** 상세 본문. 문단은 빈 줄로 나뉜다. */

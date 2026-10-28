@@ -2,7 +2,9 @@
 
 import { ArrowUpRight, InstagramLogo } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
+import { useState } from "react";
 import { pendingLabel } from "@/lib/pending";
+import { PIECE_LABEL, SUIT_SETS, isSuitSet, offeredSets, suitDefaults, suitLabel, suitPrice, type SuitSet, type SuitSizes } from "@/lib/suit";
 
 import { SizeSelector } from "@/components/product/SizeSelector";
 import { usePurchase } from "@/components/product/usePurchase";
@@ -15,6 +17,9 @@ import { leadTimeText } from "@/lib/leadTime";
  * 구매 판 — 상세 맨 위 오른쪽 (2026-10-28 디자이너 시안으로 다시 짰다).
  *
  * 순서: 라인(레오네 · 페리토 구분) → 상품명 → 제품 설명 → 제작 기간 · 배송비 → 가격 → (선) → 작은 사진 다섯 칸 → 컬러 → 사이즈 → 버튼
+ *
+ * 수트 구성 상품(lib/suit, 서버 V43)은 사이즈 자리에 «구성»(3피스 · 2피스) → 조각마다 사이즈(자켓 · 베스트 · 팬츠)가 온다.
+ * 가격 줄은 고른 구성의 값으로 바뀐다. 담을 때는 "3피스 · 자켓 L / 베스트 M / 팬츠 L" 한 줄이 사이즈로 간다.
  *
  * 2026-10-28 에 뺀 것: 분류 눈썹("— JACKET", 라인 표시로 바뀜), 한 줄 요약 · 라인 설명(제품 설명이 대신한다),
  * "상세 사이즈 보기" 링크(아래 상세 사이즈 구간 제목과 함께 걷음), 버튼 아래 배송 · 교환 안내 세 줄.
@@ -67,13 +72,24 @@ export function PurchasePanel({
   // 담기 · 바로 구매 · 사이즈 선택 (usePurchase)
   const { selectedSize, setSelectedSize, pending, notice, put } = usePurchase(product);
 
-  const price = formatKrw(product.priceKrw);
-  const listPrice = formatKrw(product.listPriceKrw);
+  // 수트 구성 — 고른 구성 · 조각별 사이즈. 바뀔 때마다 담을 한 줄(selectedSize)을 다시 만든다
+  const suit = isSuitSet(product);
+  const sets = suit ? offeredSets(product) : [];
+  const [choice, setChoice] = useState<{ set: SuitSet | null; sizes: SuitSizes }>(() => suitDefaults(product));
+  function choose(next: { set: SuitSet | null; sizes: SuitSizes }) {
+    setChoice(next);
+    setSelectedSize(next.set ? suitLabel(next.set, next.sizes) : null);
+  }
+
+  const unitPrice = suit ? (choice.set ? suitPrice(product, choice.set) : null) : product.priceKrw;
+  const price = formatKrw(unitPrice);
+  // 정가(취소선)는 판매가(= 3피스) 기준이라 2피스에는 그리지 않는다
+  const listPrice = !suit || choice.set === "THREE" ? formatKrw(product.listPriceKrw) : null;
   const line = LINE_LABEL[product.line];
   const about = product.description?.trim() || product.summary?.trim() || null;
   const colors = colorsOf(product.notice?.color);
   // 배송비 — 서버 배송 정책과 같은 기준(data/shipping). 기준 금액 이상이면 무료
-  const freeShipping = product.priceKrw !== null && product.priceKrw >= SHIPPING.freeThresholdKrw;
+  const freeShipping = unitPrice !== null && unitPrice >= SHIPPING.freeThresholdKrw;
 
   return (
     <div className="flex h-full min-w-0 flex-col gap-5">
@@ -111,7 +127,7 @@ export function PurchasePanel({
               pendingLabel("제작 기간")
             )}
           </p>
-          {product.priceKrw !== null && (
+          {unitPrice !== null && (
             <p className="text-muted">{freeShipping ? "무료배송" : `배송비 ${new Intl.NumberFormat("ko-KR").format(SHIPPING.feeKrw)}원`}</p>
           )}
         </div>
@@ -173,10 +189,71 @@ export function PurchasePanel({
         </div>
       )}
 
-      <div className="flex flex-col gap-2.5">
-        <h2 className="text-primary text-sm font-medium">사이즈</h2>
-        <SizeSelector skus={product.skus} value={selectedSize} onChange={setSelectedSize} />
-      </div>
+      {suit ? (
+        <>
+          {/* 구성 — 3피스(자켓 + 베스트 + 팬츠) · 2피스(자켓 + 팬츠). 파는 구성만 나온다 */}
+          <div className="flex flex-col gap-2.5">
+            <h2 className="text-primary text-sm font-medium">구성</h2>
+            {sets.length === 0 ? (
+              <p className="text-muted text-xs">지금 주문할 수 있는 구성이 없습니다.</p>
+            ) : (
+              <div role="radiogroup" aria-label="구성" className="grid grid-cols-2 gap-2">
+                {sets.map((set) => {
+                  const on = choice.set === set;
+                  return (
+                    <button
+                      key={set}
+                      type="button"
+                      role="radio"
+                      aria-checked={on}
+                      onClick={() => choose({ ...choice, set })}
+                      className={`ease-fluid flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-full border px-3 transition-all duration-500 ${
+                        on
+                          ? "border-accent bg-accent-tint text-accent"
+                          : "border-strong text-primary hover:border-accent hover:bg-accent-tint/50 active:scale-[0.97]"
+                      }`}
+                    >
+                      <span className="text-[14px] font-medium tabular-nums">
+                        {SUIT_SETS[set].label} · {formatKrw(suitPrice(product, set))}
+                      </span>
+                      <span className="text-[11px] leading-none opacity-80">{SUIT_SETS[set].detail}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/*
+            조각마다 사이즈 — 고른 구성에 든 조각만. 조각 이름을 왼쪽에 두고 한 줄(다섯 칸)로 —
+            세 조각을 위아래로 크게 쌓으면 버튼이 왼쪽 큰 사진 아래로 한참 내려간다.
+          */}
+          {choice.set && (
+            <div className="flex flex-col gap-2.5">
+              <h2 className="text-primary text-sm font-medium">사이즈</h2>
+              <div className="flex flex-col gap-2">
+                {SUIT_SETS[choice.set].pieces.map((pc) => (
+                  <div key={pc} className="grid grid-cols-[3rem_minmax(0,1fr)] items-start gap-2">
+                    <span className="text-secondary flex min-h-11 items-center text-xs">{PIECE_LABEL[pc]}</span>
+                    <SizeSelector
+                      name={PIECE_LABEL[pc]}
+                      columns={5}
+                      skus={product.skus.filter((k) => k.piece === pc)}
+                      value={choice.sizes[pc] ?? null}
+                      onChange={(size) => choose({ ...choice, sizes: { ...choice.sizes, [pc]: size } })}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="flex flex-col gap-2.5">
+          <h2 className="text-primary text-sm font-medium">사이즈</h2>
+          <SizeSelector skus={product.skus} value={selectedSize} onChange={setSelectedSize} />
+        </div>
+      )}
 
       {product.instagramUrl && (
         // 바깥 사이트로 나가므로 새 창이다. 그 사실을 글로도 알린다. noopener: 열린 창이 이 페이지를 조작하지 못하게

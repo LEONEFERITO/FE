@@ -12,6 +12,8 @@ import {
 import { ProductPreview } from "@/components/admin/ProductPreview";
 import { StoryImagesField, type StoryImage } from "@/components/admin/StoryImagesField";
 import { parseLeadTime } from "@/lib/leadTime";
+import { PIECE_LABEL, SUIT_PIECES } from "@/lib/suit";
+import type { SuitPiece } from "@/types/product";
 import {
   DEFAULT_SIZES,
   SizeListField,
@@ -228,6 +230,26 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
         }))
       : DEFAULT_SIZES,
   );
+  /*
+   * 수트 구성(서버 V43, 2026-10-28 디자이너 "3피스 / 2피스 + 자켓 · 베스트 · 팬츠 사이즈 따로").
+   * 켜면 위 사이즈 목록 대신 조각마다 사이즈 목록을 쓴다. 3피스 값은 판매가, 2피스 값은 아래 칸(비우면 2피스는 팔지 않는다).
+   */
+  const [suitMode, setSuitMode] = useState(() => !!src?.skus.some((k) => k.piece));
+  const [pieceSizes, setPieceSizes] = useState<Record<SuitPiece, SizeRow[]>>(() => {
+    const of = (pc: SuitPiece): SizeRow[] =>
+      (src?.skus ?? [])
+        .filter((k) => k.piece === pc)
+        .map((k) => ({ size: k.size, orderable: k.orderable, stock: initial && k.stock != null ? String(k.stock) : "" }));
+    const pieced = !!src?.skus.some((k) => k.piece);
+    const fresh = (list: string[]): SizeRow[] => list.map((size) => ({ size, orderable: true, stock: "" }));
+    // 새로 켜면 가이드 사이즈 표의 전개로 시작한다(자켓 S~2XL · 베스트 · 팬츠 XS~XL)
+    return {
+      JACKET: pieced ? of("JACKET") : fresh(["S", "M", "L", "XL", "2XL"]),
+      VEST: pieced ? of("VEST") : fresh(["XS", "S", "M", "L", "XL"]),
+      PANTS: pieced ? of("PANTS") : fresh(["XS", "S", "M", "L", "XL"]),
+    };
+  });
+  const [twoPiecePriceKrw, setTwoPiecePriceKrw] = useState(src?.twoPiecePriceKrw?.toString() ?? "");
 
   /** 이미 쓰고 있는 주소들 — 새 상품의 주소가 겹치면 그 자리에서 알린다(서버도 막지만 저장 뒤에야 안다) */
   const [takenSlugs, setTakenSlugs] = useState<Set<string>>(new Set());
@@ -312,7 +334,15 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
       e.instagramUrl = "인스타그램 게시물 주소(https://www.instagram.com/…)를 붙여 넣어 주세요.";
     }
 
-    if (Object.keys(validateSizes(sizes)).length > 0) {
+    if (suitMode) {
+      for (const pc of SUIT_PIECES) {
+        const rows = pieceSizes[pc];
+        if (rows.length === 0) e.sizes = `${PIECE_LABEL[pc]} 사이즈를 하나 이상 넣어 주세요.`;
+        else if (Object.keys(validateSizes(rows)).length > 0) e.sizes = `${PIECE_LABEL[pc]} 사이즈 목록을 확인해 주세요.`;
+        else if (rows.some((r) => /[/·]/.test(r.size))) e.sizes = `${PIECE_LABEL[pc]} 사이즈에는 / 와 · 를 쓸 수 없습니다.`;
+      }
+      if (twoPiecePriceKrw && !/^\d+$/.test(twoPiecePriceKrw)) e.twoPiecePriceKrw = "숫자만 입력해 주세요.";
+    } else if (Object.keys(validateSizes(sizes)).length > 0) {
       e.sizes = "사이즈 목록을 확인해 주세요.";
     }
 
@@ -356,17 +386,23 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
        * 사이즈에 붙어 있던 실측을 그대로 실어 보낸다 — 이름을 바꾸면 그 실측은 사라진다.
        * 상세 사이즈는 차트 이미지로 가기로 했으니 지금은 이 정도면 된다.
        */
-      skus: sizes.map((s, i) => {
-        const name = s.size.trim();
-        const before = src?.skus.find((k) => k.size === name);
+      // 수트 구성이면 조각 순서(자켓 → 베스트 → 팬츠)대로 이어 붙이고 조각을 붙인다
+      skus: (suitMode
+        ? SUIT_PIECES.flatMap((pc) => pieceSizes[pc].map((row) => ({ row, piece: pc as SuitPiece | null })))
+        : sizes.map((row) => ({ row, piece: null as SuitPiece | null }))
+      ).map(({ row, piece }, i) => {
+        const name = row.size.trim();
+        const before = src?.skus.find((k) => k.size === name && (k.piece ?? null) === piece);
         return {
           size: name,
-          orderable: s.orderable,
-          stock: stockValue(s),
+          orderable: row.orderable,
+          stock: stockValue(row),
           sortOrder: i,
           measurements: before?.measurements ?? [],
+          piece,
         };
       }),
+      twoPiecePriceKrw: suitMode && twoPiecePriceKrw ? Number(twoPiecePriceKrw) : null,
 
       images: IMAGE_SLOTS.flatMap((slot, i): ProductDraft["images"] => {
         const v = images[slot.key];
@@ -418,7 +454,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
     { label: "판매가", ok: /^\d+$/.test(priceKrw) },
     { label: "제작 기간", ok: lead !== null },
     { label: "대표 이미지", ok: images.MAIN !== undefined },
-    { label: "사이즈", ok: sizes.length > 0 },
+    { label: "사이즈", ok: suitMode ? SUIT_PIECES.every((pc) => pieceSizes[pc].length > 0) : sizes.length > 0 },
     { label: `상품정보고시 ${noticeFilled}/6`, ok: noticeFilled === 6 },
   ];
   const ready = checklist.every((c) => c.ok);
@@ -754,11 +790,54 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
               <span>{errors.sizes}</span>
             </p>
           )}
-          <SizeListField
-            value={sizes}
-            onChange={setSizes}
-            errors={submitted ? validateSizes(sizes) : {}}
-          />
+          {/* 수트 구성 옵션 — 수트 분류에서만 켠다(이미 켜진 상품은 계속 보인다) */}
+          {(category === "SUIT" || suitMode) && (
+            <label className="border-subtle bg-band/60 flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3">
+              <input
+                type="checkbox"
+                checked={suitMode}
+                onChange={(e) => setSuitMode(e.target.checked)}
+                className="accent-[var(--accent-base)] mt-0.5 h-4 w-4 shrink-0"
+              />
+              <span className="flex flex-col gap-1">
+                <span className="text-primary text-sm">수트 구성 옵션 — 3피스 · 2피스, 자켓 · 베스트 · 팬츠 사이즈 따로</span>
+                <span className="text-muted text-2xs leading-relaxed">
+                  손님이 구성(3피스: 자켓 + 베스트 + 팬츠 / 2피스: 자켓 + 팬츠)을 고르고 조각마다 사이즈를 고릅니다.
+                  3피스 값은 위 <b className="text-secondary">판매가</b>, 2피스 값은 아래 칸입니다. 재고는 조각 사이즈마다 따로 셉니다.
+                </span>
+              </span>
+            </label>
+          )}
+          {suitMode ? (
+            <>
+              <CountedField
+                label="2피스 판매가 (원) — 자켓 + 팬츠"
+                value={twoPiecePriceKrw}
+                onChange={setTwoPiecePriceKrw}
+                max={12}
+                inputMode="numeric"
+                placeholder="비우면 2피스는 팔지 않습니다"
+                hint="3피스 값은 위 판매가입니다. 비워 두면 손님 화면에 3피스만 나옵니다."
+                error={submitted ? errors.twoPiecePriceKrw : undefined}
+              />
+              {SUIT_PIECES.map((pc) => (
+                <div key={pc} className="flex flex-col gap-3">
+                  <h3 className="text-primary text-xs font-medium">{PIECE_LABEL[pc]} 사이즈</h3>
+                  <SizeListField
+                    value={pieceSizes[pc]}
+                    onChange={(rows) => setPieceSizes((prev) => ({ ...prev, [pc]: rows }))}
+                    errors={submitted ? validateSizes(pieceSizes[pc]) : {}}
+                  />
+                </div>
+              ))}
+            </>
+          ) : (
+            <SizeListField
+              value={sizes}
+              onChange={setSizes}
+              errors={submitted ? validateSizes(sizes) : {}}
+            />
+          )}
         </fieldset>
 
         {/* ── 상세 사이즈 차트 ──────────────────────────── */}

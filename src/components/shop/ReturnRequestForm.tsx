@@ -9,6 +9,7 @@ import { PhotoThumb } from "@/components/shop/PhotoThumb";
 import { KAKAO_CHANNEL } from "@/data/business";
 import { loginUrl } from "@/lib/auth";
 import { pendingLabel } from "@/lib/pending";
+import { PIECE_LABEL, SUIT_SETS, parseSuitLabel, suitLabel } from "@/lib/suit";
 import {
   RETURN_PHOTO_ACCEPT,
   RETURN_PHOTO_MAX,
@@ -55,7 +56,7 @@ export function ReturnRequestForm() {
   const [type, setType] = useState<ReturnType>("EXCHANGE");
   const [reason, setReason] = useState<ReturnReason | null>(null);
   const [picks, setPicks] = useState<Record<string, Pick>>({});
-  const [sizes, setSizes] = useState<Record<string, string[] | "error">>({});
+  const [sizes, setSizes] = useState<Record<string, { size: string; piece: string | null }[] | "error">>({});
   const [detail, setDetail] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +94,8 @@ export function ReturnRequestForm() {
         if (!alive) return;
         setState({ kind: "ready", order });
         const first: Record<string, Pick> = {};
-        order.items.forEach((i) => (first[i.id] = { on: order.items.length === 1, quantity: 1, size: "" }));
+        // 수트 구성(lib/suit)은 처음부터 주문한 구성 · 사이즈로 채워 둔다 — 조각 하나만 바꾸면 된다
+        order.items.forEach((i) => (first[i.id] = { on: order.items.length === 1, quantity: 1, size: parseSuitLabel(i.size) ? i.size : "" }));
         setPicks(first);
       })
       .catch((e) => {
@@ -264,6 +266,9 @@ export function ReturnRequestForm() {
           {o.items.map((i) => {
             const p = picks[i.id] ?? { on: false, quantity: 1, size: "" };
             const list = sizes[i.slug];
+            // 수트 구성 주문 — 같은 구성 안에서 조각마다 받을 사이즈를 고른다(구성은 바꿀 수 없다, 서버 ReturnService)
+            const suit = parseSuitLabel(i.size);
+            const suitNow = suit ? (parseSuitLabel(p.size)?.sizes ?? suit.sizes) : null;
             const max = left(i.id, i.quantity);
             return (
               <li key={i.id} className="flex flex-col gap-3 py-4">
@@ -300,10 +305,43 @@ export function ReturnRequestForm() {
                           <span className="text-muted">불러오는 중</span>
                         ) : list === "error" || list.length === 0 ? (
                           <span className="text-muted">지금 교환할 수 있는 사이즈가 없습니다 — 반품으로 신청해 주세요</span>
+                        ) : suit && suitNow ? (
+                          <span className="flex flex-wrap items-center gap-3">
+                            {SUIT_SETS[suit.set].pieces.map((pc) => (
+                              <label key={pc} className="flex items-center gap-1.5">
+                                {PIECE_LABEL[pc]}
+                                <select
+                                  value={suitNow[pc] ?? ""}
+                                  onChange={(e) => setPick(i.id, { size: suitLabel(suit.set, { ...suitNow, [pc]: e.target.value }) ?? "" })}
+                                  className={select}
+                                >
+                                  {/* 주문한 사이즈가 지금 품절이어도 그대로 두는 길(그 조각은 안 바꿈)은 남긴다 */}
+                                  {!list.some((s) => s.piece === pc && s.size === suit.sizes[pc]) && (
+                                    <option value={suit.sizes[pc]}>{suit.sizes[pc]} (같은 사이즈)</option>
+                                  )}
+                                  {list
+                                    .filter((s) => s.piece === pc)
+                                    .map((s) => (
+                                      <option key={s.size} value={s.size}>
+                                        {s.size}
+                                        {s.size === suit.sizes[pc] ? " (같은 사이즈)" : ""}
+                                      </option>
+                                    ))}
+                                </select>
+                              </label>
+                            ))}
+                          </span>
                         ) : (
                           <select value={p.size} onChange={(e) => setPick(i.id, { size: e.target.value })} className={select}>
                             <option value="">고르기</option>
-                            {list.map((s) => <option key={s} value={s}>{s}{s === i.size ? " (같은 사이즈)" : ""}</option>)}
+                            {list
+                              .filter((s) => !s.piece)
+                              .map((s) => (
+                                <option key={s.size} value={s.size}>
+                                  {s.size}
+                                  {s.size === i.size ? " (같은 사이즈)" : ""}
+                                </option>
+                              ))}
                           </select>
                         )}
                       </label>

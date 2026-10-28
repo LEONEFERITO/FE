@@ -10,6 +10,8 @@
  * 서버가 바꾸면 여기도 같이 고친다.
  */
 
+import type { SuitPiece } from "@/types/product";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
 
 export const ADMIN_CONNECTED = API_BASE.length > 0;
@@ -237,6 +239,8 @@ export interface ProductDraft {
   leadTimeDays: number | null;
   /** 제작 기간 최소(서버 V40) — leadTimeDays 가 최대 */
   leadTimeMinDays?: number | null;
+  /** 수트 2피스(자켓 + 팬츠) 판매가(서버 V43). 수트 구성 상품만 */
+  twoPiecePriceKrw?: number | null;
   /** 노출 순서. 폼에 칸이 없어도 수정 때는 원래 값을 그대로 돌려보낸다. */
   displayOrder?: number;
   images: { mediaId: string; kind: string; alt: string; sortOrder?: number }[];
@@ -247,6 +251,8 @@ export interface ProductDraft {
     stock: number | null;
     sortOrder?: number;
     measurements?: { part: string; valueCm: number; toleranceCm: number | null }[];
+    /** 수트 조각(서버 V43). 없으면 보통 사이즈 */
+    piece?: SuitPiece | null;
   }[];
   /**
    * 상세 사이즈 차트 이미지.
@@ -547,6 +553,8 @@ export interface AdminProductEdit {
   instagramUrl: string | null;
   /** 관리자 전용 정보(V39). 예전 서버면 없다 */
   internal?: ProductInternal | null;
+  /** 수트 2피스 판매가(서버 V43) */
+  twoPiecePriceKrw?: number | null;
   images: { mediaId: string; url: string; kind: string; alt: string; sortOrder: number }[];
   skus: {
     size: string;
@@ -555,6 +563,8 @@ export interface AdminProductEdit {
     /** 남은 수량(서버 V30). null 이면 세지 않음 */
     stock: number | null;
     measurements: { part: string; valueCm: number; toleranceCm: number | null }[];
+    /** 수트 조각(서버 V43) */
+    piece?: SuitPiece | null;
   }[];
 }
 

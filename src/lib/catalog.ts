@@ -1,5 +1,6 @@
 import { BUSINESS, CALL_NUMBER } from "@/data/business";
 import { PRODUCTS as SAMPLE_PRODUCTS } from "@/data/products";
+import { PIECE_LABEL, SUIT_PIECES } from "@/lib/suit";
 import type {
   Category,
   MeasurementField,
@@ -7,6 +8,7 @@ import type {
   ProductLine,
   ProductPhoto,
   ProductStyle,
+  SuitPiece,
 } from "@/types/product";
 
 /**
@@ -66,6 +68,8 @@ interface ApiDetail {
   model: { heightCm: number | null; weightKg: number | null; size: string | null };
   leadTimeDays: number | null;
   leadTimeMinDays?: number | null;
+  /** 수트 2피스 판매가(서버 V43) — 2피스를 실제로 팔 때만 온다 */
+  twoPiecePriceKrw?: number | null;
   sizeChart: { url: string; alt: string; width: number | null; height: number | null } | null;
   instagramUrl: string | null;
   notice: {
@@ -83,6 +87,8 @@ interface ApiDetail {
     /** 5벌 이하로 남았을 때만 */
     remaining?: number | null;
     measurements: { part: string; valueCm: number; toleranceCm: number | null }[];
+    /** 수트 조각(서버 V43) */
+    piece?: SuitPiece | null;
   }[];
 }
 
@@ -135,7 +141,13 @@ function toProduct(d: ApiDetail): Product {
   );
   const tolerance = tolerances.size === 1 ? `±${[...tolerances][0]}cm` : null;
 
-  const sizes = d.skus.map((s) => s.size);
+  // 고시의 치수 — 수트 구성은 조각별로 묶는다("자켓 S · M / 베스트 S · M / 팬츠 S · M")
+  const pieced = d.skus.some((s) => s.piece);
+  const sizes = pieced
+    ? SUIT_PIECES.filter((pc) => d.skus.some((s) => s.piece === pc)).map(
+        (pc) => `${PIECE_LABEL[pc]} ${d.skus.filter((s) => s.piece === pc).map((s) => s.size).join(" · ")}`,
+      )
+    : d.skus.map((s) => s.size);
 
   return {
     slug: d.slug,
@@ -145,6 +157,7 @@ function toProduct(d: ApiDetail): Product {
     style: d.style ?? null,
     priceKrw: d.priceKrw,
     listPriceKrw: d.listPriceKrw,
+    twoPiecePriceKrw: d.twoPiecePriceKrw ?? null,
     summary: d.summary,
     description: d.description,
     intent: d.intent,
@@ -158,8 +171,9 @@ function toProduct(d: ApiDetail): Product {
       .filter((i) => i.kind === "STORY")
       .map((i) => ({ url: i.url, alt: i.alt, width: i.width, height: i.height })),
     skus: d.skus.map((s) => ({
-      id: `${d.slug}-${s.size}`,
+      id: `${d.slug}-${s.piece ? `${s.piece}-` : ""}${s.size}`,
       size: s.size,
+      piece: s.piece ?? null,
       color: null,
       // 손님에게는 "지금 고를 수 있는가" 하나다 — 품절도 고를 수 없다. 이유(품절 · 주문 불가)는 soldOut 이 가른다
       orderable: s.orderable && !s.soldOut,
@@ -191,7 +205,7 @@ function toProduct(d: ApiDetail): Product {
     notice: {
       material: d.fabric,
       color: d.notice?.color ?? null,
-      size: sizes.length > 0 ? `${sizes.join(" · ")} (부위별 실측은 상세 사이즈 참고)` : null,
+      size: sizes.length > 0 ? `${sizes.join(pieced ? " / " : " · ")} (부위별 실측은 상세 사이즈 참고)` : null,
       manufacturer: d.notice?.manufacturer ?? null,
       countryOfOrigin: d.notice?.countryOfOrigin ?? null,
       washingInstruction: d.care,

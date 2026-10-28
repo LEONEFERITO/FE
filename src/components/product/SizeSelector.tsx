@@ -18,17 +18,21 @@ interface SizeSelectorProps {
   skus: Sku[];
   value: string | null;
   onChange: (size: string) => void;
+  /** 수트 조각 이름(자켓 · 베스트 · 팬츠) — 화면 낭독기와 "2벌 남았습니다" 문장 앞에 붙는다 */
+  name?: string;
+  /** 한 줄 칸 수. 수트 조각은 5(사이즈 다섯이 한 줄에) */
+  columns?: 4 | 5;
 }
 
-export function SizeSelector({ skus, value, onChange }: SizeSelectorProps) {
+export function SizeSelector({ skus, value, onChange, name, columns = 4 }: SizeSelectorProps) {
   const selected = skus.find((s) => s.size === value);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className={`flex flex-col ${columns === 5 ? "gap-1.5" : "gap-3"}`}>
       <div
         role="radiogroup"
-        aria-label="사이즈"
-        className="grid grid-cols-4 gap-2"
+        aria-label={name ? `${name} 사이즈` : "사이즈"}
+        className={`grid gap-2 ${columns === 5 ? "grid-cols-5" : "grid-cols-4"}`}
       >
         {skus.map((sku) => {
           const isSoldOut = !sku.orderable;
@@ -70,7 +74,7 @@ export function SizeSelector({ skus, value, onChange }: SizeSelectorProps) {
       */}
       {selected?.orderable && selected.remaining != null && (
         <p aria-live="polite" className="text-accent text-xs">
-          {selected.size} 사이즈 {selected.remaining}벌 남았습니다.
+          {name ? `${name} ` : ""}{selected.size} 사이즈 {selected.remaining}벌 남았습니다.
         </p>
       )}
     </div>

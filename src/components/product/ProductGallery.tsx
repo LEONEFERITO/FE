@@ -22,7 +22,8 @@ export function ProductGallery({ photos, name, index = 0 }: { photos: ProductPho
 
   return (
     <div
-      className="relative aspect-[4/5] w-full min-w-0 overflow-hidden"
+      // 4:5 가 기본이고, PC 에서 옆 구매 판이 더 길면 그 높이까지 늘어난다(lg:h-full — 사진은 가운데 기준으로 잘린다)
+      className="relative aspect-[4/5] w-full min-w-0 overflow-hidden lg:h-full"
       style={photo ? undefined : { background: PHOTO_PLACEHOLDER }}
     >
       {photo ? (

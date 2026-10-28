@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { loginUrl } from "@/lib/auth";
 import { SHOP_CONNECTED, ShopError, addToCart } from "@/lib/shop";
+import { isSuitSet, suitDefaults, suitLabel } from "@/lib/suit";
 import type { Product } from "@/types/product";
 
 /**
@@ -17,9 +18,13 @@ import type { Product } from "@/types/product";
  * 2026-10-08 PurchasePanel 에서 떼어 냈다 — 팝업이 생기면서 두 군데가 됐고, 한쪽만 고쳐지는 날을 막는다.
  */
 export function usePurchase(product: Product) {
-  const [selectedSize, setSelectedSize] = useState<string | null>(
-    product.skus.find((s) => s.orderable)?.size ?? null,
-  );
+  const suit = isSuitSet(product);
+  // 수트 구성(lib/suit)은 "3피스 · 자켓 L / 베스트 M / 팬츠 L" 한 줄이 곧 사이즈다
+  const [selectedSize, setSelectedSize] = useState<string | null>(() => {
+    if (!suit) return product.skus.find((s) => s.orderable)?.size ?? null;
+    const d = suitDefaults(product);
+    return d.set ? suitLabel(d.set, d.sizes) : null;
+  });
   const router = useRouter();
   const [pending, setPending] = useState<"cart" | "buy" | null>(null);
   const [notice, setNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
@@ -39,7 +44,7 @@ export function usePurchase(product: Product) {
         router.push(line ? `/checkout/?items=${encodeURIComponent(line.id)}` : "/cart/");
         return;
       }
-      setNotice({ tone: "ok", text: `${selectedSize} 사이즈를 장바구니에 담았습니다.` });
+      setNotice({ tone: "ok", text: suit ? `${selectedSize} — 장바구니에 담았습니다.` : `${selectedSize} 사이즈를 장바구니에 담았습니다.` });
     } catch (e) {
       if (e instanceof ShopError && e.needsLogin) {
         window.location.href = loginUrl();
