@@ -1,4 +1,4 @@
-import { BUSINESS } from "@/data/business";
+import { BUSINESS, CALL_NUMBER } from "@/data/business";
 import { PRODUCTS as SAMPLE_PRODUCTS } from "@/data/products";
 import type {
   Category,
@@ -102,7 +102,7 @@ const PART_LABEL: Record<string, string> = {
 const PART_ORDER = Object.keys(PART_LABEL);
 
 /** 사진 순서: 대표 → 착용 → 디테일. 같은 종류 안에서는 서버 순서(sortOrder)를 지킨다. */
-const KIND_RANK: Record<string, number> = { MAIN: 0, WORN: 1, DETAIL: 2 };
+const KIND_RANK: Record<string, number> = { MAIN: 0, WORN: 1, DETAIL: 2, EXTRA_1: 3, EXTRA_2: 4 };
 
 /**
  * 품질보증기준 — 브랜드 공통. 상품마다 적지 않는다 (BE V11 주석).
@@ -111,10 +111,10 @@ const KIND_RANK: Record<string, number> = { MAIN: 0, WORN: 1, DETAIL: 2 };
 const WARRANTY =
   "제품 하자·오배송 시 교환·반품·환불은 공정거래위원회 고시 「소비자분쟁해결기준」에 따릅니다.";
 
-/** A/S 책임자와 연락처 — 브랜드 공통. 사업자 정보에서 만든다. */
+/** A/S 책임자와 연락처 — 브랜드 공통. 번호는 손님 전화 번호 하나만(2026-10-28 디자이너 "010-9291-0518 만"). */
 function asContact(): string | null {
-  if (!BUSINESS.companyName || !BUSINESS.phone) return null;
-  return `${BUSINESS.companyName} · ${BUSINESS.phone}`;
+  if (!BUSINESS.companyName) return null;
+  return `${BUSINESS.companyName} · ${CALL_NUMBER}`;
 }
 
 function toProduct(d: ApiDetail): Product {

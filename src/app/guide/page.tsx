@@ -70,21 +70,31 @@ const SIZE_TABLES: SizeTable[] = [
   },
 ];
 
+/** 제품별 제작 소요기간 — 시안 그대로 (2026-10-28) */
+const LEAD_TIMES = [
+  { items: "자켓 / 팬츠 / 베스트", time: "14~18일" },
+  { items: "셔츠 / 구두 / 로퍼", time: "7~10일" },
+  { items: "넥타이", time: "바로 출고" },
+];
+
 /** 시안의 노란 형광 강조 */
 function Hl({ children }: { children: React.ReactNode }) {
   return <mark className="bg-[#E9CD8C]/80 text-inherit box-decoration-clone px-0.5">{children}</mark>;
 }
 
-/** 구간 — 왼쪽 와인 세로 막대 + 영문 작은 제목 + 한글 제목 */
-function Section({ id, en, ko, children }: { id: string; en?: string; ko: string; children: React.ReactNode }) {
+/**
+ * 구간 — 왼쪽 와인 세로 막대 + 영문 작은 제목 + 한글 제목.
+ * {@code bar={false}} — 막대 없이 왼쪽에 붙인다(2026-10-28 디자이너: Find your Fit · Size Selection 은 "세로 라인 도형 없애고 왼쪽으로").
+ */
+function Section({ id, en, ko, bar = true, children }: { id: string; en?: string; ko: string; bar?: boolean; children: React.ReactNode }) {
   return (
-    <section aria-labelledby={id} className="relative pl-5 md:pl-7">
-      <span aria-hidden="true" className="absolute inset-y-0 left-0 w-[6px]" style={{ background: WINE }} />
+    <section aria-labelledby={id} className={bar ? "relative pl-5 md:pl-7" : "relative"}>
+      {bar && <span aria-hidden="true" className="absolute inset-y-0 left-0 w-[6px]" style={{ background: WINE }} />}
       <h2 id={id} className="text-primary">
         {en && <span className="block text-[15px] leading-tight md:text-[17px]">{en}</span>}
-        <span className="block text-[17px] font-bold leading-snug md:text-[19px]">{ko}</span>
+        {ko && <span className="block text-[17px] font-bold leading-snug md:text-[19px]">{ko}</span>}
       </h2>
-      <div className="mt-8">{children}</div>
+      <div className={ko ? "mt-8" : "mt-5"}>{children}</div>
     </section>
   );
 }
@@ -107,7 +117,7 @@ export default function GuidePage() {
         <div className="text-primary mx-auto flex max-w-[1100px] flex-col gap-24 px-5 py-16 md:gap-32 md:px-10 md:py-24">
           {/* ── Find your Fit ── */}
           <Reveal>
-            <Section id="guide-fit" en="Find your Fit" ko="자신에게 가장 잘 맞는 핏을 찾아가는 과정">
+            <Section id="guide-fit" bar={false} en="Find your Fit" ko="자신에게 가장 잘 맞는 핏을 찾아가는 과정">
               <p className="text-center text-[26px] md:text-[34px]" style={{ color: "#3B3533" }}>
                 LEONE FERITO
               </p>
@@ -117,19 +127,19 @@ export default function GuidePage() {
               </svg>
 
               {/* PC: [LEONE] [질문] [FERITO] 세 칸 · 폰: 라인마다 한 묶음 */}
-              <div className="mt-6 hidden grid-cols-[1fr_auto_1fr] text-[13px] md:mt-0 md:grid">
+              <div className="mt-6 hidden grid-cols-[1fr_200px_1fr] text-[13px] md:mt-0 md:grid">
                 <p className="py-3 text-center text-[17px] text-white" style={{ background: WINE }}>LEONE</p>
                 <span />
                 <p className="py-3 text-center text-[17px] text-white" style={{ background: WINE }}>FERITO</p>
 
                 <p className="border-b border-white bg-[#EBEBEB] px-4 py-3.5 text-center font-medium">{LINES[0].feature}</p>
-                <p className="text-secondary flex items-center gap-2 px-4 text-[12px]">
+                <p className="text-secondary flex items-center justify-center gap-2 px-2 text-center text-[12px]">
                   <span aria-hidden="true">←</span>특징이 뭔가요?<span aria-hidden="true">→</span>
                 </p>
                 <p className="border-b border-white bg-[#EBEBEB] px-4 py-3.5 text-center font-medium">{LINES[1].feature}</p>
 
                 <p className="bg-[#EBEBEB] px-4 py-3.5 text-center font-medium">{LINES[0].body}</p>
-                <p className="text-secondary flex items-center gap-2 px-4 text-[12px]">
+                <p className="text-secondary flex items-center justify-center gap-2 px-2 text-center text-[12px]">
                   <span aria-hidden="true">←</span>어떤 사람에게 추천하나요?<span aria-hidden="true">→</span>
                 </p>
                 <p className="bg-[#EBEBEB] px-4 py-3.5 text-center font-medium">{LINES[1].body}</p>
@@ -157,7 +167,7 @@ export default function GuidePage() {
 
           {/* ── Size Selection Guide ── */}
           <Reveal>
-            <Section id="guide-size" en="Size Selection Guide" ko="체형에 따른 최적의 사이즈 선택 가이드">
+            <Section id="guide-size" bar={false} en="Size Selection Guide" ko="체형에 따른 최적의 사이즈 선택 가이드">
               <div className="flex flex-col gap-12">
                 {SIZE_TABLES.map((t) => (
                   <div key={t.line}>
@@ -174,9 +184,10 @@ export default function GuidePage() {
                         <thead>
                           <tr className="border-b border-[#D9D9D9] bg-[#F5F5F5]">
                             <td className="w-[60px]" />
-                            <th scope="col" className="w-[90px] py-2.5 font-medium">권장 체중</th>
+                            {/* 체중 숫자는 "권장 체중" 과 같은 고딕(2026-10-28 디자이너) */}
+                            <th scope="col" className="w-[90px] py-2.5 font-sans font-medium">권장 체중</th>
                             {t.weights.map((w) => (
-                              <th key={w} scope="col" className="py-2.5 font-normal">
+                              <th key={w} scope="col" className="py-2.5 font-sans font-normal">
                                 {w}
                               </th>
                             ))}
@@ -211,10 +222,38 @@ export default function GuidePage() {
             </Section>
           </Reveal>
 
+          {/* ── Made To Order (2026-10-28 디자이너 추가) ── */}
+          <Reveal>
+            <Section id="guide-order" en="Made To Order" ko="">
+              <div className="flex flex-col gap-6">
+                <div className="flex flex-col text-[13px] leading-[1.75]">
+                  <p>
+                    본 제품은 고객님의 주문이 확인된 후, 제작을 시작하는 <Hl><b>‘오더 메이드 제품’</b></Hl>입니다.
+                  </p>
+                  <p>한 벌의 완성을 위해 필요한 제작 기간을 거쳐, 정성스럽게 준비해 전해드립니다. 주문 전 제작 및 배송 일정을 확인해 주시기 바랍니다.</p>
+                </div>
+                <h3 className="text-[17px] font-bold leading-snug md:text-[19px]">제품별 오더 후, 제작 소요기간 안내</h3>
+                <table className="-mt-3 w-full max-w-[360px] border-collapse text-center text-[13px]">
+                  <caption className="sr-only">제품별 오더 후 제작 소요기간</caption>
+                  <tbody>
+                    {LEAD_TIMES.map((r) => (
+                      <tr key={r.items} className="border-b border-[#E3E3E3]">
+                        <th scope="row" className="w-1/2 bg-[#D9D9D9] py-2.5 font-bold">
+                          {r.items}
+                        </th>
+                        <td className="py-2.5">{r.time}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Section>
+          </Reveal>
+
           {/* ── Length Adjustment Guide ── */}
           <Reveal>
             <Section id="guide-length" en="Length Adjustment Guide" ko="기장 수선 가이드">
-              <div className="flex flex-col gap-1.5 text-[13px] leading-[1.9]">
+              <div className="flex flex-col text-[13px] leading-[1.75]">
                 <p>
                   레오네페리토는{" "}
                   <Hl>
@@ -245,7 +284,7 @@ export default function GuidePage() {
           {/* ── 개인 맞춤 제작 서비스 안내 ── */}
           <Reveal>
             <Section id="guide-bespoke" ko="개인 맞춤 제작 서비스 안내">
-              <div className="flex flex-col gap-1.5 text-[13px] leading-[1.9]">
+              <div className="flex flex-col text-[13px] leading-[1.75]">
                 <p>
                   레오네페리토(LEONEFERITO)는 전문 테일러샵 더맨리(THE MANLY)의 테일러링 기술과 제작 경험을 기반으로 탄생한 남성 포멀웨어
                   브랜드입니다.

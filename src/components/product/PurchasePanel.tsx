@@ -1,30 +1,25 @@
 "use client";
 
-import { ArrowDown, ArrowUpRight, InstagramLogo } from "@phosphor-icons/react/dist/ssr";
+import { ArrowUpRight, InstagramLogo } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
-import { Eyebrow } from "@/components/ui/Eyebrow";
 import { pendingLabel } from "@/lib/pending";
 
-import { LineSummary } from "@/components/product/LineBadge";
 import { SizeSelector } from "@/components/product/SizeSelector";
 import { usePurchase } from "@/components/product/usePurchase";
-import { CATEGORY_LABEL } from "@/types/product";
+import { LINE_LABEL } from "@/types/product";
 import type { Product } from "@/types/product";
-import { SHIPPING_LINES } from "@/data/shipping";
+import { SHIPPING } from "@/data/shipping";
 import { leadTimeText } from "@/lib/leadTime";
 
 /**
- * 구매 패널.
+ * 구매 판 — 상세 맨 위 오른쪽 (2026-10-28 디자이너 시안으로 다시 짰다).
  *
- * 순서 (고객 요청, 2026-09-30):
- *   상품명 → 가격 → 핏 → [색상] → 사이즈 → 인스타그램 → 구매 버튼
+ * 순서: 라인(레오네 · 페리토 구분) → 상품명 → 제품 설명 → 제작 기간 · 배송비 → 가격 → (선) → 작은 사진 다섯 칸 → 컬러 → 사이즈 → 버튼
  *
- * 색상은 자리만 정해졌다 — 색상별 사진·가격·사이즈 구조를 고객에게 확인 중이다.
- * TODO(고객확인) 색상 옵션 구조가 정해지면 사이즈 위에 넣는다.
+ * 2026-10-28 에 뺀 것: 분류 눈썹("— JACKET", 라인 표시로 바뀜), 한 줄 요약 · 라인 설명(제품 설명이 대신한다),
+ * "상세 사이즈 보기" 링크(아래 상세 사이즈 구간 제목과 함께 걷음), 버튼 아래 배송 · 교환 안내 세 줄.
  *
- * 상세 사이즈 차트와 모델 정보는 아래 "상세 사이즈" 구간으로 내려갔다(같은 요청).
- * 그래서 사이즈를 고르는 자리에 **거기로 내려가는 링크**를 둔다 — 차트를 안 보고
- * 고르게 되면 그 실패가 사이즈 교환 CS 로 돌아온다.
+ * PC 에서는 이 판이 왼쪽 큰 사진과 같은 높이라(ProductTop), 버튼 묶음을 맨 아래로 밀어(mt-auto) 사진 아랫단에 맞춘다.
  */
 
 function formatKrw(value: number | null): string | null {
@@ -32,89 +27,164 @@ function formatKrw(value: number | null): string | null {
   return new Intl.NumberFormat("ko-KR").format(value) + "원";
 }
 
-export function PurchasePanel({ product }: { product: Product }) {
-  // 담기 · 바로 구매 · 사이즈 선택 — 빠른 보기 팝업(QuickView)과 같은 규칙 (usePurchase)
+/**
+ * 컬러 동그라미 — 상품의 색상 칸(고시 · 엑셀 "색상")을 "/" · "," · "·" 로 나눠 색마다 하나.
+ * 이름을 아는 색만 칠하고, 모르는 색은 글자로 보여 준다(엉뚱한 색을 칠하는 것보다 낫다).
+ */
+const SWATCH: Record<string, string> = {
+  블랙: "#111111", 검정: "#111111", black: "#111111",
+  화이트: "#FFFFFF", 흰색: "#FFFFFF", white: "#FFFFFF",
+  아이보리: "#F3EEDF", ivory: "#F3EEDF", 크림: "#EFE6D2", cream: "#EFE6D2",
+  네이비: "#1E2A44", navy: "#1E2A44",
+  그레이: "#8A8A8A", 회색: "#8A8A8A", grey: "#8A8A8A", gray: "#8A8A8A", 라이트그레이: "#C9C9C9",
+  차콜: "#3A3D42", charcoal: "#3A3D42",
+  베이지: "#D7C6A5", beige: "#D7C6A5",
+  브라운: "#5B3A29", 갈색: "#5B3A29", brown: "#5B3A29", 카멜: "#B07A47", camel: "#B07A47",
+  카키: "#6B6A47", khaki: "#6B6A47", 올리브: "#5E6236", olive: "#5E6236", 그린: "#3F5E45", green: "#3F5E45",
+  블루: "#2F5D9E", blue: "#2F5D9E", 스카이블루: "#9CC3E6", skyblue: "#9CC3E6",
+  버건디: "#5E1F21", 와인: "#5E1F21", burgundy: "#5E1F21", wine: "#5E1F21",
+};
+
+function colorsOf(text: string | null | undefined): { name: string; hex: string | null }[] {
+  if (!text?.trim()) return [];
+  return text
+    .split(/[/,·]/)
+    .map((c) => c.trim())
+    .filter(Boolean)
+    .map((name) => ({ name, hex: SWATCH[name.replace(/\s/g, "").toLowerCase()] ?? SWATCH[name.replace(/\s/g, "")] ?? null }));
+}
+
+export function PurchasePanel({
+  product,
+  photoIndex = 0,
+  onPhoto,
+}: {
+  product: Product;
+  /** 큰 사진에 보이는 사진 번호 — ProductTop 이 들고 있다 */
+  photoIndex?: number;
+  onPhoto?: (i: number) => void;
+}) {
+  // 담기 · 바로 구매 · 사이즈 선택 (usePurchase)
   const { selectedSize, setSelectedSize, pending, notice, put } = usePurchase(product);
 
   const price = formatKrw(product.priceKrw);
   const listPrice = formatKrw(product.listPriceKrw);
+  const line = LINE_LABEL[product.line];
+  const about = product.description?.trim() || product.summary?.trim() || null;
+  const colors = colorsOf(product.notice?.color);
+  // 배송비 — 서버 배송 정책과 같은 기준(data/shipping). 기준 금액 이상이면 무료
+  const freeShipping = product.priceKrw !== null && product.priceKrw >= SHIPPING.freeThresholdKrw;
 
   return (
-    <div className="flex min-w-0 flex-col gap-4">
-      <Eyebrow>{CATEGORY_LABEL[product.category].en}</Eyebrow>
+    <div className="flex h-full min-w-0 flex-col gap-5">
+      <div className="flex flex-col gap-3">
+        {/* 라인 — 레오네 · 페리토 구분(2026-10-28 "가로 작대기 빼고 라인 구분 용도로") */}
+        <p className="text-accent text-2xs tracking-label">
+          {line.en} · {line.ko} ({line.kind})
+        </p>
 
-      <h1 className="font-display text-primary text-3xl leading-display tracking-display md:text-4xl">
-        {product.name ?? pendingLabel("제품명")}
-      </h1>
+        <h1 className="font-display text-primary text-3xl leading-display tracking-display md:text-4xl">
+          {product.name ?? pendingLabel("제품명")}
+        </h1>
 
-      {product.summary && (
-        <p className="text-secondary text-sm leading-relaxed">{product.summary}</p>
+        {about && (
+          <div className="text-secondary flex flex-col gap-2 text-sm leading-relaxed">
+            {about.split(/\n\s*\n/).map((para, i) => (
+              <p key={i} className="whitespace-pre-line">
+                {para.trim()}
+              </p>
+            ))}
+          </div>
+        )}
+
+        {/*
+          제작 기간 — 주문 후 만드는 옷이라 결제 전에 반드시 보여야 한다(전자상거래법, 약관 제14조).
+          가격 바로 위에 둔다. 사이즈를 다 고른 뒤에야 "3주 걸립니다" 를 보면 배신감이 든다.
+        */}
+        <div className="flex flex-col gap-0.5 text-xs">
+          <p className="text-muted">
+            {product.leadTimeDays != null ? (
+              <>
+                주문 후 제작 · <b className="text-primary font-medium">{leadTimeText(product.leadTimeDays, product.leadTimeMinDays)} 뒤 출고</b>
+              </>
+            ) : (
+              pendingLabel("제작 기간")
+            )}
+          </p>
+          {product.priceKrw !== null && (
+            <p className="text-muted">{freeShipping ? "무료배송" : `배송비 ${new Intl.NumberFormat("ko-KR").format(SHIPPING.feeKrw)}원`}</p>
+          )}
+        </div>
+
+        <div className="flex items-baseline gap-3">
+          <p className={`font-display text-2xl tabular-nums ${price ? "text-primary" : "text-muted"}`}>
+            {price ?? pendingLabel("판매가")}
+          </p>
+          {listPrice && <p className="text-accent text-(length:--fs-base) tabular-nums line-through">{listPrice}</p>}
+        </div>
+      </div>
+
+      <hr className="border-subtle" />
+
+      {/* 작은 사진 — 다섯 칸, 모두 같은 크기 네모(2026-10-28 "사이즈 다 똑같게"). 누르면 왼쪽 큰 사진이 바뀐다 */}
+      {product.images.length > 1 && (
+        <ul className="grid grid-cols-5 gap-2" aria-label="사진 고르기">
+          {product.images.slice(0, 5).map((p, i) => (
+            // 같은 사진을 두 칸에 올려도 겹치지 않게 순서를 키에 넣는다
+            <li key={`${i}-${p.url}`}>
+              <button
+                type="button"
+                onClick={() => onPhoto?.(i)}
+                aria-label={`${i + 1}번째 사진 보기`}
+                aria-current={i === photoIndex ? "true" : undefined}
+                className={`ease-fluid block aspect-[4/5] w-full overflow-hidden border transition-colors duration-300 ${
+                  i === photoIndex ? "border-accent" : "hover:border-accent/50 border-transparent"
+                }`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.url} alt="" className="h-full w-full object-cover" loading="lazy" />
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
 
-      <div className="flex items-baseline gap-3">
-        <p
-          className={`font-display text-2xl tabular-nums ${price ? "text-primary" : "text-muted"}`}
-        >
-          {price ?? pendingLabel("판매가")}
-        </p>
-        {listPrice && (
-          /* 정가 취소선은 버건디로. 서브 컬러가 실제로 일하는 몇 안 되는 자리다 —
-             세일이라는 사실이 한눈에 읽혀야 하고, 면적은 아주 좁다. */
-          <p className="text-accent text-(length:--fs-base) tabular-nums line-through">
-            {listPrice}
-          </p>
-        )}
-      </div>
+      {colors.length > 0 && (
+        <div className="flex flex-col gap-2.5">
+          <h2 className="text-primary text-sm font-medium">컬러</h2>
+          <ul className="flex flex-wrap items-center gap-3">
+            {colors.map((c) =>
+              c.hex ? (
+                <li key={c.name} title={c.name} className="flex items-center">
+                  <span
+                    aria-hidden="true"
+                    className="ring-strong block h-6 w-6 rounded-full ring-1 ring-offset-2"
+                    style={{ background: c.hex }}
+                  />
+                  <span className="sr-only">{c.name}</span>
+                </li>
+              ) : (
+                <li key={c.name} className="text-primary text-sm">
+                  {c.name}
+                </li>
+              ),
+            )}
+          </ul>
+        </div>
+      )}
 
-      {/*
-        제작 기간 — 주문 후 만드는 옷이라 결제 전에 반드시 보여야 한다(전자상거래법, 약관 제14조).
-        가격 바로 아래에 둔다. 사이즈를 다 고른 뒤에야 "3주 걸립니다" 를 보면 배신감이 든다.
-      */}
-      <p className="text-secondary text-xs">
-        {product.leadTimeDays != null ? (
-          <>
-            주문 후 제작 · <b className="text-primary font-medium">약 {leadTimeText(product.leadTimeDays, product.leadTimeMinDays)}</b> 뒤 출고
-          </>
-        ) : (
-          <span className="text-muted">{pendingLabel("제작 기간")}</span>
-        )}
-      </p>
-
-      <LineSummary line={product.line} />
-
-      <hr className="border-subtle my-2" />
-
-      <div className="flex items-baseline justify-between">
+      <div className="flex flex-col gap-2.5">
         <h2 className="text-primary text-sm font-medium">사이즈</h2>
-        {/* 같은 페이지 안의 이동이라 <a> 로 둔다. 화살표도 아래를 가리킨다. */}
-        <a
-          href="#size-detail"
-          className="text-accent hover:text-accent ease-fluid group inline-flex min-h-11 items-center gap-1.5 text-xs transition-colors duration-500"
-        >
-          상세 사이즈 보기
-          <span className="ease-fluid transition-transform duration-500 group-hover:translate-y-0.5">
-            <ArrowDown size={11} weight="light" aria-hidden="true" />
-          </span>
-        </a>
+        <SizeSelector skus={product.skus} value={selectedSize} onChange={setSelectedSize} />
       </div>
-
-      <SizeSelector
-        skus={product.skus}
-        value={selectedSize}
-        onChange={setSelectedSize}
-      />
 
       {product.instagramUrl && (
-        /*
-          바깥 사이트로 나가므로 새 창이다. 그 사실을 글로도 알린다 —
-          화면을 못 보는 사람에게는 창이 바뀐 걸 알 방법이 없다.
-          noopener: 열린 창이 이 페이지를 조작하지 못하게.
-        */
+        // 바깥 사이트로 나가므로 새 창이다. 그 사실을 글로도 알린다. noopener: 열린 창이 이 페이지를 조작하지 못하게
         <a
           href={product.instagramUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="border-interactive text-secondary hover:border-accent hover:text-primary ease-fluid group mt-1 inline-flex min-h-11 w-fit items-center gap-2 rounded-full border px-5 text-xs transition-colors duration-300"
+          className="border-interactive text-secondary hover:border-accent hover:text-primary ease-fluid group inline-flex min-h-11 w-fit items-center gap-2 rounded-full border px-5 text-xs transition-colors duration-300"
         >
           <InstagramLogo size={15} weight="light" aria-hidden="true" />
           인스타그램에서 보기
@@ -123,20 +193,11 @@ export function PurchasePanel({ product }: { product: Product }) {
         </a>
       )}
 
-      <hr className="border-subtle my-2" />
-
       {/*
-        주 버튼 — 포인트 컬러(고동색) 채움. 베이지 배경 대비 9.64:1 이라
-        면만으로도 버튼이 확실히 보인다. (다크 테마에서는 벨벳이 1.89:1 이라
-        골드 헤어라인으로 경계를 만들어야 했다 — 배경이 바뀌면 필요한 처치도 바뀐다)
-
-        화살표는 텍스트 옆에 맨몸으로 두지 않고 자체 원형 안에 넣는다.
-        hover 시 원이 대각선으로 밀려나며 버튼 내부에 운동감이 생긴다.
-
-        D1(판매 범위) 미확정 — 커머스 기준이다. 카탈로그로 확정되면 라벨만 바뀐다.
+        버튼 — PC 에서는 맨 아래로 밀어(mt-auto) 왼쪽 큰 사진의 아랫단에 맞춘다(2026-10-28 디자이너).
+        data-quick-avoid — 모바일에서 이 버튼들이 오른쪽 아래에 오면 퀵메뉴가 잠시 비킨다 (QuickMenu)
       */}
-      {/* data-quick-avoid — 모바일에서 이 버튼들이 오른쪽 아래에 오면 퀵메뉴가 잠시 비킨다 (QuickMenu) */}
-      <div data-quick-avoid="" className="mt-3 flex flex-col gap-2.5">
+      <div data-quick-avoid="" className="mt-2 flex flex-col gap-2.5 lg:mt-auto">
         <button
           type="button"
           disabled={!selectedSize || pending !== null}
@@ -174,27 +235,6 @@ export function PurchasePanel({ product }: { product: Product }) {
           </p>
         )}
       </div>
-
-      {/*
-        의류는 사이즈 교환이 CS 의 대부분이다. 구매 직전에 교환 조건이 보여야
-        "일단 사보고 안 맞으면 바꾸지" 라는 결심이 선다.
-      */}
-      <ul className="mt-2 flex flex-col gap-2">
-        {[
-          // 배송 · 교환 정책 (data/shipping.ts — 서버 배송비 설정과 같은 값)
-          `${SHIPPING_LINES.fee} · 제주 · 도서산간 추가`,
-          SHIPPING_LINES.exchange,
-          SHIPPING_LINES.exchangeFee,
-        ].map((line) => (
-          <li key={line} className="text-muted flex gap-2 text-xs">
-            <span
-              aria-hidden="true"
-              className="bg-strong mt-2 h-px w-2.5 shrink-0"
-            />
-            <span>{line}</span>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

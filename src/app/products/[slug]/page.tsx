@@ -4,15 +4,13 @@ import { notFound } from "next/navigation";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Reveal } from "@/components/motion/Reveal";
-import { ModelInfo } from "@/components/product/ModelInfo";
-import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductNoticeTable } from "@/components/product/ProductNoticeTable";
-import { PurchasePanel } from "@/components/product/PurchasePanel";
+import { ProductTop } from "@/components/product/ProductTop";
 import { SizeChart } from "@/components/product/SizeChart";
 import { getCatalog, getCatalogProduct } from "@/lib/catalog";
 import { openGraphBase } from "@/lib/metadata";
 import { JsonLd, productStructuredData } from "@/lib/structuredData";
-import { CATEGORY_LABEL, LINE_LABEL, type Product } from "@/types/product";
+import { CATEGORY_LABEL, LINE_LABEL } from "@/types/product";
 
 /**
  * 상품 상세.
@@ -102,27 +100,8 @@ export default async function ProductDetailPage({
         */}
         <div className="on-cream on-white">
         <div className="mx-auto max-w-[1320px] px-5 py-12 md:px-15 md:py-20">
-          {/*
-            모바일은 세로로 쌓고, 데스크톱은 이미지 : 정보 = 대략 7 : 5.
-            정보 컬럼이 좁으면 실측표가 가로 스크롤을 타게 되어 핵심 정보가 묻힌다.
-          */}
-          <div className="grid gap-12 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-20">
-            {/*
-              min-w-0 이 필요하다. grid 자식의 기본 min-width 는 auto 라
-              "내용보다 작아지지 않는다" 가 기본이고, 정보 컬럼 안의 실측표가
-              min-w-[420px] 를 갖고 있어서 375px 화면에서 컬럼을 434px 로 밀어냈다.
-              (실측표 자체는 이미 overflow-x-auto 로 감싸져 있는데, 그걸 감싼
-               이 래퍼가 못 줄어들면 소용이 없다 — 페이지가 통째로 가로 스크롤을 탄다)
-            */}
-            <Reveal className="min-w-0">
-              <ProductGallery photos={product.images} name={product.name} />
-            </Reveal>
-            <Reveal delay={140} className="min-w-0">
-              <PurchasePanel product={product} />
-            </Reveal>
-          </div>
-
-          <ProductStory product={product} />
+          {/* 큰 사진 + 구매 판 — 작은 사진 줄 · 버튼 정렬은 ProductTop (2026-10-28 디자이너 시안) */}
+          <ProductTop product={product} />
         </div>
         </div>
 
@@ -136,23 +115,11 @@ export default async function ProductDetailPage({
             · 첫 장만 바로, 나머지는 스크롤해서 다가올 때 받는다(lazy)
           상세 이미지가 없으면 자리표시자를 둔다(촬영본 준비 중).
         */}
-        <section className="on-cream on-white" aria-labelledby="detail-heading">
-          <div className="mx-auto max-w-[1320px] px-5 pt-24 text-center md:px-15 md:pt-32">
-            <Reveal>
-              <p className="text-muted text-2xs tracking-label">DETAIL</p>
-            </Reveal>
-            <Reveal delay={100}>
-              <h2
-                id="detail-heading"
-                className="font-display text-primary mt-3 text-3xl leading-display tracking-display md:text-4xl"
-              >
-                제품 상세
-              </h2>
-            </Reveal>
-          </div>
+        <section className="on-cream on-white pt-16 md:pt-24" aria-label="제품 상세">
+          {/* "DETAIL 제품 상세" 제목은 2026-10-28 디자이너 요청으로 걷었다 — 상세 이미지가 바로 이어진다 */}
 
           {product.story.length > 0 ? (
-            <div className="mx-auto mt-12 flex w-full max-w-[860px] flex-col pb-24 md:pb-32">
+            <div className="mx-auto flex w-full max-w-[860px] flex-col pb-24 md:pb-32">
               {product.story.map((photo, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -171,7 +138,7 @@ export default async function ProductDetailPage({
             <div className="mx-auto max-w-[1320px] px-5 pb-24 md:px-15 md:pb-32">
               <Reveal delay={180}>
                 {/* 사진 자리다. 실제 촬영본 배경이 버건디라 그 톤을 미리 보여준다 */}
-                <div className="mx-auto mt-12 max-w-[860px]">
+                <div className="mx-auto max-w-[860px]">
                   <div
                     className="flex aspect-[9/7] items-center justify-center rounded-none"
                     style={{
@@ -194,34 +161,11 @@ export default async function ProductDetailPage({
           모델 정보도 함께 왔다. 둘 다 "내 몸에 맞는가" 를 판단하는 재료다.
         */}
         <div className="on-cream on-white">
-        <section
-          id="size-detail"
-          className="scroll-mt-24"
-          aria-labelledby="size-detail-heading"
-        >
-          <div className="mx-auto max-w-[1320px] px-5 py-24 md:px-15 md:py-32">
-            <div className="text-center">
-              <Reveal>
-                <p className="text-muted text-2xs tracking-label">SIZE</p>
-              </Reveal>
-              <Reveal delay={100}>
-                <h2
-                  id="size-detail-heading"
-                  className="font-display text-primary mt-3 text-3xl leading-display tracking-display md:text-4xl"
-                >
-                  상세 사이즈
-                </h2>
-              </Reveal>
-            </div>
-
-            <div className="mx-auto mt-12 flex max-w-[900px] min-w-0 flex-col gap-6">
-              <SizeChart
-                chart={product.sizeChart}
-                basis={product.measurements.basis}
-                tolerance={product.measurements.tolerance}
-                headingId="size-detail-heading"
-              />
-              <ModelInfo model={product.model} />
+        <section id="size-detail" className="scroll-mt-24" aria-label="상세 사이즈">
+          <div className="mx-auto max-w-[1320px] px-5 py-12 md:px-15 md:py-16">
+            {/* "SIZE 상세 사이즈" 제목 · 크게 보기 · 측정 기준 · 모델 정보는 2026-10-28 디자이너 요청으로 걷었다 — 차트 이미지만 */}
+            <div className="mx-auto flex max-w-[900px] min-w-0 flex-col">
+              <SizeChart chart={product.sizeChart} />
             </div>
           </div>
         </section>
@@ -232,40 +176,5 @@ export default async function ProductDetailPage({
 
       <Footer />
     </>
-  );
-}
-
-/**
- * 제품 이야기 — 설명 · 디자인 의도 · 특징. 관리자가 적은 글이다.
- *
- * 셋 다 비어 있으면 구간을 그리지 않는다. 빈 제목만 남으면 "준비 안 된 가게" 로 보인다.
- * 문단은 빈 줄로 나눈다 — 관리자 화면의 여러 줄 입력이 그대로 문단이 된다.
- */
-function ProductStory({ product }: { product: Product }) {
-  const blocks = [
-    { key: "description", title: "제품 설명", text: product.description },
-    { key: "intent", title: "디자인 의도", text: product.intent },
-    { key: "features", title: "특징", text: product.features },
-  ].filter((b): b is { key: string; title: string; text: string } => !!b.text?.trim());
-
-  if (blocks.length === 0) return null;
-
-  return (
-    <section aria-label="제품 설명" className="border-subtle mt-16 grid gap-10 border-t pt-12 md:grid-cols-3 md:gap-12">
-      {blocks.map((b) => (
-        <div key={b.key} className="min-w-0">
-          <h2 className="text-primary text-sm font-medium">{b.title}</h2>
-          <div className="text-secondary mt-3 flex flex-col gap-3 text-sm leading-relaxed">
-            {b.text
-              .split(/\n\s*\n/)
-              .map((para, i) => (
-                <p key={i} className="whitespace-pre-line">
-                  {para.trim()}
-                </p>
-              ))}
-          </div>
-        </div>
-      ))}
-    </section>
   );
 }

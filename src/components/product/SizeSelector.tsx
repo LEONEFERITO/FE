@@ -28,7 +28,7 @@ export function SizeSelector({ skus, value, onChange }: SizeSelectorProps) {
       <div
         role="radiogroup"
         aria-label="사이즈"
-        className="grid grid-cols-4 gap-2.5"
+        className="grid grid-cols-4 gap-2"
       >
         {skus.map((sku) => {
           const isSoldOut = !sku.orderable;
@@ -45,7 +45,8 @@ export function SizeSelector({ skus, value, onChange }: SizeSelectorProps) {
               onClick={() => onChange(sku.size)}
               className={[
                 // 칸 높이를 같게 — 품절 칸만 두 줄(사이즈 + "품절")이라 높이를 고정하고 가운데에 놓는다
-                "ease-fluid flex min-h-[3.5rem] flex-col items-center justify-center gap-0.5 rounded-xl border text-[15px] tabular-nums transition-all duration-500",
+                // 2026-10-28 디자이너 시안: 둥근 알약 모양, 조금 낮게
+                "ease-fluid flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-full border text-[14px] tabular-nums transition-all duration-500",
                 isSelected
                   ? "border-accent bg-accent-tint text-accent"
                   : isSoldOut

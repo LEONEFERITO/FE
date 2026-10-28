@@ -102,6 +102,21 @@ const IMAGE_SLOTS = [
     aspect: "square" as const,
     required: false,
   },
+  // 상세 작은 사진 줄 다섯 칸(대표 · 착용 · 디테일 · 추가 1 · 추가 2) — 2026-10-28 디자이너 "똑같은 규격 사진 5개" (서버 V41)
+  {
+    key: "EXTRA_1",
+    label: "추가 사진 1",
+    hint: "상세 작은 사진 넷째 칸. 다섯 장 모두 같은 비율(세로 4:5)이면 가지런히 보입니다.",
+    aspect: "portrait" as const,
+    required: false,
+  },
+  {
+    key: "EXTRA_2",
+    label: "추가 사진 2",
+    hint: "상세 작은 사진 다섯째 칸.",
+    aspect: "portrait" as const,
+    required: false,
+  },
   {
     key: "CUTOUT",
     label: "누끼샷",
