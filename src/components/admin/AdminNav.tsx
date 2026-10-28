@@ -9,7 +9,7 @@ import { signOut } from "@/lib/auth";
 /**
  * 관리자 메뉴 — 왼쪽 세로 메뉴 (2026-10-06 고객 요청: "옆에 메뉴 있고 이런 식으로").
  *
- * 매일 여는 순서대로: 대시보드 · 주문 · 교환/반품 · 상품 · 메인 배너 · 메인 구성 · 사이트 사진(하위 다섯) · WHY 구간 · 회원,
+ * 매일 여는 순서대로: 대시보드 · 주문 · 교환/반품 · 상품 · 메인 배너 · 메인 구성 · 사이트 사진(하위 다섯) · 가이드 · 회원,
  * 그다음 가끔 여는 것: 통계 · 공지 · FAQ. 지금 있는 곳은 주소(pathname)로 알아내 aria-current 로 알린다 —
  * 페이지마다 section 을 넘기지 않아도 된다.
  *
@@ -33,10 +33,11 @@ const ITEMS = [
       { href: "/admin/display/lookbook/", label: "룩북" },
       { href: "/admin/display/brand/", label: "브랜드 페이지" },
       { href: "/admin/display/offline/", label: "매장 사진" },
-      { href: "/admin/display/auth/", label: "로그인 화면" },
     ],
   },
-  { key: "why", href: "/admin/display/why/", label: "메인 WHY 구간" },
+  // 2026-10-28: 메인 WHY 구간은 메인에서 빠졌다(Find your Fit 으로 바뀜) — 메뉴에서 걷었다. 화면(/admin/display/why/)은 남아 있다.
+  // 로그인 화면 사진도 패널이 검은 상자가 되면서 걷었다.
+  { key: "guide", href: "/admin/display/guide/", label: "가이드 · 제작 기간" },
   { key: "business", href: "/admin/display/business/", label: "푸터 · 사업자 정보" },
   { key: "members", href: "/admin/members/", label: "회원 관리" },
   { key: "accessLogs", href: "/admin/access-logs/", label: "접속 기록" },

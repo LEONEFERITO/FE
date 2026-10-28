@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Reveal } from "@/components/motion/Reveal";
+import { LINE_GUIDE } from "@/data/lineGuide";
+import { getGuideLeadTimes } from "@/lib/guide";
 import { shareMetadata } from "@/lib/metadata";
 
 /**
@@ -25,18 +27,8 @@ export const metadata: Metadata = shareMetadata({
 
 const WINE = "#5E1F21";
 
-const LINES = [
-  {
-    name: "LEONE",
-    feature: "절제된 실루엣과 클래식한 미학을 담아낸 라인",
-    body: "일반체형 / 표준체형 / 평균체형",
-  },
-  {
-    name: "FERITO",
-    feature: "운동형 체형의 입체적인 실루엣과 조형미를 역동적으로 담아낸 라인",
-    body: "운동형체형 / 근육형체형 / 근육발달형체형 / 역삼각형체형",
-  },
-] as const;
+/** 두 라인 비교 — 메인 Find your Fit 과 같은 글(data/lineGuide) */
+const LINES = LINE_GUIDE;
 
 interface SizeTable {
   line: string;
@@ -70,13 +62,6 @@ const SIZE_TABLES: SizeTable[] = [
   },
 ];
 
-/** 제품별 제작 소요기간 — 시안 그대로 (2026-10-28) */
-const LEAD_TIMES = [
-  { items: "자켓 / 팬츠 / 베스트", time: "14~18일" },
-  { items: "셔츠 / 구두 / 로퍼", time: "7~10일" },
-  { items: "넥타이", time: "바로 출고" },
-];
-
 /** 시안의 노란 형광 강조 */
 function Hl({ children }: { children: React.ReactNode }) {
   return <mark className="bg-[#E9CD8C]/80 text-inherit box-decoration-clone px-0.5">{children}</mark>;
@@ -99,7 +84,9 @@ function Section({ id, en, ko, bar = true, children }: { id: string; en?: string
   );
 }
 
-export default function GuidePage() {
+export default async function GuidePage() {
+  // 제품별 제작 소요기간 — 관리자 › 가이드 · 제작 기간에서 고친다(서버 V42). 빌드할 때 받는다
+  const leadTimes = await getGuideLeadTimes();
   return (
     <>
       <Header />
@@ -236,8 +223,8 @@ export default function GuidePage() {
                 <table className="-mt-3 w-full max-w-[360px] border-collapse text-center text-[13px]">
                   <caption className="sr-only">제품별 오더 후 제작 소요기간</caption>
                   <tbody>
-                    {LEAD_TIMES.map((r) => (
-                      <tr key={r.items} className="border-b border-[#E3E3E3]">
+                    {leadTimes.map((r) => (
+                      <tr key={`${r.items}-${r.time}`} className="border-b border-[#E3E3E3]">
                         <th scope="row" className="w-1/2 bg-[#D9D9D9] py-2.5 font-bold">
                           {r.items}
                         </th>

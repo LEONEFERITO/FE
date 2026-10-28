@@ -9,6 +9,7 @@ import { HeroReveal } from "@/components/home/HeroReveal";
 import { HeroSplit } from "@/components/home/HeroSplit";
 import { LineChooser } from "@/components/home/LineChooser";
 import { OfflineShop } from "@/components/home/OfflineShop";
+import { FindYourFit } from "@/components/home/FindYourFit";
 import { WhyScroll } from "@/components/home/WhyScroll";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
@@ -127,7 +128,8 @@ export default async function Home() {
               2026-10-17 디자이너 시안으로 모양이 뒤집혔다: 검은 바탕, 왼쪽 상자 안에 사진, 오른쪽에 관리자가 적은 글
               (전에는 사진 위에 크림 글자 판). 판 모양(panel · mobile="cover-dark")은 컴포넌트에 남아 있다.
             */}
-            <WhyScroll layout="split" content={why} fallbackImage={background} />
+            {/* 2026-10-28 디자이너: 이 자리를 "Find your Fit"(두 라인 비교)으로 바꿨다. 예전 WHY 구간은 아래 주석의 사연으로 남긴다 */}
+            <FindYourFit />
 
             {/* 두 라인 → 제품 격자. 카드 사진은 관리자 사진 → 룩북 대표 컷 → 그 라인의 첫 상품 사진 (LineChooser) */}
             <LineChooser

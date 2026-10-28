@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { PasswordResetForm } from "@/components/auth/PasswordResetForm";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
-import { Eyebrow } from "@/components/ui/Eyebrow";
 
 /**
  * 새 비밀번호 정하기 — 비밀번호 찾기 메일 속 링크(/reset/#token=…)로 들어온다.
@@ -24,8 +23,8 @@ export default function Page() {
       <Header />
       <main id="main" className="on-cream flex-1">
         <div className="mx-auto w-full max-w-[440px] px-5 py-16 md:py-24">
-          <Eyebrow>ACCOUNT</Eyebrow>
-          <h1 className="font-display text-primary leading-display tracking-display mt-3 text-3xl md:text-4xl">
+          {/* 제목 위 "— ACCOUNT" 는 2026-10-28 디자이너 요청으로 뺐다 */}
+          <h1 className="font-display text-primary leading-display tracking-display text-3xl md:text-4xl">
             새 비밀번호
           </h1>
           <p className="text-secondary mt-4 text-sm leading-relaxed">

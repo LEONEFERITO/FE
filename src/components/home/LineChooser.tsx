@@ -55,16 +55,10 @@ export function LineChooser({
 
   return (
     // 2026-10-06 고객 요청: 이 구간 바탕은 검정 — 라인 페이지(검정 · 빨강)와 한 공기
-    <section aria-labelledby="lines-heading" className="bg-[#000000]">
+    // 2026-10-28 디자이너: "레오네 · 페리토, 두 가지 라인" 제목을 걷고, 그 자리만큼 사진을 세로로 길게(3:4)
+    <section aria-label="두 가지 라인" className="bg-[#000000]">
       <div className="mx-auto max-w-[1320px] px-5 py-16 md:px-15 md:py-32">
-        <h2
-          id="lines-heading"
-          className="font-display text-accent leading-display tracking-display text-center text-2xl md:text-4xl"
-        >
-          레오네 · 페리토, 두 가지 라인
-        </h2>
-
-        <ul className="mt-8 grid grid-cols-2 gap-3 md:mt-16 md:gap-8">
+        <ul className="grid grid-cols-2 gap-3 md:gap-8">
           {LINES.map((line) => {
             const label = LINE_LABEL[line];
             const photo = photoOf(line);
@@ -72,10 +66,10 @@ export function LineChooser({
               <li key={line} className="min-w-0">
                 <Link
                   href={lineHref(line)}
-                  className="group bg-velvet ease-fluid relative flex flex-col transition-transform duration-700 hover:-translate-y-1 md:min-h-[560px] md:justify-end md:overflow-hidden"
+                  className="group bg-velvet ease-fluid relative flex flex-col transition-transform duration-700 hover:-translate-y-1 md:aspect-[3/4] md:justify-end md:overflow-hidden"
                 >
-                  {/* 사진 — 폰은 4:5 한 장, 데스크톱은 카드 전체 */}
-                  <span className="relative block aspect-[4/5] overflow-hidden md:absolute md:inset-0 md:aspect-auto">
+                  {/* 사진 — 폰은 3:4 한 장, 데스크톱은 카드(3:4) 전체 */}
+                  <span className="relative block aspect-[3/4] overflow-hidden md:absolute md:inset-0 md:aspect-auto">
                     {photo && (
                       /* eslint-disable-next-line @next/next/no-img-element */
                       <img
@@ -96,16 +90,17 @@ export function LineChooser({
                     />
                   </span>
 
-                  {/* 글자 — 폰은 사진 아래 띠(왼쪽 정렬), 데스크톱은 사진 위 가운데 */}
-                  <span className="bg-[#000000] relative flex flex-col pt-4 md:items-center md:bg-transparent md:px-6 md:pb-12 md:pt-24 md:text-center">
-                    <span className="font-display tracking-display text-2xl text-[#F7F1EA] md:text-5xl">{label.en}</span>
-                    <span className="text-2xs tracking-label text-accent mt-1.5 md:mt-4 md:text-[#F7F1EA]/85">
-                      {label.kind} 라인
-                    </span>
-                    <span className="mt-2.5 text-xs leading-relaxed text-[#F7F1EA]/75 md:mt-3 md:max-w-sm md:text-sm md:text-[#F7F1EA]/90">
+                  {/*
+                    글자 — 폰은 사진 아래 띠(왼쪽 정렬), 데스크톱은 사진 위 가운데.
+                    순서(2026-10-28 디자이너): 작은 "클래식 라인" → 큰 "LEONE" → 설명 → 라인 보기
+                  */}
+                  <span className="bg-[#000000] relative flex flex-col pt-4 md:items-center md:bg-transparent md:px-6 md:pb-14 md:pt-24 md:text-center">
+                    <span className="text-2xs tracking-label text-accent md:text-xs md:text-[#F7F1EA]/85">{label.kind} 라인</span>
+                    <span className="font-display tracking-display mt-1 text-2xl text-[#F7F1EA] md:mt-2 md:text-5xl">{label.en}</span>
+                    <span className="mt-2.5 text-xs leading-relaxed text-[#F7F1EA]/75 md:mt-5 md:max-w-sm md:text-sm md:text-[#F7F1EA]/90">
                       {label.description}
                     </span>
-                    <span className="text-2xs tracking-button ease-fluid mt-4 inline-flex items-center gap-1.5 text-[#F7F1EA] transition-transform duration-500 group-hover:translate-x-0.5 md:mt-6 md:gap-2">
+                    <span className="text-2xs tracking-button ease-fluid mt-4 inline-flex items-center gap-1.5 text-[#F7F1EA] transition-transform duration-500 group-hover:translate-x-0.5 md:mt-7 md:gap-2">
                       라인 보기
                       <ArrowRight size={13} weight="light" aria-hidden="true" />
                     </span>

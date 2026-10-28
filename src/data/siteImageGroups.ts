@@ -47,14 +47,14 @@ export const SITE_IMAGE_GROUPS: SiteImageGroup[] = [
     key: "main-lines",
     href: "/admin/display/main-lines/",
     title: "메인 라인 카드",
-    description: "메인의 '레오네 · 페리토, 두 가지 라인' 카드 두 장입니다. 비우면 그 라인의 첫 상품 사진이 나갑니다.",
+    description: "메인의 레오네 · 페리토 카드 두 장입니다(세로 3:4 로 잘립니다). 비우면 그 라인의 첫 상품 사진이 나갑니다.",
     previewHref: "/",
     columns: 2,
     sections: [
       {
         title: "두 가지 라인",
         slots: [
-          { slot: "MAIN_LINE_LEONE", label: "레오네 카드", hint: "세로 사진. 글자(LEONE · 설명 · 라인 보기)가 아래쪽에 얹힙니다.", aspect: "portrait" },
+          { slot: "MAIN_LINE_LEONE", label: "레오네 카드", hint: "세로 3:4 사진. 글자(클래식 라인 · LEONE · 설명 · 라인 보기)가 아래쪽에 얹힙니다.", aspect: "portrait" },
           { slot: "MAIN_LINE_FERITO", label: "페리토 카드", hint: "세로 사진. 글자가 아래쪽에 얹힙니다.", aspect: "portrait" },
         ],
       },
@@ -133,20 +133,6 @@ export const SITE_IMAGE_GROUPS: SiteImageGroup[] = [
       {
         title: "OFFLINE SHOP",
         slots: [{ slot: "OFFLINE_SHOP", label: "매장 사진", hint: "가로 · 세로 어느 쪽이든 칸에 맞게 잘립니다. 제목이 왼쪽 아래에 얹히므로 그 자리가 어두운 사진이 읽기 좋습니다.", aspect: "square" }],
-      },
-    ],
-  },
-  {
-    key: "auth",
-    href: "/admin/display/auth/",
-    title: "로그인 화면 사진",
-    description: "로그인 · 회원가입 카드에서 미끄러지는 와인 패널의 배경 사진입니다. 위에 와인색이 반투명으로 덮이고 문구가 얹힙니다. 비우면 사진 없이 와인 그라데이션만 나갑니다.",
-    previewHref: "/login/",
-    columns: 2,
-    sections: [
-      {
-        title: "패널 배경",
-        slots: [{ slot: "AUTH_PANEL", label: "배경 사진", hint: "세로 사진이 잘 맞습니다(PC 패널은 세로로 길고, 휴대폰은 위쪽 띠라 가운데가 잘려 나갑니다). 가운데에 문구가 얹히므로 가운데가 너무 밝지 않은 사진이 좋습니다.", aspect: "portrait" }],
       },
     ],
   },

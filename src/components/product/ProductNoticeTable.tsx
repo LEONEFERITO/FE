@@ -1,6 +1,5 @@
 import { Warning } from "@phosphor-icons/react/dist/ssr";
 import type { ProductNotice } from "@/types/product";
-import { Eyebrow } from "@/components/ui/Eyebrow";
 import { pendingHint } from "@/lib/pending";
 
 /**
@@ -35,10 +34,10 @@ export function ProductNoticeTable({ notice }: { notice: ProductNotice }) {
       aria-labelledby="notice-heading"
     >
       <div className="mx-auto max-w-[1320px] px-5 py-24 md:px-15 md:py-32">
-        <Eyebrow>LEGAL</Eyebrow>
+        {/* 제목 위 "— LEGAL" 은 2026-10-28 디자이너 요청으로 뺐다 */}
         <h2
           id="notice-heading"
-          className="font-display text-primary mt-3 text-2xl leading-display tracking-display"
+          className="font-display text-primary text-2xl leading-display tracking-display"
         >
           상품정보제공고시
         </h2>

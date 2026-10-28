@@ -147,7 +147,8 @@ export function QuickMenu() {
             <>
               <span className="bg-surface/95 text-primary border-subtle shadow-soft rounded-full border px-3.5 py-1.5 text-xs whitespace-nowrap backdrop-blur">
                 {item.label}
-                {item.key === "call" && <span className="text-muted ml-1.5 tabular-nums">{CALL_NUMBER}</span>}
+                {/* 번호는 고딕(2026-10-28 디자이너) — 명조 숫자는 작게 보면 0 · 8 이 헷갈린다 */}
+                {item.key === "call" && <span className="text-muted ml-1.5 font-sans tabular-nums">{CALL_NUMBER}</span>}
               </span>
               <span className={`shadow-soft flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${item.iconClass}`}>
                 {item.icon}

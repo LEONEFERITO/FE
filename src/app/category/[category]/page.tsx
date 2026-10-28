@@ -67,8 +67,7 @@ export default async function CategoryPage({ params }: PageProps<"/category/[cat
           <p className="text-secondary mt-2 text-sm">{ko}</p>
         </header>
 
-        {/* 카드의 상품명이 h3 이라 그 위 단계를 둔다 — 화면에는 보이지 않는다 */}
-        <h2 className="sr-only">{ko} 상품 목록</h2>
+        {/* 라인 이름(LEONE · FERITO)이 h2, 카드의 상품명이 h3 — CategoryProducts */}
         <div className="pb-24 md:pb-32">
           {/* 세부 메뉴(?sub=)는 브라우저에서 읽는다. 빌드 HTML 에는 분류 전체가 나간다 */}
           <Suspense fallback={<CategoryProducts products={products} />}>

@@ -164,6 +164,14 @@ export interface SiteBusiness {
 export const adminSiteBusiness = () => request<SiteBusiness>("GET", "/api/admin/site-business");
 export const saveSiteBusiness = (input: SiteBusiness) => request<SiteBusiness>("PUT", "/api/admin/site-business", input);
 
+/** 서버 V42 — 가이드 페이지 "제품별 제작 소요기간" 표. 1~12줄, 품목 60자 · 기간 30자 */
+export interface SiteGuide {
+  leadTimes: { items: string; time: string }[];
+}
+
+export const adminSiteGuide = () => request<SiteGuide>("GET", "/api/admin/site-guide");
+export const saveSiteGuide = (input: SiteGuide) => request<SiteGuide>("PUT", "/api/admin/site-guide", input);
+
 // ── 사이트 사진 칸 (매장 사진 등) ────────────────────────────
 
 /** 서버의 SiteImageSlot 과 같은 값 (lib/siteImages.ts 의 손님용 타입과도 같다). */

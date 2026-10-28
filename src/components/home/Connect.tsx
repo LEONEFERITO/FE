@@ -43,8 +43,9 @@ const CHANNELS: Channel[] = [
 // 모서리는 둥글게 — 2026-10-20 디자이너 "각지게 말고 rounded 로".
 // rounded-xl 은 쓰면 안 된다: globals.css 가 사이트 전체 모서리를 직각으로 고정해(--radius-* = 0, 2026-10-06 고객 요청)
 // 토큰 클래스는 0 으로 풀린다. 그래서 토큰을 타지 않는 값(rounded-[12px])을 직접 쓴다 — 이 상자만 둥글다.
+// 2026-10-28 디자이너: 상자를 더 높게, 글자는 상자 정가운데. 줄 높이를 글자 높이에 맞춰(leading-none) 위아래 여백이 똑같게 한다
 const TILE =
-  "font-display flex min-h-14 w-full items-center justify-center rounded-[12px] px-3 text-center text-sm tracking-[0.04em] md:min-h-16 md:text-base";
+  "font-display flex min-h-[72px] w-full items-center justify-center rounded-[12px] px-3 text-center text-sm leading-none tracking-[0.04em] md:min-h-[104px] md:text-base";
 
 export function Connect() {
   return (

@@ -84,7 +84,7 @@ const IMAGE_SLOTS = [
   {
     key: "MAIN",
     label: "대표 이미지",
-    hint: "목록 카드와 상세 첫 화면에 쓰입니다. 세로 3:4 권장.",
+    hint: "목록 카드와 상세 큰 사진 · 작은 사진 첫 칸에 쓰입니다. 세로 4:5 권장(목록 카드는 조금 더 길게 가운데가 잘립니다).",
     aspect: "portrait" as const,
     required: true,
   },
@@ -604,7 +604,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
           onChange={setSummary}
           max={LIMITS.summary}
           placeholder="몸을 따라 떨어지는 포멀"
-          hint="목록 카드에서 이름 아래 한 줄로 보입니다."
+          hint="검색 결과 · 공유 미리보기 설명과 빠른 보기에 나옵니다. 제품 설명이 비어 있으면 상세 맨 위에도 대신 나옵니다."
           error={submitted ? errors.summary : undefined}
         />
 
@@ -817,7 +817,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
             max={LIMITS.body}
             multiline
             rows={6}
-            hint="상세 페이지 본문입니다."
+            hint="상세 맨 위, 상품명 바로 아래에 나옵니다. 빈 줄로 문단을 나눌 수 있습니다."
             error={submitted ? errors.description : undefined}
           />
         </fieldset>

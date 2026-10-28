@@ -1,4 +1,3 @@
-import { Eyebrow } from "@/components/ui/Eyebrow";
 
 /**
  * 내용 페이지의 제목 띠 — 와인 면.
@@ -24,8 +23,9 @@ export function PageBand({
     <div className="bg-stage">
       <div className="mx-auto flex max-w-[1320px] flex-col gap-6 px-5 py-12 md:flex-row md:items-end md:justify-between md:px-15 md:py-16">
         <div>
-          <Eyebrow>{eyebrow}</Eyebrow>
-          <h1 className="font-display text-primary leading-display tracking-display mt-3 text-3xl md:text-4xl">
+          {/* 제목 위 작은 영문 표시("— CART" · "— ACCOUNT" …)는 2026-10-28 디자이너 요청으로 그리지 않는다. 화면 낭독기에는 남긴다 */}
+          <span className="sr-only">{eyebrow}</span>
+          <h1 className="font-display text-primary leading-display tracking-display text-3xl md:text-4xl">
             {title}
           </h1>
           {description && (

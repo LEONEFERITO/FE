@@ -6,7 +6,6 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
 import { Logo } from "@/components/brand/Logo";
 import { AUTH_CONNECTED } from "@/lib/auth";
-import type { SiteImage } from "@/lib/siteImages";
 
 type Mode = "login" | "signup";
 
@@ -19,22 +18,24 @@ const SignupFormMemo = memo(SignupForm);
  * 로그인 · 회원가입 한 카드 (2026-10-26 고객 레퍼런스 영상 — 짙은 패널이 좌우로 미끄러지며 폼이 바뀐다).
  *
  * ── 모양 ────────────────────────────────────────────────
- * PC: 카드 왼쪽 절반이 로그인, 오른쪽 절반이 회원가입. 와인 패널이 안 쓰는 쪽을 덮는다 —
+ * PC: 카드 왼쪽 절반이 로그인, 오른쪽 절반이 회원가입. 검은 패널이 안 쓰는 쪽을 덮는다 —
  *     로그인 중이면 패널이 오른쪽("처음 오셨나요 → 회원가입"), 회원가입 중이면 왼쪽("다시 오셨군요 → 로그인").
- * 폰: 좌우로 나눌 폭이 없다. 위에 와인 띠(같은 문구 · 전환 버튼), 아래에 지금 폼 하나 — 바뀔 때 옆에서 밀려 들어온다.
+ * 폰: 좌우로 나눌 폭이 없다. 위에 전환 알약, 아래에 지금 폼 하나 — 바뀔 때 옆에서 밀려 들어온다.
+ *
+ * 2026-10-28: 패널은 사진 · 물결 없이 완전 검정(디자이너 "검은 상자" → 고객 "완전 블랙으로"). 미끄러지는 움직임 · 모양은 그대로.
+ * 관리자 «로그인 화면 사진» 메뉴도 걷었다. 폰의 전환 알약도 같은 검정이다.
  *
  * ── 버벅이지 않게 (2026-10-26 요청 "렉 · 버벅거림 최소로") ────
  * - 움직이는 건 transform · opacity 뿐이다 — 레이아웃을 다시 계산하는 속성(left · width · height)은 건드리지 않는다.
  * - 패널은 자기 레이어(will-change: transform)라 밀리는 동안 아래 폼을 다시 그리지 않는다.
- * - 물결 배경도 큰 그라데이션 판을 transform 으로만 천천히 움직인다(CSS 애니메이션, JS 0).
  * - 두 폼은 늘 붙어 있다(언마운트하지 않는다) — 바꿀 때 새로 그리지 않고, 적던 글자도 남는다.
- * - 기기의 «동작 줄이기» 가 켜져 있으면 미끄러짐 · 물결 없이 바로 바뀐다(globals.css .auth-*).
+ * - 기기의 «동작 줄이기» 가 켜져 있으면 미끄러짐 없이 바로 바뀐다(globals.css .auth-*).
  *
  * ── 주소 ────────────────────────────────────────────────
  * /login · /signup 은 그대로 있다. 바꿀 때 주소창만 바꾼다(history.replaceState — 페이지를 다시 받지 않는다).
  * ?next= 같은 꼬리는 그대로 둔다.
  */
-export function AuthCard({ initial, panelPhoto = null }: { initial: Mode; panelPhoto?: SiteImage | null }) {
+export function AuthCard({ initial }: { initial: Mode }) {
   const [mode, setMode] = useState<Mode>(initial);
   // 처음 그릴 때는 미끄러지지 않는다 — 전환을 누른 뒤부터만 애니메이션
   const [moved, setMoved] = useState(false);
@@ -72,10 +73,10 @@ export function AuthCard({ initial, panelPhoto = null }: { initial: Mode; panelP
     >
       {/*
         ── 폰: 맨 위 토글 (2026-10-27 요청 "모바일은 상단 토글로 전환") ──
-        두 칸짜리 버튼 위를 와인 알약이 transform 으로 미끄러진다. PC 에서는 패널이 이 역할을 해서 숨긴다.
+        두 칸짜리 버튼 위를 검은 알약이 transform 으로 미끄러진다. PC 에서는 패널이 이 역할을 해서 숨긴다.
       */}
       <div role="tablist" aria-label="로그인 · 회원가입 전환" className="auth-toggle bg-band relative m-4 mb-0 grid grid-cols-2 rounded-full p-1 md:hidden">
-        <span aria-hidden="true" className={`auth-toggle-pill absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full bg-[#5E1F21] ${login ? "" : "translate-x-full"}`} />
+        <span aria-hidden="true" className={`auth-toggle-pill absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full bg-[#000000] ${login ? "" : "translate-x-full"}`} />
         <button type="button" role="tab" aria-selected={login} onClick={toLogin} className={`relative z-10 min-h-11 rounded-full text-sm font-medium transition-colors duration-300 ${login ? "text-[#F7F1EA]" : "text-secondary"}`}>
           로그인
         </button>
@@ -90,18 +91,6 @@ export function AuthCard({ initial, panelPhoto = null }: { initial: Mode; panelP
           login ? "md:translate-x-full" : "md:translate-x-0"
         }`}
       >
-        {/*
-          관리자가 올린 배경 사진(V38) — 패널과 함께 움직이고(같은 레이어), 위에 와인을 반투명으로 덮어 글자가 읽히게 한다.
-          장식이라 설명은 읽히지 않게(alt=""). 사진이 없으면 그라데이션만.
-        */}
-        {panelPhoto && (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={panelPhoto.url} alt="" aria-hidden="true" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
-            <div aria-hidden="true" className="auth-photo-veil absolute inset-0" />
-          </>
-        )}
-        <div aria-hidden="true" className="auth-wave pointer-events-none absolute inset-0" />
         <div className="relative grid">
           <PanelText
             show={!login}
@@ -192,7 +181,7 @@ function PanelText({
       <button
         type="button"
         onClick={onAction}
-        className="ease-fluid mt-6 inline-flex min-h-11 items-center rounded-full border border-[#F7F1EA]/70 px-9 text-sm text-[#F7F1EA] transition-colors duration-300 hover:bg-[#F7F1EA] hover:text-[#5E1F21] md:mt-8"
+        className="ease-fluid mt-6 inline-flex min-h-11 items-center rounded-full border border-[#F7F1EA]/70 px-9 text-sm text-[#F7F1EA] transition-colors duration-300 hover:bg-[#F7F1EA] hover:text-[#111111] md:mt-8"
       >
         {action}
       </button>
