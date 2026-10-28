@@ -7,6 +7,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { ReturnCard } from "@/components/shop/ReturnCard";
 import { KAKAO_CHANNEL } from "@/data/business";
 import { loginUrl } from "@/lib/auth";
+import { trackingUrl } from "@/lib/tracking";
 import {
   ORDER_STATUS_LABEL,
   ORDER_STEPS,
@@ -161,7 +162,20 @@ export function OrderDetailView() {
         <p className="border-subtle bg-surface rounded-xl border px-5 py-4 text-sm">
           <span className="text-muted">배송 조회 · </span>
           <span className="text-primary">{o.courier}</span>{" "}
-          <span className="text-primary tabular-nums">{o.trackingNumber}</span>
+          {/* 송장번호를 누르면 택배사 조회 페이지(새 창, 2026-10-28). 모르는 택배사면 번호만 */}
+          {trackingUrl(o.courier, o.trackingNumber) ? (
+            <a
+              href={trackingUrl(o.courier, o.trackingNumber)!}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-accent tabular-nums underline underline-offset-4"
+            >
+              {o.trackingNumber}
+              <span className="sr-only"> (택배사 배송 조회, 새 창)</span>
+            </a>
+          ) : (
+            <span className="text-primary tabular-nums">{o.trackingNumber}</span>
+          )}
         </p>
       )}
 

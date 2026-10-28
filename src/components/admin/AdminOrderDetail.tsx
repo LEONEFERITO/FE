@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 
 import { ErrorNotice } from "@/components/admin/AdminProductList";
 import { Eyebrow } from "@/components/ui/Eyebrow";
+import { trackingUrl } from "@/lib/tracking";
 import {
   ORDER_STATUS_LABEL,
   RETURN_STATUS_LABEL,
@@ -176,7 +177,15 @@ export function AdminOrderDetail() {
             {o.recipient.memo && <p className="text-muted mt-1 text-2xs">요청: {o.recipient.memo}</p>}
             {o.trackingNumber && (
               <p className="text-primary mt-3">
-                {o.courier} {o.trackingNumber} · {when(o.shippedAt)} 발송
+                {o.courier}{" "}
+                {trackingUrl(o.courier, o.trackingNumber) ? (
+                  <a href={trackingUrl(o.courier, o.trackingNumber)!} target="_blank" rel="noopener noreferrer" className="text-accent underline underline-offset-4">
+                    {o.trackingNumber}
+                  </a>
+                ) : (
+                  o.trackingNumber
+                )}{" "}
+                · {when(o.shippedAt)} 발송
               </p>
             )}
           </section>

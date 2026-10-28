@@ -394,6 +394,56 @@ export async function importProducts(file: File): Promise<ImportCreated[]> {
   return ((await res.json()) as { created: ImportCreated[] }).created;
 }
 
+/** 주문 목록 엑셀(2026-10-28) — 보낼 주문(결제 완료 · 제작 중)의 받는 분 · 주소 · 연락처 */
+export async function downloadOrderExport(): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/admin/orders/export`, { credentials: "include" });
+  if (!res.ok) return fail(res);
+  const name = /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") ?? "")?.[1] ?? "leoneferito-orders.xlsx";
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/** 송장 일괄 입력 결과 한 줄 */
+export interface TrackingShipped {
+  row: number;
+  orderNumber: string;
+  courier: string;
+  trackingNumber: string;
+}
+
+/**
+ * 송장 일괄 입력(2026-10-28) — 엑셀 · CSV 의 주문번호 · 송장번호(· 택배사). courier 는 파일에 택배사 칸이 없을 때 쓴다.
+ * 한 줄이라도 틀리면 서버가 아무것도 하지 않고 IMPORT_INVALID + 줄마다 이유(err.rows).
+ */
+export async function importTracking(file: File, courier: string): Promise<TrackingShipped[]> {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("courier", courier);
+  const res = await fetch(`${API_BASE}/api/admin/orders/tracking-import`, {
+    method: "POST",
+    credentials: "include",
+    headers: await csrfHeader(),
+    body: form,
+  });
+  if (res.status === 400) {
+    const body = await res.json().catch(() => null);
+    if (body?.code === "IMPORT_INVALID") {
+      const err = new AdminApiError("IMPORT_INVALID", body.message ?? "파일을 확인해 주세요.");
+      err.rows = body.fieldErrors ?? [];
+      throw err;
+    }
+    throw new AdminApiError(body?.code ?? "UNKNOWN", body?.message ?? "올리지 못했습니다.");
+  }
+  if (!res.ok) return fail(res);
+  return ((await res.json()) as { shipped: TrackingShipped[] }).shipped;
+}
+
 /** 복제 — 초안 복사본의 id 를 돌려준다. 화면은 그 수정 화면으로 간다. */
 export async function duplicateProduct(id: string): Promise<string> {
   const res = await fetch(`${API_BASE}/api/admin/products/${encodeURIComponent(id)}/duplicate`, {
