@@ -118,8 +118,8 @@ export function Header({ overHero = false, tone = overHero ? undefined : "wine" 
     document.documentElement.style.backgroundColor = color;
   }, [wine]);
   // 분류 메뉴 — 관리자 › 분류 순서대로(빌드 때 받은 값, components/layout/CategoryOrder)
-  // 헤더 메뉴 — 맨 앞 Guide(2026-10-28 디자이너 피그마) + 분류(관리자 › 분류 순서, components/layout/CategoryOrder)
-  const CATEGORY_GROUPS = [{ label: "Guide", href: "/guide/" }, ...useCategoryGroups()];
+  // 헤더 메뉴 — 맨 앞 GUIDE(2026-10-28 디자이너 피그마, 10-29 다른 메뉴처럼 대문자로) + 분류(관리자 › 분류 순서, components/layout/CategoryOrder)
+  const CATEGORY_GROUPS = [{ label: "GUIDE", href: "/guide/" }, ...useCategoryGroups()];
   // 장바구니 줄 수 — 페이지를 열 때 한 번 받고, 이후는 담기 · 지우기가 돌려준 장바구니로 바뀐다(lib/cartCount)
   const cartCount = useCartCount();
   useEffect(() => {
