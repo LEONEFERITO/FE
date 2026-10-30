@@ -128,10 +128,8 @@ export function MypagePanel() {
 
   if (state.kind === "guest" && state.withdrawn) {
     return (
-      <div
-        role="status"
-        className="border-subtle bg-surface rounded-2xl border p-7 md:p-9"
-      >
+      // 2026-10-31 디자이너: 테두리 없이
+      <div role="status" className="py-4">
         <h2 className="font-display text-primary text-xl">
           탈퇴가 완료되었습니다
         </h2>
@@ -253,7 +251,8 @@ function MemberView({
       <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
         <div className="min-w-0">
           <p className="font-display text-primary text-2xl">{user.name} 님</p>
-          <p className="text-muted mt-1 break-all text-xs">{user.email}</p>
+          {/* 이메일은 고딕(2026-10-31 디자이너) */}
+          <p className="text-muted mt-1 break-all font-sans text-xs">{user.email}</p>
         </div>
         <div className="flex flex-wrap items-center gap-5">
           {isAdmin(user) && (
@@ -306,13 +305,16 @@ function MemberView({
       <div role="tabpanel" id={`mypage-panel-${tab}`} aria-labelledby={`mypage-tab-${tab}`}>
         {tab === "account" && (
           <div className="flex flex-col gap-6">
-            <dl className="border-subtle bg-surface divide-subtle grid divide-y rounded-2xl border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+            {/*
+              등급 · 포인트 · 누적 구매금액 — 2026-10-31 디자이너: 테두리 상자 대신 회색(#EDEDED) 둥근(20px) 상자 셋,
+              테두리 없이 사이 12px, 글자는 가운데 · 전부 고딕. 휴대폰도 세 칸 한 줄(설명은 넓은 화면에서만).
+            */}
+            <dl className="grid grid-cols-3 gap-2 font-sans sm:gap-3">
               {summary.map((s) => (
-                // 휴대폰은 한 줄씩(이름 왼쪽 · 값 오른쪽) — 세 칸을 세로로 쌓으면 화면 하나를 다 쓴다. 설명은 넓은 화면에서만
-                <div key={s.label} className="flex items-baseline justify-between gap-4 px-5 py-4 sm:block sm:p-6">
+                <div key={s.label} className="flex flex-col items-center rounded-[20px] bg-[#EDEDED] px-3 py-5 text-center sm:px-5 sm:py-7">
                   <dt className="text-muted text-2xs">{s.label}</dt>
-                  <dd className="font-display text-primary text-base sm:mt-1.5 sm:text-lg md:text-xl">{s.value}</dd>
-                  <dd className="text-secondary text-2xs mt-1.5 hidden leading-relaxed sm:block">{s.note}</dd>
+                  <dd className="text-primary mt-1.5 text-sm font-semibold sm:text-lg">{s.value}</dd>
+                  <dd className="text-muted text-2xs mt-1.5 hidden leading-relaxed sm:block">{s.note}</dd>
                 </div>
               ))}
             </dl>
@@ -325,7 +327,8 @@ function MemberView({
 
         {/* RETURNS & EXCHANGES — 신청은 주문 상세에서 한다. 여기는 어디서 어떻게 하는지 알려 주는 자리 */}
         {tab === "returns" && (
-          <section className="border-subtle bg-surface rounded-2xl border p-5 md:p-8" aria-labelledby="returns-heading">
+          // 2026-10-31 디자이너: 테두리 없이
+          <section className="py-2" aria-labelledby="returns-heading">
             <p className="text-accent text-2xs tracking-label">RETURNS &amp; EXCHANGES</p>
             <h2 id="returns-heading" className="text-primary mt-1 text-sm font-medium">
               교환 · 반품

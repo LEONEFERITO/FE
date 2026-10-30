@@ -99,7 +99,8 @@ export default async function ProductDetailPage({
           그 아래 상세 사이즈 · 고시는 다시 크림(읽는 곳).
         */}
         <div className="on-cream on-white">
-        <div className="mx-auto max-w-[1320px] px-5 py-12 md:px-15 md:py-20">
+        {/* PC 위 여백을 줄였다 — 바로 구매 버튼까지 한 화면(2026-10-31) */}
+        <div className="mx-auto max-w-[1320px] px-5 py-12 md:px-15 md:py-20 lg:pt-10">
           {/* 큰 사진 + 구매 판 — 작은 사진 줄 · 버튼 정렬은 ProductTop (2026-10-28 디자이너 시안) */}
           <ProductTop product={product} />
         </div>

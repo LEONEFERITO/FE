@@ -1,3 +1,5 @@
+import { CaretLeft, CaretRight } from "@phosphor-icons/react/dist/ssr";
+
 import type { ProductPhoto } from "@/types/product";
 
 /**
@@ -10,12 +12,25 @@ import type { ProductPhoto } from "@/types/product";
  * **이건 UI 색이 아니라 사진 색이다.** 실제 제품 촬영본의 배경이 버건디라 그 인상을 미리 볼 수 있게 한다.
  *
  * 4:5 비율은 의류 촬영 표준이다. 세로가 길어야 전신 실루엣이 들어간다.
+ *
+ * 사진이 둘 이상이면 좌우 가운데에 넘기기 버튼(2026-10-31 디자이너 "사진 여기서도 넘겨볼 수 있도록") — 끝에서 처음으로 돈다.
  */
 
 const PHOTO_PLACEHOLDER =
   "radial-gradient(ellipse at 50% 42%, #7B1526 0%, #4E0C17 55%, #1A0E12 100%)";
 
-export function ProductGallery({ photos, name, index = 0 }: { photos: ProductPhoto[]; name: string | null; index?: number }) {
+export function ProductGallery({
+  photos,
+  name,
+  index = 0,
+  onIndex,
+}: {
+  photos: ProductPhoto[];
+  name: string | null;
+  index?: number;
+  /** 넘기기 버튼이 고른 번호 — 없으면 버튼을 그리지 않는다 */
+  onIndex?: (i: number) => void;
+}) {
   const i = Math.min(index, photos.length - 1);
   const photo = photos[i] ?? null;
   const alt = photo ? photo.alt || (name ? `${name} 사진 ${i + 1}` : `제품 사진 ${i + 1}`) : "";
@@ -32,6 +47,29 @@ export function ProductGallery({ photos, name, index = 0 }: { photos: ProductPho
         <img key={photo.url} src={photo.url} alt={alt} className="h-full w-full object-cover" loading="eager" />
       ) : (
         <p className="absolute left-7 top-7 text-sm text-white/55">제품 촬영본 준비 중 · 4:5 비율</p>
+      )}
+      {onIndex && photos.length > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={() => onIndex((i - 1 + photos.length) % photos.length)}
+            aria-label="이전 사진"
+            className="ease-fluid absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-[#1a1a1a] shadow-[0_2px_10px_rgba(0,0,0,0.18)] backdrop-blur-sm transition-colors duration-300 hover:bg-white md:left-4"
+          >
+            <CaretLeft size={18} weight="regular" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onIndex((i + 1) % photos.length)}
+            aria-label="다음 사진"
+            className="ease-fluid absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-[#1a1a1a] shadow-[0_2px_10px_rgba(0,0,0,0.18)] backdrop-blur-sm transition-colors duration-300 hover:bg-white md:right-4"
+          >
+            <CaretRight size={18} weight="regular" aria-hidden="true" />
+          </button>
+          <p aria-live="polite" className="sr-only">
+            {i + 1} / {photos.length}
+          </p>
+        </>
       )}
     </div>
   );

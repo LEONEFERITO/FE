@@ -53,7 +53,8 @@ export function MyOrders({ view }: { view: "status" | "history" }) {
   if (view === "status") {
     return (
       <section
-        className="border-subtle bg-surface rounded-2xl border p-5 md:p-8"
+        // 2026-10-31 디자이너: 바깥 테두리 상자 없이(주문 내역 · 주문 현황 · 교환 반품 모두)
+        className="py-2"
         aria-labelledby="order-status-heading"
       >
         <p className="text-accent text-2xs tracking-label">ORDER STATUS</p>
@@ -65,12 +66,12 @@ export function MyOrders({ view }: { view: "status" | "history" }) {
           <p className="text-secondary mt-3 text-sm">지금 제작 · 배송 중인 주문이 없습니다.</p>
         )}
         {active.length > 0 && (
-          <ul className="mt-4 flex flex-col gap-3">
+          <ul className="border-subtle divide-subtle mt-4 divide-y border-y">
             {active.map((o) => (
               <li key={o.orderNumber}>
                 <Link
                   href={`/mypage/order/?no=${encodeURIComponent(o.orderNumber)}`}
-                  className="border-subtle hover:border-accent ease-fluid flex flex-col gap-2.5 border px-4 py-3 transition-colors duration-300 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                  className="hover:bg-band/60 ease-fluid flex flex-col gap-2.5 px-1 py-4 transition-colors duration-300 sm:flex-row sm:items-center sm:justify-between sm:gap-4 md:px-2"
                 >
                   <span className="min-w-0 max-w-full">
                     <span className="text-primary block truncate text-sm">{o.orderName}</span>
@@ -98,7 +99,7 @@ export function MyOrders({ view }: { view: "status" | "history" }) {
 
   return (
     <section
-      className="border-subtle bg-surface rounded-2xl border p-5 md:p-8"
+      className="py-2"
       aria-labelledby="orders-heading"
     >
       <p className="text-accent text-2xs tracking-label">ORDER HISTORY</p>

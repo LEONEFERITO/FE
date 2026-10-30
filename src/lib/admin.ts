@@ -239,8 +239,8 @@ export interface ProductDraft {
   leadTimeDays: number | null;
   /** 제작 기간 최소(서버 V40) — leadTimeDays 가 최대 */
   leadTimeMinDays?: number | null;
-  /** 수트 2피스(자켓 + 팬츠) 판매가(서버 V43). 수트 구성 상품만 */
-  twoPiecePriceKrw?: number | null;
+  /** 수트 베스트 금액(서버 V44) — 2피스 = 판매가 − 이 값. 베스트가 있는 수트(레오네)만 */
+  vestPriceKrw?: number | null;
   /** 노출 순서. 폼에 칸이 없어도 수정 때는 원래 값을 그대로 돌려보낸다. */
   displayOrder?: number;
   images: { mediaId: string; kind: string; alt: string; sortOrder?: number }[];
@@ -553,8 +553,8 @@ export interface AdminProductEdit {
   instagramUrl: string | null;
   /** 관리자 전용 정보(V39). 예전 서버면 없다 */
   internal?: ProductInternal | null;
-  /** 수트 2피스 판매가(서버 V43) */
-  twoPiecePriceKrw?: number | null;
+  /** 수트 베스트 금액(서버 V44) */
+  vestPriceKrw?: number | null;
   images: { mediaId: string; url: string; kind: string; alt: string; sortOrder: number }[];
   skus: {
     size: string;

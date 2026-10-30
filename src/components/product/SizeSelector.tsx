@@ -32,7 +32,8 @@ export function SizeSelector({ skus, value, onChange, name, columns = 4 }: SizeS
       <div
         role="radiogroup"
         aria-label={name ? `${name} 사이즈` : "사이즈"}
-        className={`grid gap-2 ${columns === 5 ? "grid-cols-5" : "grid-cols-4"}`}
+        // PC 는 다섯 칸 한 줄(2026-10-31 "바로 구매까지 한 화면") — 폰은 네 칸
+        className={`grid gap-2 ${columns === 5 ? "grid-cols-5" : "grid-cols-4 lg:grid-cols-5"}`}
       >
         {skus.map((sku) => {
           const isSoldOut = !sku.orderable;
@@ -49,14 +50,14 @@ export function SizeSelector({ skus, value, onChange, name, columns = 4 }: SizeS
               onClick={() => onChange(sku.size)}
               className={[
                 // 칸 높이를 같게 — 품절 칸만 두 줄(사이즈 + "품절")이라 높이를 고정하고 가운데에 놓는다
-                // 2026-10-28 디자이너 시안: 둥근 알약 모양, 조금 낮게
-                "ease-fluid flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-full border text-[14px] tabular-nums transition-all duration-500",
+                // 2026-10-31 디자이너 시안: 둥근 네모(16px) · 연회색 테두리, 고른 칸은 회색 면(#EDEDED)
+                "ease-fluid flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-[16px] border text-[14px] tabular-nums transition-all duration-300",
                 isSelected
-                  ? "border-accent bg-accent-tint text-accent"
+                  ? "text-primary border-[#EDEDED] bg-[#EDEDED] font-medium"
                   : isSoldOut
-                    ? // 확실히 "못 누르는 칸" 으로 — 회색 면 · 흐린 글자 · 취소선 · "품절" 글자 (2026-10-14 "더 확실하게 비활성화")
-                      "bg-band border-transparent text-soldout cursor-not-allowed"
-                    : "border-strong text-primary hover:border-accent hover:bg-accent-tint/50 active:scale-[0.97]",
+                    ? // 확실히 "못 누르는 칸" 으로 — 흐린 글자 · 취소선 · "품절" 글자 (2026-10-14 "더 확실하게 비활성화")
+                      "text-soldout cursor-not-allowed border-[#EDEDED] bg-white"
+                    : "text-primary border-[#DADADA] bg-white hover:border-[#BDBDBD] active:scale-[0.97]",
               ].join(" ")}
             >
               <span className={isSoldOut ? "line-through opacity-60" : undefined}>{sku.size}</span>

@@ -85,8 +85,10 @@ function validate(v: {
     errors.confirm = "비밀번호가 서로 다릅니다.";
   }
 
-  // 전화번호는 선택이다. 입력했을 때만 형식을 본다.
-  if (v.phone.trim() && !/^[0-9-]{9,20}$/.test(v.phone.trim())) {
+  // 휴대폰 번호는 필수다(2026-10-31 디자이너 — 주문 · 배송 연락). 서버도 같은 규칙으로 막는다
+  if (!v.phone.trim()) {
+    errors.phone = "휴대폰 번호를 입력해 주세요.";
+  } else if (!/^[0-9-]{9,20}$/.test(v.phone.trim())) {
     errors.phone = "숫자와 하이픈만 입력해 주세요.";
   }
 
@@ -139,7 +141,7 @@ export function SignupForm({ onSwitch }: { onSwitch?: () => void } = {}) {
         email: email.trim(),
         password,
         name: name.trim(),
-        phone: phone.trim() || undefined,
+        phone: phone.trim(),
         agreeTerms,
         over14,
       });
@@ -234,7 +236,7 @@ export function SignupForm({ onSwitch }: { onSwitch?: () => void } = {}) {
         placeholder="홍길동"
       />
       <Field
-        label="휴대폰 번호 (선택)"
+        label="휴대폰 번호"
         type="tel"
         name="phone"
         autoComplete="tel"

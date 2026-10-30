@@ -92,14 +92,15 @@ export function PurchasePanel({
   const freeShipping = unitPrice !== null && unitPrice >= SHIPPING.freeThresholdKrw;
 
   return (
-    <div className="flex h-full min-w-0 flex-col gap-5">
+    // PC 는 바로 구매까지 한 화면에 들어오게 조인다(2026-10-31) — 사이 16px · 작은 사진 64px · 사이즈 한 줄 · 버튼 낮게
+    <div className="flex h-full min-w-0 flex-col gap-5 lg:gap-4">
       <div className="flex flex-col gap-3">
         {/* 라인 — 레오네 · 페리토 구분(2026-10-28 "가로 작대기 빼고 라인 구분 용도로") */}
         <p className="text-accent text-2xs tracking-label">
           {line.en} · {line.ko} ({line.kind})
         </p>
 
-        <h1 className="font-display text-primary text-3xl leading-display tracking-display md:text-4xl">
+        <h1 className="font-display text-primary text-3xl leading-display tracking-display md:text-4xl lg:text-[30px]">
           {product.name ?? pendingLabel("제품명")}
         </h1>
 
@@ -144,7 +145,7 @@ export function PurchasePanel({
 
       {/* 작은 사진 — 다섯 칸, 모두 같은 크기 네모(2026-10-28 "사이즈 다 똑같게"). 누르면 왼쪽 큰 사진이 바뀐다 */}
       {product.images.length > 1 && (
-        <ul className="grid grid-cols-5 gap-2" aria-label="사진 고르기">
+        <ul className="grid grid-cols-5 gap-2 lg:grid-cols-[repeat(5,64px)]" aria-label="사진 고르기">
           {product.images.slice(0, 5).map((p, i) => (
             // 같은 사진을 두 칸에 올려도 겹치지 않게 순서를 키에 넣는다
             <li key={`${i}-${p.url}`}>
@@ -196,6 +197,11 @@ export function PurchasePanel({
             <h2 className="text-primary text-sm font-medium">구성</h2>
             {sets.length === 0 ? (
               <p className="text-muted text-xs">지금 주문할 수 있는 구성이 없습니다.</p>
+            ) : sets.length === 1 ? (
+              // 고를 것이 하나뿐이면(페리토 수트 = 2피스만, 3피스는 레오네에만) 버튼 대신 한 줄로 알린다
+              <p className="text-primary text-sm">
+                {SUIT_SETS[sets[0]].label} <span className="text-muted text-xs">({SUIT_SETS[sets[0]].detail})</span>
+              </p>
             ) : (
               <div role="radiogroup" aria-label="구성" className="grid grid-cols-2 gap-2">
                 {sets.map((set) => {
@@ -207,10 +213,8 @@ export function PurchasePanel({
                       role="radio"
                       aria-checked={on}
                       onClick={() => choose({ ...choice, set })}
-                      className={`ease-fluid flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-full border px-3 transition-all duration-500 ${
-                        on
-                          ? "border-accent bg-accent-tint text-accent"
-                          : "border-strong text-primary hover:border-accent hover:bg-accent-tint/50 active:scale-[0.97]"
+                      className={`ease-fluid text-primary flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-[16px] border px-3 transition-all duration-300 ${
+                        on ? "border-[#EDEDED] bg-[#EDEDED]" : "border-[#DADADA] bg-white hover:border-[#BDBDBD] active:scale-[0.97]"
                       }`}
                     >
                       <span className="text-[14px] font-medium tabular-nums">
@@ -279,7 +283,7 @@ export function PurchasePanel({
           type="button"
           disabled={!selectedSize || pending !== null}
           onClick={() => put("cart")}
-          className="group bg-accent hover:bg-accent-hover text-on-accent shadow-button hover:shadow-button-hover tracking-button ease-fluid flex items-center justify-between gap-4 rounded-full py-4 pl-7 pr-2 text-[15px] transition-all duration-500 hover:-translate-y-px active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none disabled:hover:translate-y-0"
+          className="group bg-accent hover:bg-accent-hover text-on-accent shadow-button hover:shadow-button-hover tracking-button ease-fluid flex items-center justify-between gap-4 rounded-full py-4 pl-7 pr-2 text-[15px] lg:py-2.5 transition-all duration-500 hover:-translate-y-px active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none disabled:hover:translate-y-0"
         >
           <span className="flex-1 text-center">{pending === "cart" ? "담는 중" : "장바구니 담기"}</span>
           <span className="bg-on-accent/12 ease-fluid flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-transform duration-500 group-hover:-translate-y-px group-hover:translate-x-1 group-hover:scale-105">
@@ -291,7 +295,7 @@ export function PurchasePanel({
           type="button"
           disabled={!selectedSize || pending !== null}
           onClick={() => put("buy")}
-          className="border-strong hover:border-accent hover:text-accent hover:shadow-soft text-primary tracking-button ease-fluid rounded-full border py-4 text-[15px] transition-all duration-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
+          className="border-strong hover:border-accent hover:text-accent hover:shadow-soft text-primary tracking-button ease-fluid rounded-full border py-4 text-[15px] lg:py-3.5 transition-all duration-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
         >
           {pending === "buy" ? "주문서로 가는 중" : "바로 구매"}
         </button>

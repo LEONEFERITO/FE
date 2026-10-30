@@ -45,9 +45,11 @@ interface Props {
   onChange: (next: SizeRow[]) => void;
   /** 제출 뒤에만 보이는 오류. 줄 번호 → 문구. */
   errors?: Record<number, string>;
+  /** 재고 칸을 숨긴다 — 수트 조각 사이즈(2026-10-31 디자이너 "재고 표시할 이유 없다"). 비운 칸 = 세지 않음 */
+  hideStock?: boolean;
 }
 
-export function SizeListField({ value, onChange, errors = {} }: Props) {
+export function SizeListField({ value, onChange, errors = {}, hideStock = false }: Props) {
   const baseId = useId();
 
   function update(i: number, patch: Partial<SizeRow>) {
@@ -116,7 +118,7 @@ export function SizeListField({ value, onChange, errors = {} }: Props) {
                     제작 가능
                   </label>
                   {/* 재고 — 비우면 세지 않는다. 숫자 키패드가 뜨게 */}
-                  <label className="text-secondary flex min-h-11 shrink-0 items-center gap-2 text-xs">
+                  <label className={`text-secondary min-h-11 shrink-0 items-center gap-2 text-xs ${hideStock ? "hidden" : "flex"}`}>
                     재고
                     <input
                       type="text"

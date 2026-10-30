@@ -249,7 +249,11 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
       PANTS: pieced ? of("PANTS") : fresh(["XS", "S", "M", "L", "XL"]),
     };
   });
-  const [twoPiecePriceKrw, setTwoPiecePriceKrw] = useState(src?.twoPiecePriceKrw?.toString() ?? "");
+  // 3피스(베스트)는 레오네에만 있다(2026-10-31 디자이너) — 페리토 수트는 자켓 · 팬츠만, 2피스 값 = 판매가
+  const hasVest = line === "LEONE";
+  const suitPieces: SuitPiece[] = SUIT_PIECES.filter((pc) => hasVest || pc !== "VEST");
+  // 베스트 금액(서버 V44) — 2피스 = 판매가 − 베스트 금액(2026-10-31 디자이너 "베스트 금액만큼 빠지게")
+  const [vestPriceKrw, setVestPriceKrw] = useState(src?.vestPriceKrw?.toString() ?? "");
 
   /** 이미 쓰고 있는 주소들 — 새 상품의 주소가 겹치면 그 자리에서 알린다(서버도 막지만 저장 뒤에야 안다) */
   const [takenSlugs, setTakenSlugs] = useState<Set<string>>(new Set());
@@ -335,13 +339,14 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
     }
 
     if (suitMode) {
-      for (const pc of SUIT_PIECES) {
+      for (const pc of suitPieces) {
         const rows = pieceSizes[pc];
         if (rows.length === 0) e.sizes = `${PIECE_LABEL[pc]} 사이즈를 하나 이상 넣어 주세요.`;
         else if (Object.keys(validateSizes(rows)).length > 0) e.sizes = `${PIECE_LABEL[pc]} 사이즈 목록을 확인해 주세요.`;
         else if (rows.some((r) => /[/·]/.test(r.size))) e.sizes = `${PIECE_LABEL[pc]} 사이즈에는 / 와 · 를 쓸 수 없습니다.`;
       }
-      if (twoPiecePriceKrw && !/^\d+$/.test(twoPiecePriceKrw)) e.twoPiecePriceKrw = "숫자만 입력해 주세요.";
+      if (vestPriceKrw && !/^\d+$/.test(vestPriceKrw)) e.vestPriceKrw = "숫자만 입력해 주세요.";
+      else if (vestPriceKrw && priceKrw && Number(vestPriceKrw) >= Number(priceKrw)) e.vestPriceKrw = "판매가보다 작게 넣어 주세요.";
     } else if (Object.keys(validateSizes(sizes)).length > 0) {
       e.sizes = "사이즈 목록을 확인해 주세요.";
     }
@@ -388,7 +393,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
        */
       // 수트 구성이면 조각 순서(자켓 → 베스트 → 팬츠)대로 이어 붙이고 조각을 붙인다
       skus: (suitMode
-        ? SUIT_PIECES.flatMap((pc) => pieceSizes[pc].map((row) => ({ row, piece: pc as SuitPiece | null })))
+        ? suitPieces.flatMap((pc) => pieceSizes[pc].map((row) => ({ row, piece: pc as SuitPiece | null })))
         : sizes.map((row) => ({ row, piece: null as SuitPiece | null }))
       ).map(({ row, piece }, i) => {
         const name = row.size.trim();
@@ -396,13 +401,14 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
         return {
           size: name,
           orderable: row.orderable,
-          stock: stockValue(row),
+          // 수트 조각은 재고를 세지 않는다(2026-10-31 디자이너 "재고 표시할 이유 없다") — 칸도 숨겼다
+          stock: piece ? null : stockValue(row),
           sortOrder: i,
           measurements: before?.measurements ?? [],
           piece,
         };
       }),
-      twoPiecePriceKrw: suitMode && twoPiecePriceKrw ? Number(twoPiecePriceKrw) : null,
+      vestPriceKrw: suitMode && hasVest && vestPriceKrw ? Number(vestPriceKrw) : null,
 
       images: IMAGE_SLOTS.flatMap((slot, i): ProductDraft["images"] => {
         const v = images[slot.key];
@@ -454,7 +460,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
     { label: "판매가", ok: /^\d+$/.test(priceKrw) },
     { label: "제작 기간", ok: lead !== null },
     { label: "대표 이미지", ok: images.MAIN !== undefined },
-    { label: "사이즈", ok: suitMode ? SUIT_PIECES.every((pc) => pieceSizes[pc].length > 0) : sizes.length > 0 },
+    { label: "사이즈", ok: suitMode ? suitPieces.every((pc) => pieceSizes[pc].length > 0) : sizes.length > 0 },
     { label: `상품정보고시 ${noticeFilled}/6`, ok: noticeFilled === 6 },
   ];
   const ready = checklist.every((c) => c.ok);
@@ -800,33 +806,51 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
                 className="accent-[var(--accent-base)] mt-0.5 h-4 w-4 shrink-0"
               />
               <span className="flex flex-col gap-1">
-                <span className="text-primary text-sm">수트 구성 옵션 — 3피스 · 2피스, 자켓 · 베스트 · 팬츠 사이즈 따로</span>
+                <span className="text-primary text-sm">수트 구성 옵션 — 조각(자켓 · 베스트 · 팬츠)마다 사이즈 따로</span>
                 <span className="text-muted text-2xs leading-relaxed">
-                  손님이 구성(3피스: 자켓 + 베스트 + 팬츠 / 2피스: 자켓 + 팬츠)을 고르고 조각마다 사이즈를 고릅니다.
-                  3피스 값은 위 <b className="text-secondary">판매가</b>, 2피스 값은 아래 칸입니다. 재고는 조각 사이즈마다 따로 셉니다.
+                  {hasVest ? (
+                    <>
+                      레오네: 손님이 3피스(자켓 + 베스트 + 팬츠) · 2피스(자켓 + 팬츠)를 고르고 조각마다 사이즈를 고릅니다.
+                      3피스 값은 위 <b className="text-secondary">판매가</b>, 2피스 값은 판매가에서 <b className="text-secondary">베스트 금액</b>을 뺀 값입니다.
+                    </>
+                  ) : (
+                    <>페리토: 3피스는 레오네에만 있어 2피스(자켓 + 팬츠)만 나갑니다. 값은 위 <b className="text-secondary">판매가</b> 그대로입니다.</>
+                  )}{" "}
+                  제작 기간은 구성과 상관없이 같습니다.
+                </span>
+                {/* 조끼 단품도 수트 메뉴에 함께 올린다(2026-10-31 디자이너 — 조끼 분류는 따로 없음) */}
+                <span className="text-muted text-2xs leading-relaxed">
+                  <b className="text-secondary">조끼 단품</b>은 이 옵션을 켜지 않고, 수트 분류에 보통 사이즈로 등록하면 수트 메뉴에 셋업과 함께 나옵니다.
                 </span>
               </span>
             </label>
           )}
           {suitMode ? (
             <>
-              <CountedField
-                label="2피스 판매가 (원) — 자켓 + 팬츠"
-                value={twoPiecePriceKrw}
-                onChange={setTwoPiecePriceKrw}
-                max={12}
-                inputMode="numeric"
-                placeholder="비우면 2피스는 팔지 않습니다"
-                hint="3피스 값은 위 판매가입니다. 비워 두면 손님 화면에 3피스만 나옵니다."
-                error={submitted ? errors.twoPiecePriceKrw : undefined}
-              />
-              {SUIT_PIECES.map((pc) => (
+              {hasVest && (
+                <CountedField
+                  label="베스트 금액 (원) — 2피스 = 판매가 − 베스트 금액"
+                  value={vestPriceKrw}
+                  onChange={setVestPriceKrw}
+                  max={12}
+                  inputMode="numeric"
+                  placeholder="비우면 2피스는 팔지 않습니다"
+                  hint={
+                    /^\d+$/.test(priceKrw) && /^\d+$/.test(vestPriceKrw) && Number(vestPriceKrw) < Number(priceKrw)
+                      ? `손님 화면: 3피스 ${Number(priceKrw).toLocaleString("ko-KR")}원 · 2피스 ${(Number(priceKrw) - Number(vestPriceKrw)).toLocaleString("ko-KR")}원`
+                      : "비워 두면 손님 화면에 3피스만 나옵니다."
+                  }
+                  error={submitted ? errors.vestPriceKrw : undefined}
+                />
+              )}
+              {suitPieces.map((pc) => (
                 <div key={pc} className="flex flex-col gap-3">
                   <h3 className="text-primary text-xs font-medium">{PIECE_LABEL[pc]} 사이즈</h3>
                   <SizeListField
                     value={pieceSizes[pc]}
                     onChange={(rows) => setPieceSizes((prev) => ({ ...prev, [pc]: rows }))}
                     errors={submitted ? validateSizes(pieceSizes[pc]) : {}}
+                    hideStock
                   />
                 </div>
               ))}
