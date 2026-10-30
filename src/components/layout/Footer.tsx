@@ -57,6 +57,13 @@ export async function Footer() {
             >
               쿠키 정책
             </Link>
+            {/* 교환 · 환불 조건 — 약관 제16조(청약철회 등)로 바로 간다 */}
+            <Link
+              href="/terms#article-16"
+              className="text-secondary hover:text-primary ease-fluid inline-flex min-h-11 items-center text-xs transition-colors duration-300"
+            >
+              교환 · 환불 안내
+            </Link>
           </nav>
 
           <dl className="mt-6 grid gap-x-12 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">

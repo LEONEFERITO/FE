@@ -146,8 +146,8 @@ export function CategoryProducts({
           </select>
           <CaretDown size={12} weight="light" aria-hidden="true" className="pointer-events-none absolute right-2" />
         </span>
-        {/* 안내 — 옅은 회색, 천천히 깜빡인다. 한 번 고르면 멈춘다(동작 줄이기면 처음부터 멈춤) */}
-        <p id={hintId} className={`mt-3 text-center text-xs text-[#ABABAB] md:col-span-3 md:row-start-2 ${touched ? "" : "category-hint-blink"}`}>
+        {/* 안내 — 옅은 회색(#767676 — 흰 바탕에서 글자 대비 4.5:1 을 넘는 가장 옅은 회색), 천천히 깜빡인다. 한 번 고르면 멈춘다(동작 줄이기면 처음부터 멈춤) */}
+        <p id={hintId} className={`mt-3 text-center text-xs text-[#767676] md:col-span-3 md:row-start-2 ${touched ? "" : "category-hint-blink"}`}>
           라인을 클릭하여 원하는 스타일을 분류해 확인해 보세요
         </p>
       </div>

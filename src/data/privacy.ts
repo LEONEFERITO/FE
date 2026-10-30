@@ -15,7 +15,7 @@ import type { LegalDocument } from "@/data/terms";
  *
  * 코드가 바뀌어 수집하는 것이 늘면 **이 문서도 같이 고친다.** 처리방침에 없는 수집은 위법이다.
  *
- * 택배사는 CJ대한통운(2026-10-14). TODO(고객확인) 메일 발송 서비스 이름(수탁업체 표). 정해지면 pending 을 지운다.
+ * 택배사는 CJ대한통운(2026-10-14). 메일 발송은 Amazon SES 서울 리전(2026-10-19 운영 연결, no-reply@leoneferito.kr).
  */
 
 const officer = BUSINESS.privacyOfficer ?? pendingLabel("개인정보 보호책임자");
@@ -107,7 +107,7 @@ export const PRIVACY: LegalDocument = {
             "Amazon Web Services Korea LLC (AWS 서울 리전) — 서버 운영과 데이터 보관 (회원 · 주문 정보가 저장되는 서버)",
             "나이스페이먼츠 주식회사 — 결제 처리, 결제 도용 방지, 환불 (주문번호 · 결제 금액 · 구매자 이름 · 연락처)",
             "CJ대한통운 — 상품 배송 · 교환 · 반품 회수 (받는 분 이름 · 연락처 · 주소)",
-            `${pendingLabel("메일 발송 서비스")} — 비밀번호 재설정 · 거래 안내 메일 발송 (이메일 주소 · 메일 내용)`,
+            "Amazon Web Services Korea LLC (Amazon SES 서울 리전) — 비밀번호 재설정 · 거래 안내 메일 발송 (이메일 주소 · 메일 내용)",
           ],
         },
         "회사는 위탁 계약을 맺을 때 개인정보가 안전하게 관리되도록 필요한 사항을 정하고, 수탁자가 개인정보를 안전하게 처리하는지 감독합니다. 수탁자나 위탁 업무가 바뀌면 지체 없이 이 방침에 공개합니다.",
