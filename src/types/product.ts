@@ -157,6 +157,8 @@ export interface Sku {
   soldOut?: boolean;
   /** 5벌 이하로 남았을 때만 그 수량. "2벌 남음" */
   remaining?: number | null;
+  /** 이 사이즈를 누르면 큰 사진으로 보여 줄 사진 주소(서버 V45). 없으면 사진을 바꾸지 않는다 */
+  imageUrl?: string | null;
 }
 
 /** 상품 사진 한 장. 대체 텍스트는 관리자가 적는다 — 사진이 곧 "무엇을 파는가" 다. */

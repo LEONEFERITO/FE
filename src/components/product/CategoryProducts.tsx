@@ -65,18 +65,21 @@ const GRID = "grid grid-cols-2 gap-x-1 gap-y-7 md:grid-cols-3 md:gap-x-3 md:gap-
 const PREVIEW = 5;
 const previewHide = (i: number) => (i === 4 ? "max-lg:hidden" : i === 3 ? "md:max-lg:hidden" : "");
 
-export function CategoryProductsFromUrl(props: { products: Product[]; categorySlug: string; subs: CategorySub[] }) {
+export function CategoryProductsFromUrl(props: { products: Product[]; splitLines?: boolean; categorySlug: string; subs: CategorySub[] }) {
   const sub = useSearchParams().get("sub");
   return <CategoryProducts {...props} activeSub={props.subs.some((s) => s.slug === sub) ? sub : null} />;
 }
 
 export function CategoryProducts({
   products,
+  splitLines = true,
   categorySlug,
   subs = [],
   activeSub = null,
 }: {
   products: Product[];
+  /** false — 라인 구분이 없는 분류(트라우저 · 신발 · 액세서리). 알약 없이 한 목록 */
+  splitLines?: boolean;
   categorySlug?: string;
   subs?: CategorySub[];
   activeSub?: string | null;
@@ -88,14 +91,15 @@ export function CategoryProducts({
   const hintId = useId();
 
   const sub = subs.find((s) => s.slug === activeSub) ?? null;
-  const byLine = useMemo(() => {
-    const list = sortProducts(sub ? products.filter((p) => matchesSub(p, sub)) : products, sort);
-    return Object.fromEntries(LINES.map((l) => [l, list.filter((p) => p.line === l)])) as Record<ProductLine, Product[]>;
-  }, [products, sub, sort]);
+  const list = useMemo(() => sortProducts(sub ? products.filter((p) => matchesSub(p, sub)) : products, sort), [products, sub, sort]);
+  const byLine = useMemo(
+    () => Object.fromEntries(LINES.map((l) => [l, list.filter((p) => p.line === l)])) as Record<ProductLine, Product[]>,
+    [list],
+  );
 
   // 고른 라인이 먼저, 나머지는 아래(한 줄)
   const order: ProductLine[] = line ? [line, ...LINES.filter((l) => l !== line)] : LINES;
-  const total = byLine.LEONE.length + byLine.FERITO.length;
+  const total = list.length;
 
   function pick(l: ProductLine) {
     setTouched(true);
@@ -110,6 +114,7 @@ export function CategoryProducts({
       */}
       <div className="grid grid-cols-1 items-center md:grid-cols-[1fr_auto_1fr] md:gap-x-4">
         <div aria-hidden="true" className="hidden md:col-start-1 md:row-start-1 md:block" />
+        {splitLines && (
         <div role="group" aria-label="라인 고르기" aria-describedby={hintId} className="flex justify-center gap-2.5 md:col-start-2 md:row-start-1">
           {LINES.map((l) => {
             const on = line === l;
@@ -128,6 +133,7 @@ export function CategoryProducts({
             );
           })}
         </div>
+        )}
         <span className="relative order-last mt-2 inline-flex min-h-11 items-center justify-self-end md:order-none md:col-start-3 md:row-start-1 md:mt-0">
           <label htmlFor={sortId} className="sr-only">
             정렬
@@ -147,9 +153,11 @@ export function CategoryProducts({
           <CaretDown size={12} weight="light" aria-hidden="true" className="pointer-events-none absolute right-2" />
         </span>
         {/* 안내 — 옅은 회색(#767676 — 흰 바탕에서 글자 대비 4.5:1 을 넘는 가장 옅은 회색), 천천히 깜빡인다. 한 번 고르면 멈춘다(동작 줄이기면 처음부터 멈춤) */}
+        {splitLines && (
         <p id={hintId} className={`mt-3 text-center text-xs text-[#767676] md:col-span-3 md:row-start-2 ${touched ? "" : "category-hint-blink"}`}>
           라인을 클릭하여 원하는 스타일을 분류해 확인해 보세요
         </p>
+        )}
       </div>
       {sub && categorySlug && (
         <p className="text-secondary mt-2 text-center text-2xs">
@@ -164,7 +172,7 @@ export function CategoryProducts({
         </p>
       )}
       <p aria-live="polite" className="sr-only">
-        {line ? `${LINE_LABEL[line].ko} ${byLine[line].length}개` : `${total}개의 상품`}
+        {splitLines && line ? `${LINE_LABEL[line].ko} ${byLine[line].length}개` : `${total}개의 상품`}
       </p>
 
       {total === 0 ? (
@@ -177,6 +185,14 @@ export function CategoryProducts({
             전체 제품 보기
           </Link>
         </div>
+      ) : !splitLines ? (
+        <ul className={`-mx-5 mt-8 md:mx-0 md:mt-10 ${GRID}`}>
+          {list.map((p) => (
+            <li key={p.slug} className="min-w-0">
+              <ProductCard product={p} inset />
+            </li>
+          ))}
+        </ul>
       ) : (
         order.map((l) => {
           const all = byLine[l];

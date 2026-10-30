@@ -82,6 +82,12 @@ export const CATEGORY_NAV: { category: Category; slug: string; label: string; ti
 export const categoryHref = (slug: string) => `/category/${slug}/`;
 
 /**
+ * LEONE | FERITO 로 나눠 보여 주는 분류. 트라우저 · 신발 · 액세서리는 라인 구분이 없어
+ * 알약 없이 한 목록으로 보인다(2026-10-30 디자이너 요청).
+ */
+export const LINE_SPLIT_CATEGORIES: ReadonlySet<Category> = new Set<Category>(["SHIRT", "JACKET", "SUIT"]);
+
+/**
  * 분류 안의 세부 메뉴 (2026-10-06 구조표). 카테고리 페이지의 칩과 헤더 드롭다운이 같은 목록을 본다.
  *
  * 트라우저 핏 · 신발 종류는 상품의 **세부 분류**(style)로 거른다. 관리자가 상품마다 고른다.

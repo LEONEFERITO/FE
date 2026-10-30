@@ -9,7 +9,7 @@ import { PIECE_LABEL, SUIT_SETS, isSuitSet, offeredSets, suitDefaults, suitLabel
 import { SizeSelector } from "@/components/product/SizeSelector";
 import { usePurchase } from "@/components/product/usePurchase";
 import { LINE_LABEL } from "@/types/product";
-import type { Product } from "@/types/product";
+import type { Product, SuitPiece } from "@/types/product";
 import { SHIPPING } from "@/data/shipping";
 import { leadTimeText } from "@/lib/leadTime";
 
@@ -71,6 +71,13 @@ export function PurchasePanel({
 }) {
   // 담기 · 바로 구매 · 사이즈 선택 (usePurchase)
   const { selectedSize, setSelectedSize, pending, notice, put } = usePurchase(product);
+
+  // 사이즈마다 고른 사진(서버 V45) — 누르면 큰 사진이 그 사진으로 바뀐다. 고르지 않은 사이즈는 그대로
+  function showPhotoOf(size: string, piece: SuitPiece | null) {
+    const url = product.skus.find((k) => k.size === size && (k.piece ?? null) === piece)?.imageUrl;
+    const i = url ? product.images.findIndex((p) => p.url === url) : -1;
+    if (i >= 0) onPhoto?.(i);
+  }
 
   // 수트 구성 — 고른 구성 · 조각별 사이즈. 바뀔 때마다 담을 한 줄(selectedSize)을 다시 만든다
   const suit = isSuitSet(product);
@@ -244,7 +251,10 @@ export function PurchasePanel({
                       columns={5}
                       skus={product.skus.filter((k) => k.piece === pc)}
                       value={choice.sizes[pc] ?? null}
-                      onChange={(size) => choose({ ...choice, sizes: { ...choice.sizes, [pc]: size } })}
+                      onChange={(size) => {
+                        choose({ ...choice, sizes: { ...choice.sizes, [pc]: size } });
+                        showPhotoOf(size, pc);
+                      }}
                     />
                   </div>
                 ))}
@@ -255,7 +265,14 @@ export function PurchasePanel({
       ) : (
         <div className="flex flex-col gap-2.5">
           <h2 className="text-primary text-sm font-medium">사이즈</h2>
-          <SizeSelector skus={product.skus} value={selectedSize} onChange={setSelectedSize} />
+          <SizeSelector
+            skus={product.skus}
+            value={selectedSize}
+            onChange={(size) => {
+              setSelectedSize(size);
+              showPhotoOf(size, null);
+            }}
+          />
         </div>
       )}
 

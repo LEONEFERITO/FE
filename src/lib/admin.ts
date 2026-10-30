@@ -253,6 +253,8 @@ export interface ProductDraft {
     measurements?: { part: string; valueCm: number; toleranceCm: number | null }[];
     /** 수트 조각(서버 V43). 없으면 보통 사이즈 */
     piece?: SuitPiece | null;
+    /** 이 사이즈를 누르면 보여 줄 메인 사진 칸(서버 V45). 없으면 사진을 바꾸지 않는다 */
+    imageKind?: SkuImageKind | null;
   }[];
   /**
    * 상세 사이즈 차트 이미지.
@@ -475,6 +477,9 @@ export async function deleteProduct(id: string): Promise<void> {
 
 export type ProductStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 
+/** 사이즈를 누르면 보여 줄 메인 사진 칸(서버 V45) — 상세 작은 사진 다섯 칸 */
+export type SkuImageKind = "MAIN" | "WORN" | "DETAIL" | "EXTRA_1" | "EXTRA_2";
+
 export const STATUS_LABEL: Record<ProductStatus, string> = {
   DRAFT: "초안",
   PUBLISHED: "공개",
@@ -565,6 +570,8 @@ export interface AdminProductEdit {
     measurements: { part: string; valueCm: number; toleranceCm: number | null }[];
     /** 수트 조각(서버 V43) */
     piece?: SuitPiece | null;
+    /** 이 사이즈를 누르면 보여 줄 메인 사진 칸(서버 V45) */
+    imageKind?: SkuImageKind | null;
   }[];
 }
 

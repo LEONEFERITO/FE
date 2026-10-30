@@ -14,6 +14,7 @@ import type { ProductPhoto } from "@/types/product";
  * 4:5 비율은 의류 촬영 표준이다. 세로가 길어야 전신 실루엣이 들어간다.
  *
  * 사진이 둘 이상이면 좌우 가운데에 넘기기 버튼(2026-10-31 디자이너 "사진 여기서도 넘겨볼 수 있도록") — 끝에서 처음으로 돈다.
+ * 2026-10-30 디자이너 "동그라미 크기 줄여 주세요": 보이는 동그라미는 32px, 누르는 자리는 44px 그대로(손가락 기준).
  */
 
 const PHOTO_PLACEHOLDER =
@@ -54,17 +55,21 @@ export function ProductGallery({
             type="button"
             onClick={() => onIndex((i - 1 + photos.length) % photos.length)}
             aria-label="이전 사진"
-            className="ease-fluid absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-[#1a1a1a] shadow-[0_2px_10px_rgba(0,0,0,0.18)] backdrop-blur-sm transition-colors duration-300 hover:bg-white md:left-4"
+            className="group absolute left-1.5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center md:left-2.5"
           >
-            <CaretLeft size={18} weight="regular" aria-hidden="true" />
+            <span className="ease-fluid flex h-8 w-8 items-center justify-center rounded-full bg-white/85 text-[#1a1a1a] shadow-[0_2px_8px_rgba(0,0,0,0.16)] backdrop-blur-sm transition-colors duration-300 group-hover:bg-white">
+              <CaretLeft size={14} weight="regular" aria-hidden="true" />
+            </span>
           </button>
           <button
             type="button"
             onClick={() => onIndex((i + 1) % photos.length)}
             aria-label="다음 사진"
-            className="ease-fluid absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-[#1a1a1a] shadow-[0_2px_10px_rgba(0,0,0,0.18)] backdrop-blur-sm transition-colors duration-300 hover:bg-white md:right-4"
+            className="group absolute right-1.5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center md:right-2.5"
           >
-            <CaretRight size={18} weight="regular" aria-hidden="true" />
+            <span className="ease-fluid flex h-8 w-8 items-center justify-center rounded-full bg-white/85 text-[#1a1a1a] shadow-[0_2px_8px_rgba(0,0,0,0.16)] backdrop-blur-sm transition-colors duration-300 group-hover:bg-white">
+              <CaretRight size={14} weight="regular" aria-hidden="true" />
+            </span>
           </button>
           <p aria-live="polite" className="sr-only">
             {i + 1} / {photos.length}

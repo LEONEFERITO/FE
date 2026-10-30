@@ -4,7 +4,7 @@ import { ArrowDown, ArrowUp, Plus, Warning, X } from "@phosphor-icons/react/dist
 import { useId } from "react";
 
 import { countGraphemes } from "@/components/admin/CountedField";
-import { LIMITS } from "@/lib/admin";
+import { LIMITS, type SkuImageKind } from "@/lib/admin";
 
 /**
  * 사이즈 목록 — 상품이 어떤 사이즈로 만들어지는가.
@@ -28,7 +28,18 @@ export interface SizeRow {
   orderable: boolean;
   /** 재고 칸에 적은 그대로. 빈칸 = 세지 않음 */
   stock: string;
+  /** 이 사이즈를 누르면 보여 줄 메인 사진 칸(서버 V45). 빈 값 = 사진을 바꾸지 않음 */
+  imageKind?: SkuImageKind | "";
 }
+
+/** 사이즈 사진으로 고를 수 있는 칸 — 상세 작은 사진 다섯 칸과 같은 순서 */
+export const SKU_IMAGE_CHOICES: { value: SkuImageKind; label: string }[] = [
+  { value: "MAIN", label: "대표" },
+  { value: "WORN", label: "착용샷" },
+  { value: "DETAIL", label: "디테일컷" },
+  { value: "EXTRA_1", label: "추가 1" },
+  { value: "EXTRA_2", label: "추가 2" },
+];
 
 /** 새 상품의 기본 사이즈. 이 브랜드의 기본 전개 (BRAND_BRIEF 참고). 관리자가 지우거나 바꾼다. */
 export const DEFAULT_SIZES: SizeRow[] = ["95", "100", "105", "110"].map((size) => ({
@@ -47,9 +58,11 @@ interface Props {
   errors?: Record<number, string>;
   /** 재고 칸을 숨긴다 — 수트 조각 사이즈(2026-10-31 디자이너 "재고 표시할 이유 없다"). 비운 칸 = 세지 않음 */
   hideStock?: boolean;
+  /** 사진 칸을 보인다 — 손님이 이 사이즈를 누르면 큰 사진이 그 칸 사진으로 바뀐다(2026-10-30 디자이너). 올린 칸만 고를 수 있다 */
+  photoChoices?: { value: SkuImageKind; label: string }[];
 }
 
-export function SizeListField({ value, onChange, errors = {}, hideStock = false }: Props) {
+export function SizeListField({ value, onChange, errors = {}, hideStock = false, photoChoices }: Props) {
   const baseId = useId();
 
   function update(i: number, patch: Partial<SizeRow>) {
@@ -133,6 +146,29 @@ export function SizeListField({ value, onChange, errors = {}, hideStock = false 
                     />
                     {row.stock === "0" && <span className="text-error text-2xs">품절</span>}
                   </label>
+                  {/* 사이즈 사진 — 손님이 이 사이즈를 누르면 큰 사진이 이 칸으로 바뀐다 */}
+                  {photoChoices && (
+                    <label className="text-secondary flex min-h-11 shrink-0 items-center gap-2 text-xs">
+                      사진
+                      <select
+                        value={row.imageKind ?? ""}
+                        onChange={(e) => update(i, { imageKind: e.target.value as SkuImageKind | "" })}
+                        aria-label={`${row.size || i + 1} 사이즈를 누르면 보여 줄 사진`}
+                        className="text-primary border-interactive focus-visible:border-accent min-h-11 rounded-lg border bg-transparent px-2 text-xs"
+                      >
+                        <option value="">바꾸지 않음</option>
+                        {photoChoices.map((c) => (
+                          <option key={c.value} value={c.value}>
+                            {c.label}
+                          </option>
+                        ))}
+                        {/* 고른 칸의 사진을 지웠으면 — 값은 남기되 비었다고 보인다 */}
+                        {row.imageKind && !photoChoices.some((c) => c.value === row.imageKind) && (
+                          <option value={row.imageKind}>{SKU_IMAGE_CHOICES.find((c) => c.value === row.imageKind)?.label} (사진 없음)</option>
+                        )}
+                      </select>
+                    </label>
+                  )}
                 </div>
 
                 <div className="flex shrink-0 items-center gap-1 self-end sm:self-auto">

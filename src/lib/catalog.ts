@@ -89,6 +89,8 @@ interface ApiDetail {
     measurements: { part: string; valueCm: number; toleranceCm: number | null }[];
     /** 수트 조각(서버 V43) */
     piece?: SuitPiece | null;
+    /** 이 사이즈를 누르면 보여 줄 사진(서버 V45) */
+    imageUrl?: string | null;
   }[];
 }
 
@@ -179,6 +181,7 @@ function toProduct(d: ApiDetail): Product {
       orderable: s.orderable && !s.soldOut,
       soldOut: s.orderable && s.soldOut === true,
       remaining: s.remaining ?? null,
+      imageUrl: s.imageUrl ?? null,
     })),
     measurements: {
       fields,

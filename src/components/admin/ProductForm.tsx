@@ -16,6 +16,7 @@ import { PIECE_LABEL, SUIT_PIECES } from "@/lib/suit";
 import type { SuitPiece } from "@/types/product";
 import {
   DEFAULT_SIZES,
+  SKU_IMAGE_CHOICES,
   SizeListField,
   stockValue,
   validateSizes,
@@ -195,6 +196,8 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
   const [manufacturedOn, setManufacturedOn] = useState(src?.manufacturedOn ?? "");
   const [description, setDescription] = useState(src?.description ?? "");
   const [images, setImages] = useState<Images>(() => imagesFrom(initial));
+  // 사이즈 사진으로 고를 수 있는 칸 — 사진을 올린 칸만(2026-10-30 디자이너 "사이즈 눌렀을 때 각각의 이미지")
+  const photoChoices = SKU_IMAGE_CHOICES.filter((c) => images[c.value]);
   const [story, setStory] = useState<StoryImage[]>(() =>
     (src?.images ?? [])
       .filter((img) => img.kind === "STORY")
@@ -227,6 +230,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
           orderable: s.orderable,
           // 복제한 색의 재고는 새 색과 상관없다 — 비운다
           stock: initial && s.stock != null ? String(s.stock) : "",
+          imageKind: s.imageKind ?? "",
         }))
       : DEFAULT_SIZES,
   );
@@ -239,7 +243,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
     const of = (pc: SuitPiece): SizeRow[] =>
       (src?.skus ?? [])
         .filter((k) => k.piece === pc)
-        .map((k) => ({ size: k.size, orderable: k.orderable, stock: initial && k.stock != null ? String(k.stock) : "" }));
+        .map((k) => ({ size: k.size, orderable: k.orderable, stock: initial && k.stock != null ? String(k.stock) : "", imageKind: k.imageKind ?? "" }));
     const pieced = !!src?.skus.some((k) => k.piece);
     const fresh = (list: string[]): SizeRow[] => list.map((size) => ({ size, orderable: true, stock: "" }));
     // 새로 켜면 가이드 사이즈 표의 전개로 시작한다(자켓 S~2XL · 베스트 · 팬츠 XS~XL)
@@ -406,6 +410,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
           sortOrder: i,
           measurements: before?.measurements ?? [],
           piece,
+          imageKind: row.imageKind || null,
         };
       }),
       vestPriceKrw: suitMode && hasVest && vestPriceKrw ? Number(vestPriceKrw) : null,
@@ -851,6 +856,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
                     onChange={(rows) => setPieceSizes((prev) => ({ ...prev, [pc]: rows }))}
                     errors={submitted ? validateSizes(pieceSizes[pc]) : {}}
                     hideStock
+                    photoChoices={photoChoices}
                   />
                 </div>
               ))}
@@ -860,6 +866,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
               value={sizes}
               onChange={setSizes}
               errors={submitted ? validateSizes(sizes) : {}}
+              photoChoices={photoChoices}
             />
           )}
         </fieldset>

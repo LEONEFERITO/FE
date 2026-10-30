@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { CategoryProducts, CategoryProductsFromUrl } from "@/components/product/CategoryProducts";
-import { CATEGORY_NAV, CATEGORY_SUBS, categoryHref } from "@/data/categories";
+import { CATEGORY_NAV, CATEGORY_SUBS, LINE_SPLIT_CATEGORIES, categoryHref } from "@/data/categories";
 import { getCatalog } from "@/lib/catalog";
 import { shareMetadata } from "@/lib/metadata";
 import { CATEGORY_LABEL } from "@/types/product";
@@ -54,6 +54,7 @@ export default async function CategoryPage({ params }: PageProps<"/category/[cat
 
   const products = (await getCatalog()).filter((p) => p.category === entry.category);
   const ko = CATEGORY_LABEL[entry.category].ko;
+  const splitLines = LINE_SPLIT_CATEGORIES.has(entry.category);
 
   return (
     <>
@@ -70,8 +71,8 @@ export default async function CategoryPage({ params }: PageProps<"/category/[cat
         {/* 라인 이름(LEONE · FERITO)이 h2, 카드의 상품명이 h3 — CategoryProducts */}
         <div className="pb-24 md:pb-32">
           {/* 세부 메뉴(?sub=)는 브라우저에서 읽는다. 빌드 HTML 에는 분류 전체가 나간다 */}
-          <Suspense fallback={<CategoryProducts products={products} />}>
-            <CategoryProductsFromUrl products={products} categorySlug={entry.slug} subs={CATEGORY_SUBS[entry.category] ?? []} />
+          <Suspense fallback={<CategoryProducts products={products} splitLines={splitLines} />}>
+            <CategoryProductsFromUrl products={products} splitLines={splitLines} categorySlug={entry.slug} subs={CATEGORY_SUBS[entry.category] ?? []} />
           </Suspense>
         </div>
       </main>
