@@ -23,6 +23,7 @@ import {
   type OrderDetail,
   type ReturnReason,
   type ReturnType,
+  optionText,
 } from "@/lib/shop";
 
 /**
@@ -284,7 +285,7 @@ export function ReturnRequestForm() {
                   <span className="min-w-0 flex-1 text-sm">
                     <span className="text-primary">{i.name}</span>
                     <span className="text-muted text-2xs block">
-                      사이즈 {i.size} · {i.quantity}벌 주문{max < i.quantity && ` · ${max === 0 ? "모두 신청함" : `${max}벌 남음`}`}
+                      {optionText(i.size, i.color)} · {i.quantity}벌 주문{max < i.quantity && ` · ${max === 0 ? "모두 신청함" : `${max}벌 남음`}`}
                     </span>
                   </span>
                 </label>

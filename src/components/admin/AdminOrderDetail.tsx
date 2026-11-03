@@ -157,7 +157,7 @@ export function AdminOrderDetail() {
               {o.items.map((i, k) => (
                 <li key={k} className="flex justify-between gap-4 py-3 text-sm">
                   <span className="text-primary">
-                    {i.name} <span className="text-muted">· {i.size} · {i.quantity}벌 · 제작 {i.leadTimeDays}일</span>
+                    {i.name} <span className="text-muted">· {i.color ? `${i.color} / ` : ""}{i.size} · {i.quantity}벌 · 제작 {i.leadTimeDays}일</span>
                   </span>
                   <span className="tabular-nums">{won(i.lineAmountKrw)}</span>
                 </li>

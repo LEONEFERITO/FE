@@ -92,6 +92,8 @@ interface ApiDetail {
     /** 이 사이즈를 누르면 보여 줄 사진(서버 V45) */
     imageUrl?: string | null;
   }[];
+  /** 컬러 옵션(서버 V46) */
+  colors?: { name: string; hex: string }[];
 }
 
 // ── 변환 ─────────────────────────────────────────────────────
@@ -172,6 +174,7 @@ function toProduct(d: ApiDetail): Product {
     story: d.images
       .filter((i) => i.kind === "STORY")
       .map((i) => ({ url: i.url, alt: i.alt, width: i.width, height: i.height })),
+    colors: d.colors ?? [],
     skus: d.skus.map((s) => ({
       id: `${d.slug}-${s.piece ? `${s.piece}-` : ""}${s.size}`,
       size: s.size,

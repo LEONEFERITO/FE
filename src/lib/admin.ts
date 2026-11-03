@@ -241,6 +241,8 @@ export interface ProductDraft {
   leadTimeMinDays?: number | null;
   /** 수트 베스트 금액(서버 V44) — 2피스 = 판매가 − 이 값. 베스트가 있는 수트(레오네)만 */
   vestPriceKrw?: number | null;
+  /** 컬러 옵션(서버 V46) — 이름 · #RRGGBB, 손님 화면에 이 순서로. 빈 목록이면 컬러를 고르지 않는 상품 */
+  colors?: { name: string; hex: string }[];
   /** 노출 순서. 폼에 칸이 없어도 수정 때는 원래 값을 그대로 돌려보낸다. */
   displayOrder?: number;
   images: { mediaId: string; kind: string; alt: string; sortOrder?: number }[];
@@ -560,6 +562,8 @@ export interface AdminProductEdit {
   internal?: ProductInternal | null;
   /** 수트 베스트 금액(서버 V44) */
   vestPriceKrw?: number | null;
+  /** 컬러 옵션(서버 V46). 예전 서버면 없다 */
+  colors?: { name: string; hex: string }[];
   images: { mediaId: string; url: string; kind: string; alt: string; sortOrder: number }[];
   skus: {
     size: string;

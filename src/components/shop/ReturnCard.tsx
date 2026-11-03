@@ -104,7 +104,7 @@ export function ReturnCard({ r, onChanged }: { r: ReturnView; onChanged: (next: 
           <dd className="text-secondary flex flex-col gap-1">
             {r.items.map((i) => (
               <span key={i.orderItemId}>
-                {i.name} · {i.size}{i.exchangeSize ? ` → ${i.exchangeSize}` : ""} · {i.quantity}벌
+                {i.name} · {i.color ? `${i.color} / ` : ""}{i.size}{i.exchangeSize ? ` → ${i.exchangeSize}` : ""} · {i.quantity}벌
               </span>
             ))}
           </dd>

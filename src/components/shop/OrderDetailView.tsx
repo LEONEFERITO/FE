@@ -18,6 +18,7 @@ import {
   when,
   won,
   type OrderDetail,
+  optionText,
 } from "@/lib/shop";
 
 /**
@@ -195,7 +196,7 @@ export function OrderDetailView() {
               <div className="min-w-0 flex-1">
                 <p className="text-primary text-sm">{i.name}</p>
                 <p className="text-muted text-2xs mt-1">
-                  사이즈 {i.size} · {i.quantity}벌 · 제작 약 {i.leadTimeDays}일
+                  {optionText(i.size, i.color)} · {i.quantity}벌 · 제작 약 {i.leadTimeDays}일
                 </p>
               </div>
               <p className="text-primary text-sm tabular-nums">{won(i.lineAmountKrw)}</p>

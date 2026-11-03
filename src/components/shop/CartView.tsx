@@ -16,6 +16,7 @@ import {
   removeCartLine,
   won,
   type Cart,
+  optionText,
 } from "@/lib/shop";
 
 /**
@@ -140,7 +141,7 @@ export function CartView({ empty }: { empty: React.ReactNode }) {
                       <span className="text-muted text-sm">{line.name}</span>
                     )}
                     <p className="text-muted text-2xs mt-1">
-                      사이즈 {line.size}
+                      {optionText(line.size, line.color)}
                       {line.leadTimeDays != null && <> · 주문 후 약 {leadTimeText(line.leadTimeDays, line.leadTimeMinDays)} 제작</>}
                     </p>
                   </div>
@@ -151,7 +152,7 @@ export function CartView({ empty }: { empty: React.ReactNode }) {
                     className="text-muted hover:text-error ease-fluid inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors duration-300"
                   >
                     <Trash size={16} weight="light" aria-hidden="true" />
-                    <span className="sr-only">{line.name} 사이즈 {line.size} 빼기</span>
+                    <span className="sr-only">{line.name} {optionText(line.size, line.color)} 빼기</span>
                   </button>
                 </div>
 

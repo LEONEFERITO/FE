@@ -6,8 +6,10 @@ import { useState } from "react";
 import { pendingLabel } from "@/lib/pending";
 import { PIECE_LABEL, SUIT_SETS, isSuitSet, offeredSets, suitDefaults, suitLabel, suitPrice, type SuitSet, type SuitSizes } from "@/lib/suit";
 
+import { ColorSelector } from "@/components/product/ColorSelector";
+import { PickedLines } from "@/components/product/PickedLines";
 import { SizeSelector } from "@/components/product/SizeSelector";
-import { usePurchase } from "@/components/product/usePurchase";
+import { lineMax, unitPriceOf, usePurchase } from "@/components/product/usePurchase";
 import { LINE_LABEL } from "@/types/product";
 import type { Product, SuitPiece } from "@/types/product";
 import { SHIPPING } from "@/data/shipping";
@@ -16,7 +18,11 @@ import { leadTimeText } from "@/lib/leadTime";
 /**
  * 구매 판 — 상세 맨 위 오른쪽 (2026-10-28 디자이너 시안으로 다시 짰다).
  *
- * 순서: 라인(레오네 · 페리토 구분) → 상품명 → 제품 설명 → 제작 기간 · 배송비 → 가격 → (선) → 작은 사진 다섯 칸 → 컬러 → 사이즈 → 버튼
+ * 순서: 라인(레오네 · 페리토 구분) → 상품명 → 제품 설명 → 제작 기간 · 배송비 → 가격 → (선) → 작은 사진 다섯 칸 → 컬러 → 사이즈 → 고른 옵션 → 버튼
+ *
+ * 2026-11-03 고객 "컬러와 사이즈 선택 후 각각 구매할 수량": 컬러(관리자가 넣은 이름 · 색, 서버 V46)를 고르고 사이즈를 누르면
+ * «고른 옵션» 줄이 하나 생긴다. 줄마다 수량을 정하고, 담기 · 바로 구매는 줄 전부를 가져간다(usePurchase).
+ * 수트 구성은 구성 · 조각 사이즈를 고른 뒤 «선택 추가» 로 줄을 만든다(조각을 하나씩 고르는 중에 줄이 생기면 안 된다).
  *
  * 수트 구성 상품(lib/suit, 서버 V43)은 사이즈 자리에 «구성»(3피스 · 2피스) → 조각마다 사이즈(자켓 · 베스트 · 팬츠)가 온다.
  * 가격 줄은 고른 구성의 값으로 바뀐다. 담을 때는 "3피스 · 자켓 L / 베스트 M / 팬츠 L" 한 줄이 사이즈로 간다.
@@ -70,7 +76,9 @@ export function PurchasePanel({
   onPhoto?: (i: number) => void;
 }) {
   // 담기 · 바로 구매 · 사이즈 선택 (usePurchase)
-  const { selectedSize, setSelectedSize, pending, notice, put } = usePurchase(product);
+  const { selectedSize, setSelectedSize, selectedColor, setSelectedColor, lines, addLine, setQuantity, removeLine, pending, notice, put } =
+    usePurchase(product);
+  const productColors = product.colors ?? [];
 
   // 사이즈마다 고른 사진(서버 V45) — 누르면 큰 사진이 그 사진으로 바뀐다. 고르지 않은 사이즈는 그대로
   function showPhotoOf(size: string, piece: SuitPiece | null) {
@@ -173,7 +181,9 @@ export function PurchasePanel({
         </ul>
       )}
 
-      {colors.length > 0 && (
+      {productColors.length > 0 ? (
+        <ColorSelector colors={productColors} value={selectedColor} onChange={setSelectedColor} />
+      ) : colors.length > 0 && (
         <div className="flex flex-col gap-2.5">
           <h2 className="text-primary text-sm font-medium">컬러</h2>
           <ul className="flex flex-wrap items-center gap-3">
@@ -259,6 +269,15 @@ export function PurchasePanel({
                   </div>
                 ))}
               </div>
+              {/* 구성 · 조각 사이즈를 다 고른 뒤 줄로 넣는다 — 조각을 하나씩 바꾸는 중에 줄이 생기지 않게 */}
+              <button
+                type="button"
+                disabled={!selectedSize}
+                onClick={() => selectedSize && addLine(selectedSize)}
+                className="border-strong text-primary hover:border-accent hover:text-accent ease-fluid mt-1 min-h-11 rounded-full border text-sm transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                선택 추가
+              </button>
             </div>
           )}
         </>
@@ -271,10 +290,20 @@ export function PurchasePanel({
             onChange={(size) => {
               setSelectedSize(size);
               showPhotoOf(size, null);
+              addLine(size);
             }}
           />
         </div>
       )}
+
+      {/* 고른 옵션 — 컬러 / 사이즈 줄마다 수량 */}
+      <PickedLines
+        lines={lines}
+        unitPrice={(l) => unitPriceOf(product, l.size)}
+        maxFor={(l) => lineMax(product, l.size)}
+        onQuantity={setQuantity}
+        onRemove={removeLine}
+      />
 
       {product.instagramUrl && (
         // 바깥 사이트로 나가므로 새 창이다. 그 사실을 글로도 알린다. noopener: 열린 창이 이 페이지를 조작하지 못하게
@@ -298,7 +327,7 @@ export function PurchasePanel({
       <div data-quick-avoid="" className="mt-2 flex flex-col gap-2.5 lg:mt-auto">
         <button
           type="button"
-          disabled={!selectedSize || pending !== null}
+          disabled={lines.length === 0 || pending !== null}
           onClick={() => put("cart")}
           className="group bg-accent hover:bg-accent-hover text-on-accent shadow-button hover:shadow-button-hover tracking-button ease-fluid flex items-center justify-between gap-4 rounded-full py-4 pl-7 pr-2 text-[15px] lg:py-2.5 transition-all duration-500 hover:-translate-y-px active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none disabled:hover:translate-y-0"
         >
@@ -310,7 +339,7 @@ export function PurchasePanel({
 
         <button
           type="button"
-          disabled={!selectedSize || pending !== null}
+          disabled={lines.length === 0 || pending !== null}
           onClick={() => put("buy")}
           className="border-strong hover:border-accent hover:text-accent hover:shadow-soft text-primary tracking-button ease-fluid rounded-full border py-4 text-[15px] lg:py-3.5 transition-all duration-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
         >

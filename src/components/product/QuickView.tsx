@@ -6,6 +6,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "re
 
 import { LineSummary } from "@/components/product/LineBadge";
 import { SizeSelector } from "@/components/product/SizeSelector";
+import { ColorSelector } from "@/components/product/ColorSelector";
 import { usePurchase } from "@/components/product/usePurchase";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { pendingLabel } from "@/lib/pending";
@@ -68,7 +69,10 @@ export function QuickView({
   const touchX = useRef<number | null>(null);
   const drag = useRef<{ y: number; t: number; dy: number } | null>(null);
   const closing = useRef(false);
-  const { selectedSize, setSelectedSize, pending, notice, put } = usePurchase(product);
+  const { selectedSize, setSelectedSize, selectedColor, setSelectedColor, pending, notice, put } = usePurchase(product);
+  // 컬러가 있는 상품은 컬러까지 골라야 담긴다(서버 V46). 팝업은 고른 한 벌만 담는다 — 수량 · 여러 줄은 상세 화면에서
+  const colorList = product.colors ?? [];
+  const ready = !!selectedSize && (colorList.length === 0 || !!selectedColor);
 
   // 한 번 열리면 안쪽(사진)을 그린다 — effect 가 아니라 렌더 중에 맞춘다
   if (open && !opened) setOpened(true);
@@ -338,14 +342,16 @@ export function QuickView({
 
             <hr className="border-subtle my-1" />
 
+            {colorList.length > 0 && <ColorSelector colors={colorList} value={selectedColor} onChange={setSelectedColor} />}
+
             <h3 className="text-primary text-sm font-medium">사이즈</h3>
             <SizeSelector skus={product.skus} value={selectedSize} onChange={setSelectedSize} />
 
             <div className="mt-2 flex flex-col gap-2.5">
               <button
                 type="button"
-                disabled={!selectedSize || pending !== null}
-                onClick={() => put("cart")}
+                disabled={!ready || pending !== null}
+                onClick={() => put("cart", false)}
                 className="group bg-accent hover:bg-accent-hover text-on-accent tracking-button ease-fluid flex items-center justify-between gap-4 rounded-full py-4 pl-7 pr-2 text-[15px] transition-all duration-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
               >
                 <span className="flex-1 text-center">{pending === "cart" ? "담는 중" : "장바구니 담기"}</span>
@@ -355,8 +361,8 @@ export function QuickView({
               </button>
               <button
                 type="button"
-                disabled={!selectedSize || pending !== null}
-                onClick={() => put("buy")}
+                disabled={!ready || pending !== null}
+                onClick={() => put("buy", false)}
                 className="border-strong hover:border-accent hover:text-accent text-primary tracking-button ease-fluid rounded-full border py-4 text-[15px] transition-all duration-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
               >
                 {pending === "buy" ? "주문서로 가는 중" : "바로 구매"}

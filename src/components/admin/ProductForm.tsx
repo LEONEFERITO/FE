@@ -4,6 +4,7 @@ import { Check, Circle, Copy, Warning } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
+import { ColorListField, validateColors, type ColorRow } from "@/components/admin/ColorListField";
 import { CountedField, countGraphemes } from "@/components/admin/CountedField";
 import {
   ImageField,
@@ -258,6 +259,8 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
   const suitPieces: SuitPiece[] = SUIT_PIECES.filter((pc) => hasVest || pc !== "VEST");
   // 베스트 금액(서버 V44) — 2피스 = 판매가 − 베스트 금액(2026-10-31 디자이너 "베스트 금액만큼 빠지게")
   const [vestPriceKrw, setVestPriceKrw] = useState(src?.vestPriceKrw?.toString() ?? "");
+  // 컬러 옵션(서버 V46) — 복제할 때도 그대로 가져온다(같은 옷의 다른 버전)
+  const [colors, setColors] = useState<ColorRow[]>(() => (src?.colors ?? []).map((c) => ({ name: c.name, hex: c.hex })));
 
   /** 이미 쓰고 있는 주소들 — 새 상품의 주소가 겹치면 그 자리에서 알린다(서버도 막지만 저장 뒤에야 안다) */
   const [takenSlugs, setTakenSlugs] = useState<Set<string>>(new Set());
@@ -342,6 +345,8 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
       e.instagramUrl = "인스타그램 게시물 주소(https://www.instagram.com/…)를 붙여 넣어 주세요.";
     }
 
+    if (Object.keys(validateColors(colors)).length > 0) e.colors = "컬러 목록을 확인해 주세요.";
+
     if (suitMode) {
       for (const pc of suitPieces) {
         const rows = pieceSizes[pc];
@@ -414,6 +419,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
         };
       }),
       vestPriceKrw: suitMode && hasVest && vestPriceKrw ? Number(vestPriceKrw) : null,
+      colors: colors.map((c) => ({ name: c.name.trim(), hex: c.hex.toUpperCase() })),
 
       images: IMAGE_SLOTS.flatMap((slot, i): ProductDraft["images"] => {
         const v = images[slot.key];
@@ -785,6 +791,17 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
         <fieldset className="border-subtle flex flex-col gap-6 border-t pt-7">
           <legend className="text-primary text-sm font-medium">상세 이미지</legend>
           <StoryImagesField value={story} onChange={setStory} productName={name} />
+        </fieldset>
+
+        {/* ── 컬러 (서버 V46) ───────────────────────────── */}
+        <fieldset className="border-subtle flex flex-col gap-6 border-t pt-7">
+          <legend className="text-primary text-sm font-medium">컬러</legend>
+          <p className="text-muted text-2xs -mt-4 leading-relaxed">
+            손님이 컬러를 고르고 사이즈를 누르면 «컬러 / 사이즈» 줄이 생기고, 줄마다 수량을 정합니다. 이름은 장바구니 · 주문서 · 송장 엑셀에
+            그대로 나갑니다. 재고는 지금처럼 사이즈별입니다(컬러끼리 나눠 세지 않습니다).
+          </p>
+          <ColorListField value={colors} onChange={setColors} errors={submitted ? validateColors(colors) : {}} />
+          {submitted && errors.colors && <p className="text-error text-2xs -mt-2">{errors.colors}</p>}
         </fieldset>
 
         {/* ── 사이즈 ────────────────────────────────────── */}

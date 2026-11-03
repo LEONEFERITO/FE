@@ -161,6 +161,13 @@ export interface Sku {
   imageUrl?: string | null;
 }
 
+/** 컬러 옵션 하나(서버 V46) — 이름은 장바구니 · 주문서에 그대로 나간다 */
+export interface ProductColor {
+  name: string;
+  /** #RRGGBB */
+  hex: string;
+}
+
 /** 상품 사진 한 장. 대체 텍스트는 관리자가 적는다 — 사진이 곧 "무엇을 파는가" 다. */
 export interface ProductPhoto {
   url: string;
@@ -237,6 +244,8 @@ export interface Product {
    */
   cutout: string | null;
   skus: Sku[];
+  /** 컬러 옵션(서버 V46) — 관리자가 넣은 이름 · 동그라미 색. 비어 있으면 컬러를 고르지 않는 상품 */
+  colors?: ProductColor[];
   measurements: MeasurementTable;
   /** 상세 사이즈 차트 이미지. 없으면 그 자리를 비운다. */
   sizeChart: SizeChartImage | null;

@@ -190,7 +190,7 @@ export function AdminReturnDetail() {
                   <span className="text-primary">
                     {i.name}{" "}
                     <span className="text-muted">
-                      · {i.size}
+                      · {i.color ? `${i.color} / ` : ""}{i.size}
                       {i.exchangeSize && <> → <b className="text-accent">{i.exchangeSize}</b></>} · {i.quantity}벌
                     </span>
                   </span>

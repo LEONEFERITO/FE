@@ -89,6 +89,8 @@ export interface CartLine {
   name: string | null;
   imageUrl: string | null;
   size: string;
+  /** 고른 컬러 이름(서버 V46). 컬러가 없는 상품은 빈 값 */
+  color?: string;
   quantity: number;
   unitPriceKrw: number | null;
   lineAmountKrw: number;
@@ -119,9 +121,15 @@ const counted = (p: Promise<Cart>) =>
     return cart;
   });
 
+/** 주문 줄의 옵션 글자 — 컬러가 있으면 "컬러 블랙 · 사이즈 L", 없으면 "사이즈 L"(서버 V46) */
+export function optionText(size: string, color?: string | null): string {
+  return color ? `컬러 ${color} · 사이즈 ${size}` : `사이즈 ${size}`;
+}
+
 export const getCart = () => counted(request<Cart>("GET", "/api/cart"));
-export const addToCart = (slug: string, size: string, quantity = 1) =>
-  counted(request<Cart>("POST", "/api/cart/items", { slug, size, quantity }));
+/** color — 컬러가 있는 상품이면 고른 이름(서버 V46). 없는 상품은 비운다 */
+export const addToCart = (slug: string, size: string, quantity = 1, color = "") =>
+  counted(request<Cart>("POST", "/api/cart/items", { slug, size, quantity, color: color || null }));
 export const changeCartQuantity = (id: string, quantity: number) =>
   counted(request<Cart>("PATCH", `/api/cart/items/${encodeURIComponent(id)}`, { quantity }));
 export const removeCartLine = (id: string) =>
@@ -184,6 +192,8 @@ export interface OrderDetail {
     name: string;
     imageUrl: string | null;
     size: string;
+    /** 주문 당시 컬러(서버 V46). 컬러가 없는 상품은 빈 값 */
+    color?: string;
     unitPriceKrw: number;
     quantity: number;
     lineAmountKrw: number;
@@ -427,7 +437,7 @@ export interface ReturnView {
   reshipCourier: string | null;
   reshipTrackingNumber: string | null;
   createdAt: string;
-  items: { orderItemId: string; name: string; imageUrl: string | null; size: string; unitPriceKrw: number; quantity: number; exchangeSize: string | null }[];
+  items: { orderItemId: string; name: string; imageUrl: string | null; size: string; color?: string; unitPriceKrw: number; quantity: number; exchangeSize: string | null }[];
   events: { status: ReturnStatus; note: string | null; at: string }[];
   /** 지금 손님이 철회할 수 있는가 (승인 전) */
   withdrawable: boolean;
