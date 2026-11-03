@@ -79,6 +79,7 @@ export function PurchasePanel({
   const { selectedSize, setSelectedSize, selectedColor, setSelectedColor, lines, addLine, setQuantity, removeLine, pending, notice, put } =
     usePurchase(product);
   const productColors = product.colors ?? [];
+  const [pickedSize, setPickedSize] = useState<string | null>(null);
 
   // 사이즈마다 고른 사진(서버 V45) — 누르면 큰 사진이 그 사진으로 바뀐다. 고르지 않은 사이즈는 그대로
   function showPhotoOf(size: string, piece: SuitPiece | null) {
@@ -184,27 +185,16 @@ export function PurchasePanel({
       {productColors.length > 0 ? (
         <ColorSelector colors={productColors} value={selectedColor} onChange={setSelectedColor} />
       ) : colors.length > 0 && (
-        <div className="flex flex-col gap-2.5">
-          <h2 className="text-primary text-sm font-medium">컬러</h2>
-          <ul className="flex flex-wrap items-center gap-3">
-            {colors.map((c) =>
-              c.hex ? (
-                <li key={c.name} title={c.name} className="flex items-center">
-                  <span
-                    aria-hidden="true"
-                    className="ring-strong block h-6 w-6 rounded-full ring-1 ring-offset-2"
-                    style={{ background: c.hex }}
-                  />
-                  <span className="sr-only">{c.name}</span>
-                </li>
-              ) : (
-                <li key={c.name} className="text-primary text-sm">
-                  {c.name}
-                </li>
-              ),
-            )}
-          </ul>
-        </div>
+        // 컬러 옵션이 없는 상품 — 상품정보고시의 색상을 안내로만 보인다(고르는 칸이 아니다). 동그라미 옆에 이름을 함께 적는다
+        <p className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+          <span className="text-primary font-medium">컬러</span>
+          {colors.map((c) => (
+            <span key={c.name} className="text-secondary inline-flex items-center gap-1.5">
+              {c.hex && <span aria-hidden="true" className="block h-3.5 w-3.5 rounded-full ring-1 ring-[#CFCFCF]" style={{ background: c.hex }} />}
+              {c.name}
+            </span>
+          ))}
+        </p>
       )}
 
       {suit ? (
@@ -284,10 +274,12 @@ export function PurchasePanel({
       ) : (
         <div className="flex flex-col gap-2.5">
           <h2 className="text-primary text-sm font-medium">사이즈</h2>
+          {/* 표시는 마지막으로 누른 사이즈만 — 처음부터 골라져 보이면 줄이 없는데 담기가 꺼져 있어 헷갈린다 */}
           <SizeSelector
             skus={product.skus}
-            value={selectedSize}
+            value={pickedSize}
             onChange={(size) => {
+              setPickedSize(size);
               setSelectedSize(size);
               showPhotoOf(size, null);
               addLine(size);

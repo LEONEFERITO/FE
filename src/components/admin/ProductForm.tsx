@@ -628,7 +628,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
             onChange={changeColor}
             max={LIMITS.notice}
             placeholder="화이트"
-            hint="아래 버튼으로 고르거나 직접 적습니다. 상품정보고시의 색상으로도 나갑니다."
+            hint="아래 버튼으로 고르거나 직접 적습니다. 상품정보고시의 색상으로 나갑니다 — 손님이 고르는 컬러 옵션은 아래 «컬러» 칸에서 넣습니다."
             error={submitted ? errors.color : undefined}
           />
           <div role="group" aria-label="자주 쓰는 색" className="flex flex-wrap gap-2">
