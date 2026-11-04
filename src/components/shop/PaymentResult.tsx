@@ -168,11 +168,27 @@ export function PaymentSuccess() {
   );
 }
 
+/**
+ * 실패 사유는 code 로만 고른다 — 주소의 message 는 누구나 바꿔 붙일 수 있어 화면에 그대로 쓰지 않는다
+ * (2026-11-04 보안 점검). 모르는 code 는 따로 말하지 않는다.
+ */
+const FAIL_REASONS: Record<string, string> = {
+  AMOUNT_MISMATCH: "결제 금액이 주문 금액과 다릅니다. 주문서를 다시 만들어 주세요.",
+  MISMATCH: "결제 확인 중 문제가 생겼습니다. 고객센터로 문의해 주세요.",
+  INVALID_SIGNATURE: "결제 정보를 확인하지 못했습니다. 다시 시도해 주세요.",
+  INVALID_REQUEST: "결제 정보가 올바르지 않습니다. 다시 시도해 주세요.",
+  ORDER_NOT_FOUND: "주문을 찾지 못했습니다. 장바구니에서 다시 주문해 주세요.",
+  ORDER_STATE: "이미 처리되었거나 결제할 수 없는 주문입니다. 주문 내역을 확인해 주세요.",
+  OUT_OF_STOCK: "결제하는 사이 품절된 상품이 있습니다. 장바구니를 확인해 주세요.",
+  NETWORK: "결제사와 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  NOT_CONFIGURED: "결제 준비 중입니다. 잠시 후 다시 시도해 주세요.",
+};
+
 export function PaymentFail() {
   const search = useSyncExternalStore(() => () => {}, readQuery, () => "");
   const q = new URLSearchParams(search);
   const code = q.get("code");
-  const message = q.get("message");
+  const message = code ? FAIL_REASONS[code] : undefined;
   // 결제창을 닫은 경우 — 실패라기보다 손님의 선택이다. 다르게 말한다.
   const cancelled = code === "PAY_PROCESS_CANCELED" || code === "USER_CANCEL";
 

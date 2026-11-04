@@ -95,6 +95,13 @@ export function AccountSettings({
       <Modal open={open === "password"} title="비밀번호 관리" onClose={() => setOpen(null)}>
         {profile.hasPassword ? (
           <PasswordForm email={profile.email} />
+        ) : profile.provider === "LOCAL" ? (
+          // 이메일로 가입한 뒤 간편 로그인을 연결한 계정 — 연결할 때 비밀번호를 쓰지 않게 바꿨다(2026-11-04 보안 점검)
+          <p className="text-secondary text-sm leading-relaxed">
+            {(profile.linkedProviders ?? []).map((p) => PROVIDER_LABEL[p]).join(" · ")} 간편 로그인을 연결한 계정은 연결할
+            때 이전 비밀번호를 쓰지 않게 바꿨습니다. 간편 로그인으로 들어와 주세요. 비밀번호로도 로그인하시려면 로그인
+            화면의 «비밀번호 찾기»에서 새로 정하실 수 있습니다.
+          </p>
         ) : (
           <p className="text-secondary text-sm leading-relaxed">
             {PROVIDER_LABEL[profile.provider]} 간편가입 계정이라 비밀번호가 없습니다.{" "}

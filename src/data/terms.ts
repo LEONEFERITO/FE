@@ -41,7 +41,7 @@ export interface LegalDocument {
 }
 
 export const TERMS: LegalDocument = {
-  effectiveDate: "2026년 10월 14일",
+  effectiveDate: "2026년 11월 11일",
   articles: [
     {
       title: "목적",
@@ -117,7 +117,7 @@ export const TERMS: LegalDocument = {
     {
       title: "회원 탈퇴 및 자격 상실 등",
       clauses: [
-        "회원은 회사에 언제든지 탈퇴를 요청할 수 있으며 회사는 즉시 회원탈퇴를 처리합니다.",
+        "회원은 회사에 언제든지 탈퇴를 요청할 수 있으며 회사는 즉시 회원탈퇴를 처리합니다. 다만 결제 · 제작 · 배송이 끝나지 않은 주문이나 처리 중인 교환 · 반품이 있으면, 이용자의 권리를 지키기 위해 그 처리가 끝난 뒤 탈퇴할 수 있습니다.",
         {
           text: "회원이 다음 각 호의 사유에 해당하는 경우, 회사는 회원자격을 제한 및 정지시킬 수 있습니다.",
           items: [

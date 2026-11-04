@@ -15,7 +15,7 @@ const officer = BUSINESS.privacyOfficer ?? "개인정보 보호책임자";
 const contact = [BUSINESS.phone, BUSINESS.email].filter(Boolean).join(" · ");
 
 export const COOKIES: LegalDocument = {
-  effectiveDate: "2026년 10월 14일",
+  effectiveDate: "2026년 11월 11일",
   numbering: "section",
   subject: "이 쿠키 정책",
   articles: [
@@ -38,6 +38,7 @@ export const COOKIES: LegalDocument = {
         },
         "분석 쿠키(방문 통계), 마케팅 쿠키(광고 추적), 외부 서비스 쿠키(소셜 플러그인 등)는 사용하지 않습니다.",
         "카카오 · 네이버 간편 로그인 버튼을 눌러 해당 서비스의 로그인 화면으로 이동하면, 그 화면에서는 카카오 · 네이버가 자체 쿠키 정책에 따라 쿠키를 사용합니다. 우리 사이트로 돌아온 뒤에는 위 두 쿠키만 사용합니다.",
+        "결제할 때 열리는 결제창(나이스페이먼츠)과 카드사 · 간편결제 인증 화면은 결제대행사와 카드사가 결제 처리와 부정 결제 방지를 위해 자체 쿠키를 사용할 수 있습니다. 이는 각 회사의 정책을 따르며, 회사는 그 쿠키를 읽지 않습니다.",
       ],
     },
     {
