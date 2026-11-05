@@ -338,7 +338,7 @@ export function QuickView({
               )}
             </p>
 
-            <LineSummary line={product.line} />
+            {product.line && <LineSummary line={product.line} />}
 
             <hr className="border-subtle my-1" />
 

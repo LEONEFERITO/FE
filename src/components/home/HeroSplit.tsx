@@ -65,7 +65,7 @@ export function HeroSplit({ products }: { products: Product[] }) {
   if (!product) return null;
 
   const name = product.name ?? "제품명 확인 중";
-  const fit = LINE_LABEL[product.line];
+  const fit = product.line ? LINE_LABEL[product.line] : null; // 라인 없는 상품(V48)
 
   return (
     <section
@@ -134,8 +134,12 @@ export function HeroSplit({ products }: { products: Product[] }) {
         <div id={liveId} aria-live="polite" className="my-6 md:my-auto">
           <p className="text-accent text-2xs tracking-label">
             {CATEGORY_LABEL[product.category].en}
-            <span aria-hidden="true"> · </span>
-            {fit.ko}
+            {fit && (
+              <>
+                <span aria-hidden="true"> · </span>
+                {fit.ko}
+              </>
+            )}
           </p>
           {/*
             두 줄 높이를 미리 잡고 두 줄에서 자른다. 슬라이드를 넘길 때 이름 길이가 달라져

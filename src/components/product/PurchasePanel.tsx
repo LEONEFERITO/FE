@@ -10,7 +10,7 @@ import { ColorSelector } from "@/components/product/ColorSelector";
 import { PickedLines } from "@/components/product/PickedLines";
 import { SizeSelector } from "@/components/product/SizeSelector";
 import { lineMax, unitPriceOf, usePurchase } from "@/components/product/usePurchase";
-import { LINE_LABEL } from "@/types/product";
+import { CATEGORY_LABEL, LINE_LABEL } from "@/types/product";
 import type { Product, SuitPiece } from "@/types/product";
 import { SHIPPING } from "@/data/shipping";
 import { leadTimeText } from "@/lib/leadTime";
@@ -101,7 +101,8 @@ export function PurchasePanel({
   const price = formatKrw(unitPrice);
   // 정가(취소선)는 판매가(= 3피스) 기준이라 2피스에는 그리지 않는다
   const listPrice = !suit || choice.set === "THREE" ? formatKrw(product.listPriceKrw) : null;
-  const line = LINE_LABEL[product.line];
+  const line = product.line ? LINE_LABEL[product.line] : null; // 라인 없는 상품(V48)은 분류를 대신 보인다
+  const category = CATEGORY_LABEL[product.category];
   const about = product.description?.trim() || product.summary?.trim() || null;
   const colors = colorsOf(product.notice?.color);
   // 배송비 — 서버 배송 정책과 같은 기준(data/shipping). 기준 금액 이상이면 무료
@@ -113,7 +114,7 @@ export function PurchasePanel({
       <div className="flex flex-col gap-3">
         {/* 라인 — 레오네 · 페리토 구분(2026-10-28 "가로 작대기 빼고 라인 구분 용도로") */}
         <p className="text-accent text-2xs tracking-label">
-          {line.en} · {line.ko} ({line.kind})
+          {line ? `${line.en} · ${line.ko} (${line.kind})` : `${category.en} · ${category.ko}`}
         </p>
 
         <h1 className="font-display text-primary text-3xl leading-display tracking-display md:text-4xl lg:text-[30px]">

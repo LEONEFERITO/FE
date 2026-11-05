@@ -206,7 +206,8 @@ export interface Product {
   slug: string;
   name: string | null;
   category: Category;
-  line: ProductLine;
+  /** 라인. 라인 구분 없이 올린 상품(바지 · 신발 · 액세서리 등)은 null — 서버 V48 */
+  line: ProductLine | null;
   /** 세부 분류(트라우저 핏 · 신발 종류). 없으면 null */
   style: ProductStyle | null;
   /** 판매가(원). 서버가 계산한 값만 신뢰한다 — 화면은 표시만 한다. */

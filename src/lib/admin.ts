@@ -217,7 +217,8 @@ export interface ProductDraft {
   slug: string;
   name: string;
   category: string;
-  line: string;
+  /** 라인. 라인 구분 없이 올린 상품은 null (서버 V48) */
+  line: string | null;
   /** 세부 분류. 트라우저 · 신발만, 없으면 null (서버 V21) */
   style: string | null;
   priceKrw: number | null;
@@ -512,7 +513,8 @@ export interface AdminProductRow {
   slug: string;
   name: string | null;
   category: string;
-  line: string;
+  /** 라인. 라인 구분 없이 올린 상품은 null (서버 V48) */
+  line: string | null;
   /** 세부 분류. 트라우저 · 신발만, 없으면 null (서버 V21) */
   style: string | null;
   status: ProductStatus;
@@ -532,7 +534,8 @@ export interface AdminProductEdit {
   slug: string;
   name: string | null;
   category: string;
-  line: string;
+  /** 라인. 라인 구분 없이 올린 상품은 null (서버 V48) */
+  line: string | null;
   /** 세부 분류. 트라우저 · 신발만, 없으면 null (서버 V21) */
   style: string | null;
   priceKrw: number | null;

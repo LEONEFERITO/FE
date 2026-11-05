@@ -44,12 +44,13 @@ export async function generateMetadata({
   if (!product) return {};
 
   const name = product.name ?? "제품 준비 중";
-  const fit = LINE_LABEL[product.line];
+  // 라인 없이 올린 상품(바지 · 신발 · 액세서리 등, 서버 V48)은 라인 이름을 빼고 분류만 쓴다
+  const fit = product.line ? LINE_LABEL[product.line] : null;
 
   // 2026-10-26 SEO: 설명 앞에 상품 이름 · 라인 · 분류를 두고, 요약(관리자 입력)이 있으면 그 뒤에 잇는다
   const category = CATEGORY_LABEL[product.category];
-  const description = `${name} — ${fit.ko} ${category.ko}. ${
-    product.summary?.trim() || fit.description
+  const description = `${name} — ${fit ? `${fit.ko} ` : ""}${category.ko}. ${
+    product.summary?.trim() || fit?.description || ""
   } 사이즈별 상세 실측(어깨·가슴·허리·총장)과 모델 착용 정보를 공개합니다.`;
   return {
     title: name,
@@ -69,7 +70,7 @@ export async function generateMetadata({
     openGraph: {
       ...openGraphBase(product.images[0]?.url),
       title: `${name} | LEONE FERITO`,
-      description: `${fit.ko} 핏 · 사이즈별 상세 실측 제공`,
+      description: `${fit ? `${fit.ko} 핏` : category.ko} · 사이즈별 상세 실측 제공`,
       url: `/products/${product.slug}/`,
     },
   };

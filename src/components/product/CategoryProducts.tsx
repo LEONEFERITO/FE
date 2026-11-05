@@ -97,6 +97,9 @@ export function CategoryProducts({
     [list],
   );
 
+  // 라인 없이 올린 상품(서버 V48) — 라인 묶음 아래에 따로 한 번
+  const common = useMemo(() => list.filter((p) => !p.line), [list]);
+
   // 고른 라인이 먼저, 나머지는 아래(한 줄)
   const order: ProductLine[] = line ? [line, ...LINES.filter((l) => l !== line)] : LINES;
   const total = list.length;
@@ -231,6 +234,21 @@ export function CategoryProducts({
             </section>
           );
         })
+      )}
+      {splitLines && total > 0 && common.length > 0 && (
+        <section aria-label="라인 공통" className="mt-10 md:mt-14">
+          <h2 className="flex items-baseline gap-2.5">
+            <span className="font-display text-primary text-lg tracking-[0.12em] md:text-xl">COMMON</span>
+            <span className="text-muted text-2xs">라인 공통</span>
+          </h2>
+          <ul className={`-mx-5 mt-4 md:mx-0 md:mt-5 ${GRID}`}>
+            {common.map((p) => (
+              <li key={p.slug} className="min-w-0">
+                <ProductCard product={p} inset />
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
     </div>
   );

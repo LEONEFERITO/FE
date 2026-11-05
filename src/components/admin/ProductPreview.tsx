@@ -29,7 +29,8 @@ interface Props {
   summary: string;
   priceKrw: number | null;
   category: Category;
-  line: ProductLine;
+  /** 라인 없는 상품(V48)은 null */
+  line: ProductLine | null;
   imageUrl: string | null;
   leadTimeDays: number | null;
   /** 제작 기간 최소(V40) */
@@ -118,8 +119,12 @@ export function ProductPreview({
 
           <p className="text-accent text-2xs tracking-label">
             {CATEGORY_LABEL[category].en}
-            <span aria-hidden="true"> · </span>
-            {LINE_LABEL[line].ko}
+            {line && (
+              <>
+                <span aria-hidden="true"> · </span>
+                {LINE_LABEL[line].ko}
+              </>
+            )}
           </p>
 
           {/*

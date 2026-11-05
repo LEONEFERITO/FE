@@ -214,7 +214,7 @@ function Rows({ rows, tab }: { rows: AdminProductRow[]; tab: Tab }) {
                 </p>
                 <p className="text-muted text-2xs mt-1 truncate">
                   {CATEGORY_LABEL[r.category as Category]?.ko ?? r.category} ·{" "}
-                  {LINE_LABEL[r.line as ProductLine]?.ko ?? r.line} · /{r.slug}
+                  {r.line ? (LINE_LABEL[r.line as ProductLine]?.ko ?? r.line) : "라인 없음"} · /{r.slug}
                 </p>
 
                 {r.status !== "PUBLISHED" && r.missingForPublish.length > 0 && (

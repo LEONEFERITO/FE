@@ -172,8 +172,9 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
   const [category, setCategory] = useState<Category>(
     (src?.category as Category | undefined) ?? "SHIRT",
   );
-  const [line, setLine] = useState<ProductLine>(
-    (src?.line as ProductLine | undefined) ?? (defaults.line as ProductLine | undefined) ?? "LEONE",
+  // 라인. "" 은 라인 구분 없음(바지 · 신발 · 액세서리 등, 서버 V48 — 2026-11-05 요청)
+  const [line, setLine] = useState<ProductLine | "">(
+    src ? ((src.line as ProductLine | null) ?? "") : ((defaults.line as ProductLine | "" | undefined) ?? "LEONE"),
   );
   // 세부 분류(트라우저 핏 · 신발 종류). 분류를 바꾸면 맞지 않는 값은 비운다 — 서버도 그 조합을 400 으로 막는다.
   const [style, setStyle] = useState<ProductStyle | null>((src?.style as ProductStyle | null | undefined) ?? null);
@@ -373,7 +374,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
       slug: slug.trim(),
       name: name.trim(),
       category,
-      line,
+      line: line || null,
       style: style && STYLE_LABEL[style].category === category ? style : null,
       priceKrw: priceKrw ? Number(priceKrw) : null,
       summary: summary.trim(),
@@ -703,7 +704,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
             <select
               id="line"
               value={line}
-              onChange={(e) => setLine(e.target.value as ProductLine)}
+              onChange={(e) => setLine(e.target.value as ProductLine | "")}
               className="text-primary border-interactive focus-visible:border-accent ease-fluid min-h-12 w-full rounded-xl border bg-transparent px-4 text-sm transition-colors duration-300"
             >
               {LINES.map((l) => (
@@ -711,7 +712,15 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
                   {LINE_LABEL[l].ko} ({LINE_LABEL[l].kind})
                 </option>
               ))}
+              <option value="" className="bg-surface">
+                라인 구분 없음
+              </option>
             </select>
+            {line === "" && (
+              <p className="text-muted text-2xs">
+                레오네 · 페리토 라인 페이지에는 나오지 않고, 카테고리 목록에만 나옵니다.
+              </p>
+            )}
           </div>
         </div>
 
@@ -1094,7 +1103,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
             summary={summary}
             priceKrw={priceKrw ? Number(priceKrw) : null}
             category={category}
-            line={line}
+            line={line || null}
             imageUrl={images.MAIN?.url ?? null}
             leadTimeDays={lead?.max ?? null}
             leadTimeMinDays={lead?.min ?? null}

@@ -88,7 +88,7 @@ export function productStructuredData(product: Product) {
   if (!SITE_URL || !product.name) return null;
   const url = abs(`/products/${product.slug}/`);
   const category = CATEGORY_LABEL[product.category];
-  const line = LINE_LABEL[product.line];
+  const line = product.line ? LINE_LABEL[product.line] : null; // 라인 없는 상품(V48)
   const inStock = product.skus.some((s) => s.orderable);
   const color = product.notice?.color ?? null;
   return {
@@ -100,7 +100,7 @@ export function productStructuredData(product: Product) {
         url,
         sku: product.slug,
         image: product.images.map((i) => abs(i.url)),
-        description: product.summary?.trim() || `${line.ko} ${category.ko}. ${line.description}`,
+        description: product.summary?.trim() || (line ? `${line.ko} ${category.ko}. ${line.description}` : category.ko),
         brand: { "@type": "Brand", name: BRAND },
         category: category.ko,
         ...(color ? { color } : {}),

@@ -102,7 +102,7 @@ function detailCuts(product: SlideProduct): [DetailCut, DetailCut] {
 
 export function slideFromProduct(product: SlideProduct, text?: BannerText): HeroSlide {
   const name = product.name ?? "제품명 확인 중";
-  const fit = LINE_LABEL[product.line];
+  const fit = product.line ? LINE_LABEL[product.line] : null; // 라인 없는 상품(V48)
   const category = CATEGORY_LABEL[product.category];
   const figure = product.cutout ?? product.images[0]?.url ?? null;
   const href = `/products/${product.slug}`;
@@ -111,7 +111,7 @@ export function slideFromProduct(product: SlideProduct, text?: BannerText): Hero
     cover: null,
     figure: figure ? { src: figure, alt: `${name} 착용 컷` } : null,
     frames: detailCuts(product),
-    eyebrow: text?.eyebrow || `${category?.en ?? product.category} · ${fit?.ko ?? ""}`,
+    eyebrow: text?.eyebrow || [category?.en ?? product.category, fit?.ko].filter(Boolean).join(" · "),
     title: text?.title || name,
     subtitle: text?.subtitle || (product.priceKrw !== null ? `${KRW.format(product.priceKrw)}원` : "가격 문의"),
     // 문구가 없으면(배너 없이 진열 순서 맨 앞 상품) 버튼은 상품 페이지로

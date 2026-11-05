@@ -56,7 +56,7 @@ interface ApiDetail {
   name: string | null;
   summary: string | null;
   category: Category;
-  line: ProductLine;
+  line: ProductLine | null;
   style?: ProductStyle | null;
   priceKrw: number | null;
   listPriceKrw: number | null;
