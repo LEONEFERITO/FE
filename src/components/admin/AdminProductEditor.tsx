@@ -317,7 +317,8 @@ function PublishPanel({
 
 /**
  * 상품 삭제 — 맨 아래, 다른 일과 떨어진 자리. 한 번 더 묻는다(되돌릴 수 없다).
- * 주문 이력이 있는 상품은 서버가 409 로 막고 "비공개로 내려 두세요" 를 돌려준다 — 그 문구를 그대로 보여 준다.
+ * 주문 이력이 있어도 지운다(2026-11-05) — 서버가 주문 기록을 위해 행만 남기고 목록 · 손님 화면에서 내린다.
+ * 실패하면 서버 문구를 그대로 보여 준다.
  */
 function DeletePanel({ product }: { product: AdminProductEdit }) {
   const router = useRouter();
@@ -348,8 +349,8 @@ function DeletePanel({ product }: { product: AdminProductEdit }) {
           상품 삭제
         </h2>
         <p className="text-muted text-2xs mt-1.5 leading-relaxed">
-          주문 이력이 없는 상품만 지울 수 있습니다. 장바구니에 담긴 것과 이 상품의 메인 배너도 함께 지워지며 되돌릴 수
-          없습니다. 주문이 있었던 상품은 비공개로 내려 두세요.
+          상품 목록과 손님 화면에서 사라지며 되돌릴 수 없습니다. 장바구니에 담긴 것과 이 상품의 메인 배너도 함께
+          지워집니다. 이미 들어온 주문의 내역(상품명 · 사이즈 · 가격)은 그대로 남습니다.
         </p>
         {error && (
           <p role="alert" className="text-error text-2xs mt-2 leading-relaxed">

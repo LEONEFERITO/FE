@@ -465,7 +465,7 @@ export async function duplicateProduct(id: string): Promise<string> {
   return ((await res.json()) as { id: string }).id;
 }
 
-/** 삭제 — 주문 이력이 있으면 409(PRODUCT_HAS_ORDERS, 서버 문구가 할 일을 알려 준다). */
+/** 삭제 — 주문 이력이 있으면 서버가 주문 기록용으로 행만 남기고 목록 · 손님 화면에서 내린다(V47). */
 export async function deleteProduct(id: string): Promise<void> {
   const res = await fetch(`${API_BASE}/api/admin/products/${encodeURIComponent(id)}`, {
     method: "DELETE",
