@@ -9,6 +9,7 @@ import { PhotoThumb } from "@/components/shop/PhotoThumb";
 import { KAKAO_CHANNEL } from "@/data/business";
 import { loginUrl } from "@/lib/auth";
 import { pendingLabel } from "@/lib/pending";
+import { heelLabel, parseHeelLabel } from "@/lib/heel";
 import { PIECE_LABEL, SUIT_SETS, parseSuitLabel, suitLabel } from "@/lib/suit";
 import {
   RETURN_PHOTO_ACCEPT,
@@ -270,6 +271,8 @@ export function ReturnRequestForm() {
             // 수트 구성 주문 — 같은 구성 안에서 조각마다 받을 사이즈를 고른다(구성은 바꿀 수 없다, 서버 ReturnService)
             const suit = parseSuitLabel(i.size);
             const suitNow = suit ? (parseSuitLabel(p.size)?.sizes ?? suit.sizes) : null;
+            // 굽높이 주문(V49) — 굽은 그대로 두고 사이즈만 바꾼다("270 · 굽 +3cm" → "275 · 굽 +3cm")
+            const heel = suit ? null : parseHeelLabel(i.size);
             const max = left(i.id, i.quantity);
             return (
               <li key={i.id} className="flex flex-col gap-3 py-4">
@@ -338,9 +341,9 @@ export function ReturnRequestForm() {
                             {list
                               .filter((s) => !s.piece)
                               .map((s) => (
-                                <option key={s.size} value={s.size}>
-                                  {s.size}
-                                  {s.size === i.size ? " (같은 사이즈)" : ""}
+                                <option key={s.size} value={heel ? heelLabel(s.size, heel.heel) : s.size}>
+                                  {heel ? heelLabel(s.size, heel.heel) : s.size}
+                                  {s.size === (heel ? heel.size : i.size) ? " (같은 사이즈)" : ""}
                                 </option>
                               ))}
                           </select>

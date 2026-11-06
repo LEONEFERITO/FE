@@ -247,6 +247,8 @@ export interface Product {
   skus: Sku[];
   /** 컬러 옵션(서버 V46) — 관리자가 넣은 이름 · 동그라미 색. 비어 있으면 컬러를 고르지 않는 상품 */
   colors?: ProductColor[];
+  /** 고를 수 있는 굽높이(서버 V49) — ["기본", "+1cm", … "+6cm"]. 비어 있으면 굽높이를 고르지 않는 상품(lib/heel) */
+  heels?: string[];
   measurements: MeasurementTable;
   /** 상세 사이즈 차트 이미지. 없으면 그 자리를 비운다. */
   sizeChart: SizeChartImage | null;

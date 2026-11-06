@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { loginUrl } from "@/lib/auth";
 import { SHOP_CONNECTED, ShopError, addToCart, type Cart } from "@/lib/shop";
+import { heelLabel, parseHeelLabel } from "@/lib/heel";
 import { isSuitSet, parseSuitLabel, suitDefaults, suitLabel, suitPrice } from "@/lib/suit";
 import type { Product } from "@/types/product";
 
@@ -25,7 +26,7 @@ import type { Product } from "@/types/product";
 export const MAX_LINE_QUANTITY = 10;
 
 export interface PickedLine {
-  /** 보통 사이즈는 "L", 수트 구성은 "3피스 · 자켓 L / 베스트 M / 팬츠 L" */
+  /** 보통 사이즈는 "L", 수트 구성은 "3피스 · 자켓 L / 베스트 M / 팬츠 L", 굽높이 옵션(V49)은 "270 · 굽 +3cm" */
   size: string;
   /** 컬러 이름. 컬러가 없는 상품은 빈 값 */
   color: string;
@@ -42,13 +43,20 @@ export function unitPriceOf(product: Product, size: string): number | null {
 /** 이 줄을 몇 벌까지 담을 수 있나 — 남은 수량을 알면(5벌 이하) 그만큼, 아니면 10벌 */
 export function lineMax(product: Product, size: string): number {
   if (isSuitSet(product)) return MAX_LINE_QUANTITY;
-  const remaining = product.skus.find((s) => s.size === size && !s.piece)?.remaining;
+  // 굽높이 옵션은 사이즈(270)의 남은 수량을 본다
+  const base = product.heels?.length ? (parseHeelLabel(size)?.size ?? size) : size;
+  const remaining = product.skus.find((s) => s.size === base && !s.piece)?.remaining;
   return remaining != null ? Math.min(remaining, MAX_LINE_QUANTITY) : MAX_LINE_QUANTITY;
 }
 
 export function usePurchase(product: Product) {
   const suit = isSuitSet(product);
   const colors = product.colors ?? [];
+  const heels = product.heels ?? [];
+  // 굽높이(V49) — 처음에는 «기본». 구매 판 · 빠른 보기 모두 이 값으로 사이즈 줄을 만든다
+  const [selectedHeel, setSelectedHeel] = useState<string | null>(() => heels[0] ?? null);
+  /** 담을 사이즈 줄 — 굽높이 옵션 상품이면 "270 · 굽 +3cm" */
+  const withHeel = (size: string) => (heels.length > 0 ? heelLabel(size, selectedHeel ?? heels[0]) : size);
   // 빠른 보기 팝업의 한 벌 선택 — 수트 구성(lib/suit)은 "3피스 · 자켓 L / 베스트 M / 팬츠 L" 한 줄이 곧 사이즈다
   const [selectedSize, setSelectedSize] = useState<string | null>(() => {
     if (!suit) return product.skus.find((s) => s.orderable)?.size ?? null;
@@ -60,7 +68,7 @@ export function usePurchase(product: Product) {
   // 구매 판의 «고른 옵션» 줄. 사이즈가 하나뿐이고 컬러가 없는 상품(액세서리 등)은 처음부터 한 줄을 넣어 둔다
   const [lines, setLines] = useState<PickedLine[]>(() => {
     const orderable = product.skus.filter((s) => s.orderable && !s.piece);
-    return !suit && colors.length === 0 && orderable.length === 1 && product.skus.length === 1
+    return !suit && colors.length === 0 && heels.length === 0 && orderable.length === 1 && product.skus.length === 1
       ? [{ size: orderable[0].size, color: "", quantity: 1 }]
       : [];
   });
@@ -76,6 +84,7 @@ export function usePurchase(product: Product) {
     }
     setNotice(null);
     const c = color ?? "";
+    size = withHeel(size);
     setLines((cur) => {
       const i = cur.findIndex((l) => l.size === size && l.color === c);
       if (i < 0) return [...cur, { size, color: c, quantity: 1 }];
@@ -97,7 +106,7 @@ export function usePurchase(product: Product) {
   /** 담을 것 — 구매 판은 고른 줄 전부, 빠른 보기는 고른 한 벌 */
   function toPut(useLines: boolean): PickedLine[] {
     if (useLines) return lines;
-    return selectedSize ? [{ size: selectedSize, color: selectedColor ?? "", quantity: 1 }] : [];
+    return selectedSize ? [{ size: withHeel(selectedSize), color: selectedColor ?? "", quantity: 1 }] : [];
   }
 
   async function put(mode: "cart" | "buy", useLines = true) {
@@ -145,6 +154,8 @@ export function usePurchase(product: Product) {
     setSelectedSize,
     selectedColor,
     setSelectedColor,
+    selectedHeel,
+    setSelectedHeel,
     lines,
     addLine,
     setQuantity,

@@ -94,6 +94,8 @@ interface ApiDetail {
   }[];
   /** 컬러 옵션(서버 V46) */
   colors?: { name: string; hex: string }[];
+  /** 굽높이 옵션(서버 V49). 비어 있으면 고르지 않는다 */
+  heels?: string[];
 }
 
 // ── 변환 ─────────────────────────────────────────────────────
@@ -175,6 +177,7 @@ function toProduct(d: ApiDetail): Product {
       .filter((i) => i.kind === "STORY")
       .map((i) => ({ url: i.url, alt: i.alt, width: i.width, height: i.height })),
     colors: d.colors ?? [],
+    heels: d.heels ?? [],
     skus: d.skus.map((s) => ({
       id: `${d.slug}-${s.piece ? `${s.piece}-` : ""}${s.size}`,
       size: s.size,

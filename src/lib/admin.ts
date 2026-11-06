@@ -244,6 +244,8 @@ export interface ProductDraft {
   vestPriceKrw?: number | null;
   /** 컬러 옵션(서버 V46) — 이름 · #RRGGBB, 손님 화면에 이 순서로. 빈 목록이면 컬러를 고르지 않는 상품 */
   colors?: { name: string; hex: string }[];
+  /** 굽높이 옵션(서버 V49) — 켜면 손님이 사이즈와 함께 굽높이(기본 · +1 ~ +6cm)를 고른다 */
+  heelOption?: boolean;
   /** 노출 순서. 폼에 칸이 없어도 수정 때는 원래 값을 그대로 돌려보낸다. */
   displayOrder?: number;
   images: { mediaId: string; kind: string; alt: string; sortOrder?: number }[];
@@ -567,6 +569,8 @@ export interface AdminProductEdit {
   vestPriceKrw?: number | null;
   /** 컬러 옵션(서버 V46). 예전 서버면 없다 */
   colors?: { name: string; hex: string }[];
+  /** 굽높이 옵션(서버 V49). 예전 서버면 없다 */
+  heelOption?: boolean;
   images: { mediaId: string; url: string; kind: string; alt: string; sortOrder: number }[];
   skus: {
     size: string;

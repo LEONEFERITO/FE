@@ -262,6 +262,8 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
   const [vestPriceKrw, setVestPriceKrw] = useState(src?.vestPriceKrw?.toString() ?? "");
   // 컬러 옵션(서버 V46) — 복제할 때도 그대로 가져온다(같은 옷의 다른 버전)
   const [colors, setColors] = useState<ColorRow[]>(() => (src?.colors ?? []).map((c) => ({ name: c.name, hex: c.hex })));
+  // 굽높이 옵션(서버 V49, 2026-11-06 고객) — 신발 분류에서 켠다. 복제할 때도 그대로
+  const [heelOption, setHeelOption] = useState<boolean>(src?.heelOption ?? false);
 
   /** 이미 쓰고 있는 주소들 — 새 상품의 주소가 겹치면 그 자리에서 알린다(서버도 막지만 저장 뒤에야 안다) */
   const [takenSlugs, setTakenSlugs] = useState<Set<string>>(new Set());
@@ -421,6 +423,8 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
       }),
       vestPriceKrw: suitMode && hasVest && vestPriceKrw ? Number(vestPriceKrw) : null,
       colors: colors.map((c) => ({ name: c.name.trim(), hex: c.hex.toUpperCase() })),
+      // 수트 구성과는 함께 쓰지 않는다(서버도 막는다)
+      heelOption: !suitMode && heelOption,
 
       images: IMAGE_SLOTS.flatMap((slot, i): ProductDraft["images"] => {
         const v = images[slot.key];
@@ -888,12 +892,32 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
               ))}
             </>
           ) : (
-            <SizeListField
-              value={sizes}
-              onChange={setSizes}
-              errors={submitted ? validateSizes(sizes) : {}}
-              photoChoices={photoChoices}
-            />
+            <>
+              {/* 굽높이 옵션 — 신발 분류에서만 켠다(이미 켜진 상품은 계속 보인다) */}
+              {(category === "SHOES" || heelOption) && (
+                <label className="border-subtle bg-band/60 flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3">
+                  <input
+                    type="checkbox"
+                    checked={heelOption}
+                    onChange={(e) => setHeelOption(e.target.checked)}
+                    className="accent-[var(--accent-base)] mt-0.5 h-4 w-4 shrink-0"
+                  />
+                  <span className="flex flex-col gap-1">
+                    <span className="text-primary text-sm">굽높이 옵션 — 기본 · 1cm ~ 6cm 추가</span>
+                    <span className="text-muted text-2xs leading-relaxed">
+                      손님이 사이즈와 함께 굽높이를 고릅니다(추가 금액 없음). 주문에는 «270 · 굽 +3cm» 처럼 한 줄로 남고,
+                      재고는 사이즈별로 셉니다.
+                    </span>
+                  </span>
+                </label>
+              )}
+              <SizeListField
+                value={sizes}
+                onChange={setSizes}
+                errors={submitted ? validateSizes(sizes) : {}}
+                photoChoices={photoChoices}
+              />
+            </>
           )}
         </fieldset>
 

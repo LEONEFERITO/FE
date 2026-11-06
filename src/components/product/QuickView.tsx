@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
 
 import { LineSummary } from "@/components/product/LineBadge";
+import { HeelSelector } from "@/components/product/HeelSelector";
 import { SizeSelector } from "@/components/product/SizeSelector";
 import { ColorSelector } from "@/components/product/ColorSelector";
 import { usePurchase } from "@/components/product/usePurchase";
@@ -69,7 +70,8 @@ export function QuickView({
   const touchX = useRef<number | null>(null);
   const drag = useRef<{ y: number; t: number; dy: number } | null>(null);
   const closing = useRef(false);
-  const { selectedSize, setSelectedSize, selectedColor, setSelectedColor, pending, notice, put } = usePurchase(product);
+  const { selectedSize, setSelectedSize, selectedColor, setSelectedColor, selectedHeel, setSelectedHeel, pending, notice, put } =
+    usePurchase(product);
   // 컬러가 있는 상품은 컬러까지 골라야 담긴다(서버 V46). 팝업은 고른 한 벌만 담는다 — 수량 · 여러 줄은 상세 화면에서
   const colorList = product.colors ?? [];
   const ready = !!selectedSize && (colorList.length === 0 || !!selectedColor);
@@ -343,6 +345,10 @@ export function QuickView({
             <hr className="border-subtle my-1" />
 
             {colorList.length > 0 && <ColorSelector colors={colorList} value={selectedColor} onChange={setSelectedColor} />}
+
+            {(product.heels?.length ?? 0) > 0 && (
+              <HeelSelector heels={product.heels!} value={selectedHeel} onChange={setSelectedHeel} />
+            )}
 
             <h3 className="text-primary text-sm font-medium">사이즈</h3>
             <SizeSelector skus={product.skus} value={selectedSize} onChange={setSelectedSize} />
