@@ -102,7 +102,8 @@ export function SizeListField({ value, onChange, errors = {}, hideStock = false,
                 key={i}
                 className="border-subtle bg-surface flex min-w-0 flex-col gap-2 rounded-xl border px-3 py-2.5 sm:flex-row sm:items-center sm:gap-3"
               >
-                <div className="flex min-w-0 flex-1 items-center gap-3">
+                {/* 칸이 모자라면 줄을 바꾼다 — 사진 칸이 붙으면 사이즈 입력이 0 으로 눌려 안 보였다(2026-11-06 신발 등록) */}
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2">
                   <span className="text-muted text-2xs w-5 shrink-0 tabular-nums" aria-hidden="true">
                     {i + 1}
                   </span>
@@ -117,7 +118,7 @@ export function SizeListField({ value, onChange, errors = {}, hideStock = false,
                     placeholder="95"
                     aria-invalid={error ? true : undefined}
                     aria-describedby={error ? errorId : undefined}
-                    className={`text-primary placeholder:text-muted/70 ease-fluid min-h-11 w-full min-w-0 rounded-lg border bg-transparent px-3 text-sm transition-colors duration-300 sm:max-w-[9rem] ${
+                    className={`text-primary placeholder:text-muted/70 ease-fluid min-h-11 w-24 min-w-24 flex-1 rounded-lg border bg-transparent px-3 text-sm transition-colors duration-300 sm:max-w-[9rem] ${
                       error ? "border-error" : "border-interactive focus-visible:border-accent"
                     }`}
                   />
