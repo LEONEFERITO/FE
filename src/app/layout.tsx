@@ -3,6 +3,7 @@ import { Gelasio, Inria_Serif, Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 import { CategoryOrderProvider } from "@/components/layout/CategoryOrder";
 import { QuickMenu } from "@/components/layout/QuickMenu";
+import { VisitTracker } from "@/components/layout/VisitTracker";
 import { getCategoryOrder } from "@/lib/categoryOrder";
 import { BRAND_DESCRIPTION, openGraphBase } from "@/lib/metadata";
 import { SITE_URL } from "@/lib/site";
@@ -166,6 +167,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <CategoryOrderProvider order={categoryOrder}>
           {children}
           <QuickMenu />
+          {/* 접속 통계(서버 V51) — 쿠키 없이 페이지 열람만 센다 */}
+          <VisitTracker />
         </CategoryOrderProvider>
       </body>
     </html>

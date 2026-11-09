@@ -45,6 +45,36 @@ export interface SizeStats {
 
 export const sizeStats = (days: number) => request<SizeStats>("GET", `/api/admin/stats/sizes?days=${days}`);
 
+// ── 접속 통계 (서버 V51) ─────────────────────────────────────
+
+export interface VisitCount {
+  key: string;
+  sessions: number;
+}
+
+/** 서버 VisitService.Stats. 날짜는 한국 날짜(yyyy-MM-dd). 빈 날 · 요일 · 시간도 0 으로 채워 온다 */
+export interface VisitStats {
+  from: string;
+  to: string;
+  /** visitors — 날마다 센 방문자의 합(하루짜리 익명 값이라 날을 넘어 같은 사람인지 모른다) · sessions — 방문 수 · pageViews — 본 페이지 수 */
+  totals: { visitors: number; sessions: number; pageViews: number };
+  daily: { date: string; visitors: number; sessions: number; pageViews: number }[];
+  /** dow 1 월요일 … 7 일요일 */
+  weekdays: { dow: number; sessions: number }[];
+  hours: { hour: number; sessions: number }[];
+  /** key — DIRECT · NAVER · GOOGLE · DAUM · KAKAO · INSTAGRAM · FACEBOOK · YOUTUBE · OTHER */
+  sources: VisitCount[];
+  /** key — 들어온 사이트 주소(예: search.naver.com) */
+  referrers: VisitCount[];
+  /** key — 첫 페이지 주소 */
+  landings: VisitCount[];
+  /** key — MOBILE · TABLET · DESKTOP */
+  devices: VisitCount[];
+}
+
+export const visitStats = (from: string, to: string) =>
+  request<VisitStats>("GET", `/api/admin/visit-stats?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
+
 // ── 공지 ────────────────────────────────────────────────────
 
 export interface Notice {
