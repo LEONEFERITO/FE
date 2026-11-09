@@ -686,14 +686,10 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
             <label htmlFor="category" className="text-secondary text-2xs">
               카테고리
             </label>
-            {/*
-              분류는 등록 때만 정한다 — 서버가 수정 요청의 분류를 반영하지 않는다(AdminProductService.update).
-              수정 화면에서 바꿀 수 있게 두면 바뀐 줄 알지만 그대로다. 그래서 잠그고 이유를 적는다.
-            */}
+            {/* 등록 뒤에도 바꿀 수 있다(2026-11-09 고객 요청, 서버 AdminProductService.apply). 지난 주문에는 영향이 없다 */}
             <select
               id="category"
               value={category}
-              disabled={editing}
               aria-describedby={editing ? "category-hint" : undefined}
               onChange={(e) => {
                 const next = e.target.value as Category;
@@ -710,7 +706,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
             </select>
             {editing && (
               <p id="category-hint" className="text-muted text-2xs">
-                카테고리는 등록 후 바꿀 수 없습니다. 바꾸려면 새 상품으로 등록해 주세요.
+                바꾸면 저장 뒤 그 카테고리 메뉴로 옮겨 갑니다. 상품 주소와 지난 주문은 그대로입니다.
               </p>
             )}
           </div>
