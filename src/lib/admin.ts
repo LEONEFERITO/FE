@@ -246,6 +246,8 @@ export interface ProductDraft {
   colors?: { name: string; hex: string }[];
   /** 굽높이 옵션(서버 V49) — 켜면 손님이 사이즈와 함께 굽높이(기본 · +1 ~ +6cm)를 고른다 */
   heelOption?: boolean;
+  /** 굽 추가 금액(서버 V50) — +1cm ~ +6cm 순서, 비운 단계는 0 */
+  heelPrices?: number[];
   /** 노출 순서. 폼에 칸이 없어도 수정 때는 원래 값을 그대로 돌려보낸다. */
   displayOrder?: number;
   images: { mediaId: string; kind: string; alt: string; sortOrder?: number }[];
@@ -571,6 +573,8 @@ export interface AdminProductEdit {
   colors?: { name: string; hex: string }[];
   /** 굽높이 옵션(서버 V49). 예전 서버면 없다 */
   heelOption?: boolean;
+  /** 굽 추가 금액(서버 V50) — +1cm 부터 적은 만큼만. 예전 서버면 없다 */
+  heelPrices?: number[];
   images: { mediaId: string; url: string; kind: string; alt: string; sortOrder: number }[];
   skus: {
     size: string;

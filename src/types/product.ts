@@ -249,6 +249,8 @@ export interface Product {
   colors?: ProductColor[];
   /** 고를 수 있는 굽높이(서버 V49) — ["기본", "+1cm", … "+6cm"]. 비어 있으면 굽높이를 고르지 않는 상품(lib/heel) */
   heels?: string[];
+  /** heels 와 같은 순서 · 길이의 추가 금액(서버 V50). 기본은 0. 한 벌 값 = 판매가 + 고른 굽의 금액 */
+  heelPrices?: number[];
   measurements: MeasurementTable;
   /** 상세 사이즈 차트 이미지. 없으면 그 자리를 비운다. */
   sizeChart: SizeChartImage | null;

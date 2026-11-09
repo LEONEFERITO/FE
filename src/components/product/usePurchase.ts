@@ -35,6 +35,12 @@ export interface PickedLine {
 
 /** 한 벌 값 — 보통 상품은 판매가, 수트 구성은 고른 구성의 값 */
 export function unitPriceOf(product: Product, size: string): number | null {
+  // 굽높이 옵션(V49 · V50) — 판매가 + 고른 굽의 추가 금액
+  if (product.heels?.length) {
+    const heel = parseHeelLabel(size)?.heel;
+    const i = heel ? product.heels.indexOf(heel) : -1;
+    return product.priceKrw === null ? null : product.priceKrw + (i >= 0 ? (product.heelPrices?.[i] ?? 0) : 0);
+  }
   if (!isSuitSet(product)) return product.priceKrw;
   const parsed = parseSuitLabel(size);
   return parsed ? suitPrice(product, parsed.set) : null;

@@ -279,7 +279,7 @@ export function PurchasePanel({
       ) : (
         <>
         {/* 굽높이(서버 V49) — 사이즈보다 먼저. 사이즈를 누르면 고른 굽으로 줄이 생긴다("270 · 굽 +3cm") */}
-        {heels.length > 0 && <HeelSelector heels={heels} value={selectedHeel} onChange={setSelectedHeel} />}
+        {heels.length > 0 && <HeelSelector heels={heels} prices={product.heelPrices} value={selectedHeel} onChange={setSelectedHeel} />}
         <div className="flex flex-col gap-2.5">
           <h2 className="text-primary text-sm font-medium">사이즈</h2>
           {/* 표시는 마지막으로 누른 사이즈만 — 처음부터 골라져 보이면 줄이 없는데 담기가 꺼져 있어 헷갈린다 */}

@@ -157,6 +157,9 @@ interface Props {
   copyFrom?: AdminProductEdit;
 }
 
+/** 굽 추가 금액 칸 — 서버 Product.HeelChoice.HEELS 의 기본 다음 여섯 단계와 같은 순서 */
+const HEEL_STEPS = ["+1cm", "+2cm", "+3cm", "+4cm", "+5cm", "+6cm"];
+
 export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
   const editing = initial !== undefined;
   /** 칸을 채울 원본 — 수정이면 그 상품, 복제면 복제할 상품 */
@@ -264,6 +267,13 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
   const [colors, setColors] = useState<ColorRow[]>(() => (src?.colors ?? []).map((c) => ({ name: c.name, hex: c.hex })));
   // 굽높이 옵션(서버 V49, 2026-11-06 고객) — 신발 분류에서 켠다. 복제할 때도 그대로
   const [heelOption, setHeelOption] = useState<boolean>(src?.heelOption ?? false);
+  // 굽 추가 금액(서버 V50, 2026-11-09 고객 "금액은 직접 작성") — +1cm ~ +6cm 여섯 칸. 비우면 0원
+  const [heelPrices, setHeelPrices] = useState<string[]>(() =>
+    HEEL_STEPS.map((_, i) => {
+      const v = src?.heelPrices?.[i];
+      return v ? String(v) : "";
+    }),
+  );
 
   /** 이미 쓰고 있는 주소들 — 새 상품의 주소가 겹치면 그 자리에서 알린다(서버도 막지만 저장 뒤에야 안다) */
   const [takenSlugs, setTakenSlugs] = useState<Set<string>>(new Set());
@@ -349,6 +359,9 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
     }
 
     if (Object.keys(validateColors(colors)).length > 0) e.colors = "컬러 목록을 확인해 주세요.";
+    if (!suitMode && heelOption && heelPrices.some((v) => v.trim() !== "" && !(/^\d+$/.test(v.trim()) && Number(v) <= 10_000_000))) {
+      e.heelPrices = "굽 추가 금액은 0 ~ 10,000,000 사이 숫자로 적거나 비워 두세요.";
+    }
 
     if (suitMode) {
       for (const pc of suitPieces) {
@@ -425,6 +438,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
       colors: colors.map((c) => ({ name: c.name.trim(), hex: c.hex.toUpperCase() })),
       // 수트 구성과는 함께 쓰지 않는다(서버도 막는다)
       heelOption: !suitMode && heelOption,
+      heelPrices: heelPrices.map((v) => (v.trim() === "" ? 0 : Number(v.trim()))),
 
       images: IMAGE_SLOTS.flatMap((slot, i): ProductDraft["images"] => {
         const v = images[slot.key];
@@ -905,11 +919,37 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
                   <span className="flex flex-col gap-1">
                     <span className="text-primary text-sm">굽높이 옵션 — 기본 · 1cm ~ 6cm 추가</span>
                     <span className="text-muted text-2xs leading-relaxed">
-                      손님이 사이즈와 함께 굽높이를 고릅니다(추가 금액 없음). 주문에는 «270 · 굽 +3cm» 처럼 한 줄로 남고,
-                      재고는 사이즈별로 셉니다.
+                      손님이 사이즈와 함께 굽높이를 고릅니다. 주문에는 «270 · 굽 +3cm» 처럼 한 줄로 남고, 재고는 사이즈별로 셉니다.
+                      아래에 굽마다 추가 금액을 적으면 판매가에 더해집니다(비우면 0원).
                     </span>
                   </span>
                 </label>
+              )}
+              {/* 굽 추가 금액 — 켰을 때만. 단계마다 직접 적는다(서버 V50) */}
+              {heelOption && (
+                <div className="flex flex-col gap-2">
+                  <p className="text-primary text-xs font-medium">굽 추가 금액 (원) — 기본 굽은 0원</p>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    {HEEL_STEPS.map((label, i) => (
+                      <label key={label} className="text-secondary flex min-h-11 items-center gap-2 text-xs">
+                        <span className="w-10 shrink-0 tabular-nums">{label}</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={heelPrices[i]}
+                          onChange={(e) => {
+                            const v = e.target.value.replace(/[^0-9]/g, "");
+                            setHeelPrices((cur) => cur.map((x, k) => (k === i ? v : x)));
+                          }}
+                          placeholder="0"
+                          aria-label={`굽 ${label} 추가 금액(원)`}
+                          className="text-primary placeholder:text-muted/70 border-interactive focus-visible:border-accent ease-fluid min-h-11 w-full min-w-0 rounded-lg border bg-transparent px-3 text-right text-sm tabular-nums transition-colors duration-300"
+                        />
+                      </label>
+                    ))}
+                  </div>
+                  {submitted && errors.heelPrices && <p className="text-error text-2xs">{errors.heelPrices}</p>}
+                </div>
               )}
               <SizeListField
                 value={sizes}

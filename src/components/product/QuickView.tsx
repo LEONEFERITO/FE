@@ -347,7 +347,7 @@ export function QuickView({
             {colorList.length > 0 && <ColorSelector colors={colorList} value={selectedColor} onChange={setSelectedColor} />}
 
             {(product.heels?.length ?? 0) > 0 && (
-              <HeelSelector heels={product.heels!} value={selectedHeel} onChange={setSelectedHeel} />
+              <HeelSelector heels={product.heels!} prices={product.heelPrices} value={selectedHeel} onChange={setSelectedHeel} />
             )}
 
             <h3 className="text-primary text-sm font-medium">사이즈</h3>

@@ -96,6 +96,8 @@ interface ApiDetail {
   colors?: { name: string; hex: string }[];
   /** 굽높이 옵션(서버 V49). 비어 있으면 고르지 않는다 */
   heels?: string[];
+  /** 굽 추가 금액(서버 V50) — heels 와 같은 길이 */
+  heelPrices?: number[];
 }
 
 // ── 변환 ─────────────────────────────────────────────────────
@@ -178,6 +180,7 @@ function toProduct(d: ApiDetail): Product {
       .map((i) => ({ url: i.url, alt: i.alt, width: i.width, height: i.height })),
     colors: d.colors ?? [],
     heels: d.heels ?? [],
+    heelPrices: d.heelPrices ?? [],
     skus: d.skus.map((s) => ({
       id: `${d.slug}-${s.piece ? `${s.piece}-` : ""}${s.size}`,
       size: s.size,
