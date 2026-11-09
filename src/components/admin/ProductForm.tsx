@@ -566,8 +566,25 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
     );
   }
 
+  /*
+   * 오류 키 → 화면의 칸 이름. 요약 띠가 **어느 칸**인지 바로 말한다 (2026-11-09 — 오른쪽 체크리스트는 "준비 됐다" 인데
+   * 띠는 "확인해 주세요" 만 떠서, 아래쪽 칸(사이즈 · 컬러 · 고시)의 빨간 글씨를 못 찾고 멈추는 일이 있었다.
+   * 체크리스트는 값이 **있는지**만, 여기 검사는 값이 **맞는지**(형식 · 길이 · 중복)라 둘이 어긋날 수 있다.
+   */
+  const FIELD_LABEL: Record<string, string> = {
+    slug: "주소(slug)", name: "상품명", color: "색상", summary: "한 줄 설명", priceKrw: "판매가", leadTimeDays: "제작 기간",
+    sizes: "사이즈 목록", vestPriceKrw: "베스트 금액", colors: "컬러 목록", heelPrices: "굽 추가 금액",
+    sizeChartAlt: "차트 설명", instagramUrl: "게시물 주소", description: "제품 설명", fabric: "제품 소재",
+    care: "세탁방법 및 취급 시 주의사항", manufacturer: "제조자 / 수입자", countryOfOrigin: "제조국", manufacturedOn: "제조연월",
+    adminName: "관리용 상품명", costKrw: "원가", fabricSupplier: "원단 공급사", fabricCollection: "원단 컬렉션",
+    fabricCode: "원단 품번", workshop: "공임처",
+  };
+  const errorFields = Object.keys(errors).map((k) => FIELD_LABEL[k] ?? k);
   const summaryText = submitted
-    ? (formError ?? (hasError ? "입력한 내용을 확인해 주세요." : null))
+    ? (formError ??
+      (hasError
+        ? `입력한 내용을 확인해 주세요 — ${errorFields.join(" · ")}. 그 칸 아래 빨간 글씨에 이유가 있습니다.`
+        : null))
     : formError;
 
   return (
