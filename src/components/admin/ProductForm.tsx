@@ -4,6 +4,7 @@ import { Check, Circle, Copy, Warning } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
+import { AddonListField, type AddonRow } from "@/components/admin/AddonListField";
 import { ColorListField, validateColors, type ColorRow } from "@/components/admin/ColorListField";
 import { CountedField, countGraphemes } from "@/components/admin/CountedField";
 import {
@@ -267,6 +268,10 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
   const [colors, setColors] = useState<ColorRow[]>(() => (src?.colors ?? []).map((c) => ({ name: c.name, hex: c.hex })));
   // 굽높이 옵션(서버 V49, 2026-11-06 고객) — 신발 분류에서 켠다. 복제할 때도 그대로
   const [heelOption, setHeelOption] = useState<boolean>(src?.heelOption ?? false);
+  // 함께 구매 상품(서버 V52, 2026-11-10 고객) — 복제할 때도 그대로
+  const [addons, setAddons] = useState<AddonRow[]>(() =>
+    (src?.addons ?? []).map((a) => ({ productId: a.productId, priceKrw: a.priceKrw != null ? String(a.priceKrw) : "" })),
+  );
   // 굽 추가 금액(서버 V50, 2026-11-09 고객 "금액은 직접 작성") — +1cm ~ +6cm 여섯 칸. 비우면 0원
   const [heelPrices, setHeelPrices] = useState<string[]>(() =>
     HEEL_STEPS.map((_, i) => {
@@ -439,6 +444,10 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
       // 수트 구성과는 함께 쓰지 않는다(서버도 막는다)
       heelOption: !suitMode && heelOption,
       heelPrices: heelPrices.map((v) => (v.trim() === "" ? 0 : Number(v.trim()))),
+      // 상품을 고르지 않은 줄은 버린다. 금액을 비우면 원래 판매가
+      addons: addons
+        .filter((a) => a.productId)
+        .map((a) => ({ productId: a.productId, priceKrw: a.priceKrw.trim() === "" ? null : Number(a.priceKrw.trim()) })),
 
       images: IMAGE_SLOTS.flatMap((slot, i): ProductDraft["images"] => {
         const v = images[slot.key];
@@ -972,6 +981,16 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
               />
             </>
           )}
+        </fieldset>
+
+        {/* ── 함께 구매 상품 (서버 V52) ──────────────────── */}
+        <fieldset className="border-subtle flex flex-col gap-6 border-t pt-7">
+          <legend className="text-primary text-sm font-medium">함께 구매 상품</legend>
+          <p className="text-muted text-2xs -mt-4 leading-relaxed">
+            이 상품 상세에 «함께 구매» 로 보일 상품을 고릅니다(예: 수트 착장의 셔츠 · 타이 · 구두). 손님은 그 상품의 사이즈까지 골라 함께 담습니다.
+            <b className="text-secondary"> 함께 구매 금액</b>은 이 상품과 같은 주문일 때만 적용되고, 비우면 그 상품의 판매가입니다.
+          </p>
+          <AddonListField value={addons} onChange={setAddons} selfId={initial?.id} />
         </fieldset>
 
         {/* ── 상세 사이즈 차트 ──────────────────────────── */}

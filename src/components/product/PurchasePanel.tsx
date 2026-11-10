@@ -6,11 +6,12 @@ import { useState } from "react";
 import { pendingLabel } from "@/lib/pending";
 import { PIECE_LABEL, SUIT_SETS, isSuitSet, offeredSets, suitDefaults, suitLabel, suitPrice, type SuitSet, type SuitSizes } from "@/lib/suit";
 
+import { AddonPicker } from "@/components/product/AddonPicker";
 import { ColorSelector } from "@/components/product/ColorSelector";
 import { HeelSelector } from "@/components/product/HeelSelector";
 import { PickedLines } from "@/components/product/PickedLines";
 import { SizeSelector } from "@/components/product/SizeSelector";
-import { lineMax, unitPriceOf, usePurchase } from "@/components/product/usePurchase";
+import { lineMax, lineProductOf, unitPriceOf, usePurchase } from "@/components/product/usePurchase";
 import { CATEGORY_LABEL, LINE_LABEL } from "@/types/product";
 import type { Product, SuitPiece } from "@/types/product";
 import { SHIPPING } from "@/data/shipping";
@@ -80,7 +81,7 @@ export function PurchasePanel({
   // 담기 · 바로 구매 · 사이즈 선택 (usePurchase)
   const {
     selectedSize, setSelectedSize, selectedColor, setSelectedColor, selectedHeel, setSelectedHeel,
-    lines, addLine, setQuantity, removeLine, pending, notice, put,
+    lines, addLine, addAddonLine, setQuantity, removeLine, pending, notice, put,
   } = usePurchase(product);
   const heels = product.heels ?? [];
   const productColors = product.colors ?? [];
@@ -299,11 +300,14 @@ export function PurchasePanel({
         </>
       )}
 
+      {/* 함께 구매(서버 V52) — 관리자가 붙인 셔츠 · 타이 · 구두 … 고르면 아래 «고른 옵션» 에 줄이 생긴다 */}
+      <AddonPicker addons={product.addons ?? []} onAdd={addAddonLine} />
+
       {/* 고른 옵션 — 컬러 / 사이즈 줄마다 수량 */}
       <PickedLines
         lines={lines}
-        unitPrice={(l) => unitPriceOf(product, l.size)}
-        maxFor={(l) => lineMax(product, l.size)}
+        unitPrice={(l) => unitPriceOf(lineProductOf(product, l), l.size)}
+        maxFor={(l) => lineMax(lineProductOf(product, l), l.size)}
         unit={unitOf(product.category)}
         onQuantity={setQuantity}
         onRemove={removeLine}

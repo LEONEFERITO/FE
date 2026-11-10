@@ -198,6 +198,7 @@ export function OrderDetailView() {
                 <p className="text-muted text-2xs mt-1">
                   {optionText(i.size, i.color)} · {i.quantity}벌 · 제작 약 {i.leadTimeDays}일
                 </p>
+                {i.addonOf && <p className="text-accent text-2xs mt-0.5">함께 구매 · {i.addonOf}</p>}
               </div>
               <p className="text-primary text-sm tabular-nums">{won(i.lineAmountKrw)}</p>
             </li>

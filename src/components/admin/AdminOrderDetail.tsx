@@ -158,6 +158,7 @@ export function AdminOrderDetail() {
                 <li key={k} className="flex justify-between gap-4 py-3 text-sm">
                   <span className="text-primary">
                     {i.name} <span className="text-muted">· {i.color ? `${i.color} / ` : ""}{i.size} · {i.quantity}벌 · 제작 {i.leadTimeDays}일</span>
+                    {"addonOf" in i && i.addonOf && <span className="text-accent block text-xs">함께 구매 · {i.addonOf}</span>}
                   </span>
                   <span className="tabular-nums">{won(i.lineAmountKrw)}</span>
                 </li>

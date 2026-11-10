@@ -8,7 +8,7 @@ import { SHOP_CONNECTED, ShopError, addToCart, type Cart } from "@/lib/shop";
 import { heelLabel, parseHeelLabel } from "@/lib/heel";
 import { unitOf } from "@/lib/unit";
 import { isSuitSet, parseSuitLabel, suitDefaults, suitLabel, suitPrice } from "@/lib/suit";
-import type { Product } from "@/types/product";
+import type { Product, ProductAddon } from "@/types/product";
 
 /**
  * 담기 · 바로 구매 — 구매 판(PurchasePanel)과 빠른 보기 팝업(QuickView)이 같은 규칙을 쓴다.
@@ -32,6 +32,17 @@ export interface PickedLine {
   /** 컬러 이름. 컬러가 없는 상품은 빈 값 */
   color: string;
   quantity: number;
+  /** 함께 구매 상품 줄이면 그 상품 slug · 이름(서버 V52). 본 상품 줄은 없음 */
+  addon?: string;
+  addonName?: string;
+}
+
+/** 이 줄의 상품 — 함께 구매 줄이면 그 상품의 값 · 사이즈 · 굽으로 바꿔 둔다(값 · 남은 수량 계산이 같은 함수를 쓴다) */
+export function lineProductOf(product: Product, line: PickedLine): Product {
+  if (!line.addon) return product;
+  const a = product.addons?.find((x) => x.slug === line.addon);
+  if (!a) return product;
+  return { ...product, category: a.category, priceKrw: a.priceKrw, heels: a.heels, heelPrices: a.heelPrices, skus: a.skus, colors: a.colors };
 }
 
 /** 한 벌 값 — 보통 상품은 판매가, 수트 구성은 고른 구성의 값 */
@@ -93,16 +104,29 @@ export function usePurchase(product: Product) {
     const c = color ?? "";
     size = withHeel(size);
     setLines((cur) => {
-      const i = cur.findIndex((l) => l.size === size && l.color === c);
+      const i = cur.findIndex((l) => l.size === size && l.color === c && !l.addon);
       if (i < 0) return [...cur, { size, color: c, quantity: 1 }];
       return cur.map((l, k) => (k === i ? { ...l, quantity: Math.min(l.quantity + 1, lineMax(product, size)) } : l));
     });
     return true;
   }
 
+  /** 함께 구매 상품 줄을 더한다(서버 V52) — 같은 상품 · 사이즈 · 컬러면 수량 +1 */
+  function addAddonLine(a: ProductAddon, size: string, color: string, heel: string | null) {
+    setNotice(null);
+    const s = a.heels.length > 0 ? heelLabel(size, heel ?? a.heels[0]) : size;
+    setLines((cur) => {
+      const line: PickedLine = { size: s, color, quantity: 1, addon: a.slug, addonName: a.name };
+      const i = cur.findIndex((l) => l.addon === a.slug && l.size === s && l.color === color);
+      if (i < 0) return [...cur, line];
+      const max = lineMax(lineProductOf(product, line), s);
+      return cur.map((l, k) => (k === i ? { ...l, quantity: Math.min(l.quantity + 1, max) } : l));
+    });
+  }
+
   function setQuantity(index: number, quantity: number) {
     setLines((cur) =>
-      cur.map((l, k) => (k === index ? { ...l, quantity: Math.max(1, Math.min(quantity, lineMax(product, l.size))) } : l)),
+      cur.map((l, k) => (k === index ? { ...l, quantity: Math.max(1, Math.min(quantity, lineMax(lineProductOf(product, l), l.size))) } : l)),
     );
   }
 
@@ -119,7 +143,7 @@ export function usePurchase(product: Product) {
   async function put(mode: "cart" | "buy", useLines = true) {
     const picked = toPut(useLines);
     if (picked.length === 0) return;
-    if (colors.length > 0 && picked.some((l) => !l.color)) {
+    if (colors.length > 0 && picked.some((l) => !l.addon && !l.color)) {
       setNotice({ tone: "error", text: "컬러를 골라 주세요." });
       return;
     }
@@ -133,11 +157,13 @@ export function usePurchase(product: Product) {
       // 줄마다 차례로 담는다 — 서버가 줄마다 재고 · 컬러를 다시 본다. 실패하면 그 줄의 이유를 그대로 보여 준다
       let cart: Cart | null = null;
       for (const l of picked) {
-        cart = await addToCart(product.slug, l.size, l.quantity, l.color);
+        // 함께 구매 줄은 그 상품을 «본 상품과 함께» 로 담는다 — 함께 구매 금액은 서버가 같은 주문일 때만 적용한다
+        cart = await addToCart(l.addon ?? product.slug, l.size, l.quantity, l.color, l.addon ? product.slug : undefined);
       }
       if (mode === "buy" && cart) {
         const ids = picked
-          .map((l) => cart!.items.find((c) => c.slug === product.slug && c.size === l.size && (c.color ?? "") === l.color)?.id)
+          .map((l) => cart!.items.find((c) => c.slug === (l.addon ?? product.slug) && c.size === l.size && (c.color ?? "") === l.color
+            && !!c.addonOf === !!l.addon)?.id)
           .filter((id): id is string => !!id);
         router.push(ids.length ? `/checkout/?items=${ids.map(encodeURIComponent).join(",")}` : "/cart/");
         return;
@@ -165,6 +191,7 @@ export function usePurchase(product: Product) {
     setSelectedHeel,
     lines,
     addLine,
+    addAddonLine,
     setQuantity,
     removeLine,
     pending,

@@ -37,12 +37,17 @@ export function PickedLines({
     <div className="flex flex-col gap-2">
       <ul aria-label="고른 옵션" className="flex flex-col gap-2">
         {lines.map((l, i) => {
-          const label = l.color ? `${l.color} / ${l.size}` : l.size;
+          const option = l.color ? `${l.color} / ${l.size}` : l.size;
+          // 함께 구매 줄(서버 V52)은 상품 이름을 앞에 — 본 상품 줄과 섞여도 무엇인지 알게
+          const label = l.addon ? `${l.addonName ?? ""} · ${option}` : option;
           const price = unitPrice(l);
           const max = maxFor?.(l) ?? MAX_LINE_QUANTITY;
           return (
-            <li key={`${l.color}|${l.size}`} className="flex items-center gap-3 rounded-[16px] bg-[#F7F7F7] py-2 pr-1.5 pl-4">
-              <p className="text-primary min-w-0 flex-1 text-[13px] leading-snug break-keep">{label}</p>
+            <li key={`${l.addon ?? ""}|${l.color}|${l.size}`} className="flex items-center gap-3 rounded-[16px] bg-[#F7F7F7] py-2 pr-1.5 pl-4">
+              <p className="text-primary min-w-0 flex-1 text-[13px] leading-snug break-keep">
+                {l.addon && <span className="text-accent mr-1.5 text-[11px]">함께 구매</span>}
+                {label}
+              </p>
               <div className="flex shrink-0 items-center rounded-full border border-[#DADADA] bg-white" role="group" aria-label={`${label} 수량`}>
                 <button
                   type="button"

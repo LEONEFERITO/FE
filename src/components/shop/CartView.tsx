@@ -142,6 +142,13 @@ export function CartView({ empty }: { empty: React.ReactNode }) {
                     )}
                     <p className="text-muted text-2xs mt-1">
                       {optionText(line.size, line.color)}
+                      {line.addonOf && (
+                        <span className="block">
+                          <span className="text-accent">함께 구매 · {line.addonOf}</span>
+                          {/* 함께 담은 상품이 장바구니에서 빠지면 원래 판매가 */}
+                          {!line.bundleApplied && <span className="text-muted"> — {line.addonOf}와 함께 주문하면 함께 구매 금액이 적용됩니다</span>}
+                        </span>
+                      )}
                       {line.leadTimeDays != null && <> · 주문 후 약 {leadTimeText(line.leadTimeDays, line.leadTimeMinDays)} 제작</>}
                     </p>
                   </div>

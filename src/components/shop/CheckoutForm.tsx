@@ -255,6 +255,9 @@ export function CheckoutForm() {
                   <p className="text-muted text-2xs mt-1">
                     {optionText(l.size, l.color)} · {l.quantity}벌 · 주문 후 약 {l.leadTimeDays != null ? leadTimeText(l.leadTimeDays, l.leadTimeMinDays) : "—"} 제작
                   </p>
+                  {"addonOf" in l && l.addonOf && (
+                    <p className="text-accent text-2xs mt-0.5">함께 구매 · {l.addonOf}{"bundleApplied" in l && !l.bundleApplied ? " (함께 주문하지 않아 판매가)" : ""}</p>
+                  )}
                 </div>
                 <p className="text-primary text-sm tabular-nums">{won(l.lineAmountKrw)}</p>
               </li>

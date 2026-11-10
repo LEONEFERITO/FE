@@ -98,6 +98,19 @@ interface ApiDetail {
   heels?: string[];
   /** 굽 추가 금액(서버 V50) — heels 와 같은 길이 */
   heelPrices?: number[];
+  /** 함께 구매 상품(서버 V52) */
+  addons?: {
+    slug: string;
+    name: string;
+    category: string;
+    imageUrl: string | null;
+    priceKrw: number;
+    basePriceKrw: number;
+    colors: { name: string; hex: string }[];
+    heels: string[];
+    heelPrices: number[];
+    skus: { size: string; orderable: boolean; soldOut?: boolean; remaining?: number | null }[];
+  }[];
 }
 
 // ── 변환 ─────────────────────────────────────────────────────
@@ -181,6 +194,18 @@ function toProduct(d: ApiDetail): Product {
     colors: d.colors ?? [],
     heels: d.heels ?? [],
     heelPrices: d.heelPrices ?? [],
+    addons: (d.addons ?? []).map((a) => ({
+      ...a,
+      category: a.category as Category,
+      skus: a.skus.map((s) => ({
+        id: `${a.slug}-${s.size}`,
+        size: s.size,
+        color: null,
+        orderable: s.orderable && !s.soldOut,
+        soldOut: s.orderable && s.soldOut === true,
+        remaining: s.remaining ?? null,
+      })),
+    })),
     skus: d.skus.map((s) => ({
       id: `${d.slug}-${s.piece ? `${s.piece}-` : ""}${s.size}`,
       size: s.size,

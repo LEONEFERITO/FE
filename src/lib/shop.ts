@@ -100,6 +100,10 @@ export interface CartLine {
   /** 지금 주문할 수 있는가. 아니면 unavailableReason 을 보여 주고 합계에서 뺀다. */
   available: boolean;
   unavailableReason: string | null;
+  /** «함께 구매» 로 담은 줄이면 함께 담은 상품 이름(서버 V52) */
+  addonOf?: string | null;
+  /** 함께 구매 금액이 지금 적용됐는가 — 함께 담은 상품이 장바구니에 있을 때만 */
+  bundleApplied?: boolean;
 }
 
 export interface Cart {
@@ -128,8 +132,9 @@ export function optionText(size: string, color?: string | null): string {
 
 export const getCart = () => counted(request<Cart>("GET", "/api/cart"));
 /** color — 컬러가 있는 상품이면 고른 이름(서버 V46). 없는 상품은 비운다 */
-export const addToCart = (slug: string, size: string, quantity = 1, color = "") =>
-  counted(request<Cart>("POST", "/api/cart/items", { slug, size, quantity, color: color || null }));
+/** addonOf — 수트 상세의 «함께 구매» 로 담을 때 그 수트의 slug(서버 V52) */
+export const addToCart = (slug: string, size: string, quantity = 1, color = "", addonOf?: string) =>
+  counted(request<Cart>("POST", "/api/cart/items", { slug, size, quantity, color: color || null, addonOf: addonOf || null }));
 export const changeCartQuantity = (id: string, quantity: number) =>
   counted(request<Cart>("PATCH", `/api/cart/items/${encodeURIComponent(id)}`, { quantity }));
 export const removeCartLine = (id: string) =>
@@ -198,6 +203,8 @@ export interface OrderDetail {
     quantity: number;
     lineAmountKrw: number;
     leadTimeDays: number;
+    /** 함께 구매 금액이 적용된 줄이면 함께 산 상품 이름(서버 V52) */
+    addonOf?: string | null;
   }[];
   recipient: Recipient;
   paymentMethod: string | null;

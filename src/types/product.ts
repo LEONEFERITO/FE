@@ -161,6 +161,23 @@ export interface Sku {
   imageUrl?: string | null;
 }
 
+/**
+ * 함께 구매 상품 하나(서버 V52). priceKrw — 이 상품과 함께 살 때의 값(관리자가 정한 함께 구매 금액, 없으면 판매가), basePriceKrw — 원래 판매가.
+ * 굽 추가 금액은 그대로 더한다. 담을 때는 이 상품의 slug 에 addonOf(본 상품 slug)를 실어 보낸다.
+ */
+export interface ProductAddon {
+  slug: string;
+  name: string;
+  category: Category;
+  imageUrl: string | null;
+  priceKrw: number;
+  basePriceKrw: number;
+  colors: ProductColor[];
+  heels: string[];
+  heelPrices: number[];
+  skus: Sku[];
+}
+
 /** 컬러 옵션 하나(서버 V46) — 이름은 장바구니 · 주문서에 그대로 나간다 */
 export interface ProductColor {
   name: string;
@@ -251,6 +268,8 @@ export interface Product {
   heels?: string[];
   /** heels 와 같은 순서 · 길이의 추가 금액(서버 V50). 기본은 0. 한 벌 값 = 판매가 + 고른 굽의 금액 */
   heelPrices?: number[];
+  /** 함께 구매 상품(서버 V52) — 관리자가 붙인 다른 상품. 공개된 것만 온다 */
+  addons?: ProductAddon[];
   measurements: MeasurementTable;
   /** 상세 사이즈 차트 이미지. 없으면 그 자리를 비운다. */
   sizeChart: SizeChartImage | null;
