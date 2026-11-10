@@ -71,11 +71,16 @@ export function OfflineShop({
         }`}
       >
         {/* 사진 면은 버건디 — 토큰을 뒤집지 않는 면이다(globals.css .on-cream 주석). 글자는 고정 크림 */}
+        {/*
+          메인 사진 칸(map 아님): 폰에서는 사진 **원래 비율** 그대로 — 4:3 로 잘랐더니 단체 사진의 양 끝 사람이 잘렸다
+          (2026-11-10 디자이너 "PC 는 잘 보이는데 모바일에서는 잘려 보입니다"). 사진이 없을 때만 4:3 자리를 잡는다.
+          PC(md 이상)는 전처럼 오른쪽 글 높이에 맞춰 채운다(cover).
+        */}
         <div
           className={`bg-velvet relative overflow-hidden ${
             map
               ? "aspect-[897/594] min-[1200px]:aspect-auto min-[1200px]:min-h-[600px]"
-              : "aspect-[4/3] md:aspect-auto md:min-h-[520px]"
+              : `${image ? "" : "aspect-[4/3]"} md:aspect-auto md:min-h-[520px]`
           }`}
         >
           {map && (
@@ -109,7 +114,8 @@ export function OfflineShop({
               // 사진의 뜻은 옆의 글자(주소 · 운영시간)가 전한다. 관리자가 설명을 적었을 때만 읽힌다.
               alt={alt ?? ""}
               loading="lazy"
-              className="absolute inset-0 h-full w-full object-cover"
+              // 폰: 흐름 안에서 원래 비율(칸 높이가 사진을 따라간다) · PC: 칸을 꽉 채운다
+              className="block h-auto w-full md:absolute md:inset-0 md:h-full md:object-cover"
             />
           )}
           {/* 제목 자리를 눌러 준다 — 사진이 밝아도 왼쪽 아래 글자가 읽힌다 */}

@@ -67,10 +67,12 @@ export function LineChooser({
                 <Link
                   href={lineHref(line)}
                   // 모서리 둥글게 — PC 카드 전체 50px, 폰은 사진만 24px(2026-10-31 디자이너 "각각의 박스에 라운딩")
-                  className="group bg-velvet ease-fluid relative flex flex-col transition-transform duration-700 hover:-translate-y-1 md:aspect-[3/4] md:justify-end md:overflow-hidden md:rounded-[50px]"
+                  // 버건디 바탕은 PC 에서만 카드(Link)에 — 폰에서 Link 에 두면 둥근 사진 밖 네 귀퉁이에 붉은 각이 남았다
+                  // (2026-11-10 디자이너 "라운딩 준 거 깨짐"). 폰의 버건디는 사진 칸(span) 안에 있어 둥근 선 밖으로 안 나온다
+                  className="group ease-fluid relative flex flex-col transition-transform duration-700 hover:-translate-y-1 md:aspect-[3/4] md:justify-end md:overflow-hidden md:rounded-[50px] md:bg-velvet"
                 >
                   {/* 사진 — 폰은 3:4 한 장, 데스크톱은 카드(3:4) 전체 */}
-                  <span className="relative block aspect-[3/4] overflow-hidden rounded-[24px] md:absolute md:inset-0 md:aspect-auto md:rounded-none">
+                  <span className="bg-velvet relative block aspect-[3/4] overflow-hidden rounded-[24px] md:absolute md:inset-0 md:aspect-auto md:rounded-none">
                     {photo && (
                       /* eslint-disable-next-line @next/next/no-img-element */
                       <img
