@@ -100,6 +100,9 @@ interface ApiDetail {
   heelPrices?: number[];
   /** 함께 구매 상품(서버 V52) */
   addons?: {
+    /** 직접 입력한 항목(서버 V53) */
+    custom?: boolean;
+    description?: string | null;
     slug: string;
     name: string;
     category: string;

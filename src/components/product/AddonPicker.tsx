@@ -66,9 +66,15 @@ function AddonRow({ addon, onAdd }: { addon: ProductAddon; onAdd: (addon: Produc
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <a href={`/products/${addon.slug}/`} className="text-primary hover:text-accent block truncate text-[13px] font-medium">
-            {addon.name}
-          </a>
+          {/* 직접 입력한 항목(서버 V53)은 자기 상세가 없다 — 이름만 */}
+          {addon.custom ? (
+            <p className="text-primary truncate text-[13px] font-medium">{addon.name}</p>
+          ) : (
+            <a href={`/products/${addon.slug}/`} className="text-primary hover:text-accent block truncate text-[13px] font-medium">
+              {addon.name}
+            </a>
+          )}
+          {addon.description && <p className="text-secondary text-xs leading-snug break-keep">{addon.description}</p>}
           <p className="text-[13px] tabular-nums">
             <b className="text-primary font-medium">{won(addon.priceKrw)}</b>
             {discounted && <span className="text-muted ml-2 text-xs line-through">{won(addon.basePriceKrw)}</span>}
@@ -93,15 +99,18 @@ function AddonRow({ addon, onAdd }: { addon: ProductAddon; onAdd: (addon: Produc
             ))}
           </select>
         )}
-        <select value={size} onChange={(e) => setSize(e.target.value)} aria-label={`${addon.name} 사이즈`} className={select}>
-          <option value="">사이즈</option>
-          {addon.skus.map((s) => (
-            <option key={s.id} value={s.size} disabled={!s.orderable}>
-              {s.size}
-              {!s.orderable ? (s.soldOut ? " (품절)" : " (주문 불가)") : ""}
-            </option>
-          ))}
-        </select>
+        {/* 사이즈가 하나뿐이고 살 수 있으면 고를 것이 없다 — 처음부터 골라 두고 칸을 숨긴다(직접 입력 항목의 «FREE» 등) */}
+        {!(addon.skus.length === 1 && orderable.length === 1) && (
+          <select value={size} onChange={(e) => setSize(e.target.value)} aria-label={`${addon.name} 사이즈`} className={select}>
+            <option value="">사이즈</option>
+            {addon.skus.map((s) => (
+              <option key={s.id} value={s.size} disabled={!s.orderable}>
+                {s.size}
+                {!s.orderable ? (s.soldOut ? " (품절)" : " (주문 불가)") : ""}
+              </option>
+            ))}
+          </select>
+        )}
         <button
           type="button"
           onClick={add}

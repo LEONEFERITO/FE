@@ -4,7 +4,7 @@ import { Check, Circle, Copy, Warning } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-import { AddonListField, type AddonRow } from "@/components/admin/AddonListField";
+import { AddonListField, splitOptions, validateAddons, type AddonRow } from "@/components/admin/AddonListField";
 import { ColorListField, validateColors, type ColorRow } from "@/components/admin/ColorListField";
 import { CountedField, countGraphemes } from "@/components/admin/CountedField";
 import {
@@ -269,8 +269,25 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
   // 굽높이 옵션(서버 V49, 2026-11-06 고객) — 신발 분류에서 켠다. 복제할 때도 그대로
   const [heelOption, setHeelOption] = useState<boolean>(src?.heelOption ?? false);
   // 함께 구매 상품(서버 V52, 2026-11-10 고객) — 복제할 때도 그대로
+  // 직접 입력한 항목(V53)은 원본 상품의 것이라, 복제할 때는 새 항목으로(저장된 id 없이) 옮긴다
   const [addons, setAddons] = useState<AddonRow[]>(() =>
-    (src?.addons ?? []).map((a) => ({ productId: a.productId, priceKrw: a.priceKrw != null ? String(a.priceKrw) : "" })),
+    (src?.addons ?? []).map((a): AddonRow => {
+      const c = a.custom;
+      if (!c) {
+        return { kind: "product", productId: a.productId, priceKrw: a.priceKrw != null ? String(a.priceKrw) : "",
+          name: "", description: "", image: null, colors: "", sizes: "" };
+      }
+      return {
+        kind: "custom",
+        productId: initial ? a.productId : "",
+        priceKrw: String(c.priceKrw),
+        name: c.name,
+        description: c.description ?? "",
+        image: c.mediaId && c.imageUrl ? { mediaId: c.mediaId, url: c.imageUrl, filename: "" } : null,
+        colors: c.colors.join(", "),
+        sizes: c.sizes.join(", "),
+      };
+    }),
   );
   // 굽 추가 금액(서버 V50, 2026-11-09 고객 "금액은 직접 작성") — +1cm ~ +6cm 여섯 칸. 비우면 0원
   const [heelPrices, setHeelPrices] = useState<string[]>(() =>
@@ -364,6 +381,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
     }
 
     if (Object.keys(validateColors(colors)).length > 0) e.colors = "컬러 목록을 확인해 주세요.";
+    if (Object.keys(validateAddons(addons)).length > 0) e.addons = "함께 구매 상품에 직접 입력한 내용을 확인해 주세요.";
     if (!suitMode && heelOption && heelPrices.some((v) => v.trim() !== "" && !(/^\d+$/.test(v.trim()) && Number(v) <= 10_000_000))) {
       e.heelPrices = "굽 추가 금액은 0 ~ 10,000,000 사이 숫자로 적거나 비워 두세요.";
     }
@@ -446,8 +464,23 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
       heelPrices: heelPrices.map((v) => (v.trim() === "" ? 0 : Number(v.trim()))),
       // 상품을 고르지 않은 줄은 버린다. 금액을 비우면 원래 판매가
       addons: addons
-        .filter((a) => a.productId)
-        .map((a) => ({ productId: a.productId, priceKrw: a.priceKrw.trim() === "" ? null : Number(a.priceKrw.trim()) })),
+        .filter((a) => a.kind === "custom" || a.productId)
+        .map((a) =>
+          a.kind === "custom"
+            ? {
+                productId: a.productId || null,
+                priceKrw: null,
+                custom: {
+                  name: a.name.trim(),
+                  description: a.description.trim() || null,
+                  mediaId: a.image?.mediaId ?? null,
+                  priceKrw: Number(a.priceKrw.trim()),
+                  colors: splitOptions(a.colors),
+                  sizes: splitOptions(a.sizes),
+                },
+              }
+            : { productId: a.productId, priceKrw: a.priceKrw.trim() === "" ? null : Number(a.priceKrw.trim()) },
+        ),
 
       images: IMAGE_SLOTS.flatMap((slot, i): ProductDraft["images"] => {
         const v = images[slot.key];
@@ -582,7 +615,7 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
    */
   const FIELD_LABEL: Record<string, string> = {
     slug: "주소(slug)", name: "상품명", color: "색상", summary: "한 줄 설명", priceKrw: "판매가", leadTimeDays: "제작 기간",
-    sizes: "사이즈 목록", vestPriceKrw: "베스트 금액", colors: "컬러 목록", heelPrices: "굽 추가 금액",
+    sizes: "사이즈 목록", vestPriceKrw: "베스트 금액", colors: "컬러 목록", heelPrices: "굽 추가 금액", addons: "함께 구매 상품",
     sizeChartAlt: "차트 설명", instagramUrl: "게시물 주소", description: "제품 설명", fabric: "제품 소재",
     care: "세탁방법 및 취급 시 주의사항", manufacturer: "제조자 / 수입자", countryOfOrigin: "제조국", manufacturedOn: "제조연월",
     adminName: "관리용 상품명", costKrw: "원가", fabricSupplier: "원단 공급사", fabricCollection: "원단 컬렉션",
@@ -987,10 +1020,12 @@ export function ProductForm({ initial, onSaved, copyFrom }: Props = {}) {
         <fieldset className="border-subtle flex flex-col gap-6 border-t pt-7">
           <legend className="text-primary text-sm font-medium">함께 구매 상품</legend>
           <p className="text-muted text-2xs -mt-4 leading-relaxed">
-            이 상품 상세에 «함께 구매» 로 보일 상품을 고릅니다(예: 수트 착장의 셔츠 · 타이 · 구두). 손님은 그 상품의 사이즈까지 골라 함께 담습니다.
-            <b className="text-secondary"> 함께 구매 금액</b>은 이 상품과 같은 주문일 때만 적용되고, 비우면 그 상품의 판매가입니다.
+            이 상품 상세에 «함께 구매» 로 보일 항목입니다(예: 수트 착장의 셔츠 · 타이 · 구두). 손님은 컬러 · 사이즈까지 골라 함께 담습니다.
+            <b className="text-secondary"> 직접 입력</b>은 이름 · 설명 · 사진 · 금액 · 컬러 · 사이즈를 여기서 바로 적는 방식이고(이 상품과 함께일 때만 판매, 재고는 세지 않음),
+            <b className="text-secondary"> 등록된 상품에서 고르기</b>는 이미 올린 상품을 붙이는 방식입니다 — 함께 구매 금액을 비우면 그 상품의 판매가입니다.
           </p>
-          <AddonListField value={addons} onChange={setAddons} selfId={initial?.id} />
+          {submitted && errors.addons && <p className="text-error text-2xs -mt-3" role="alert">{errors.addons}</p>}
+          <AddonListField value={addons} onChange={setAddons} selfId={initial?.id} errors={submitted ? validateAddons(addons) : {}} />
         </fieldset>
 
         {/* ── 상세 사이즈 차트 ──────────────────────────── */}

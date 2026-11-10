@@ -248,8 +248,15 @@ export interface ProductDraft {
   heelOption?: boolean;
   /** 굽 추가 금액(서버 V50) — +1cm ~ +6cm 순서, 비운 단계는 0 */
   heelPrices?: number[];
-  /** 함께 구매 상품(서버 V52) — 순서대로. priceKrw 가 null 이면 원래 판매가 */
-  addons?: { productId: string; priceKrw: number | null }[];
+  /**
+   * 함께 구매 상품(서버 V52 · V53) — 순서대로. 등록된 상품은 productId 와 함께 구매 금액(null 이면 원래 판매가),
+   * 직접 입력한 항목은 custom(이미 저장된 항목을 고칠 때만 productId).
+   */
+  addons?: {
+    productId: string | null;
+    priceKrw: number | null;
+    custom?: { name: string; description: string | null; mediaId: string | null; priceKrw: number; colors: string[]; sizes: string[] } | null;
+  }[];
   /** 노출 순서. 폼에 칸이 없어도 수정 때는 원래 값을 그대로 돌려보낸다. */
   displayOrder?: number;
   images: { mediaId: string; kind: string; alt: string; sortOrder?: number }[];
@@ -578,7 +585,24 @@ export interface AdminProductEdit {
   /** 굽 추가 금액(서버 V50) — +1cm 부터 적은 만큼만. 예전 서버면 없다 */
   heelPrices?: number[];
   /** 함께 구매 상품(서버 V52). 예전 서버면 없다 */
-  addons?: { productId: string; slug: string; name: string | null; status: string; basePriceKrw: number | null; priceKrw: number | null }[];
+  addons?: {
+    productId: string;
+    slug: string;
+    name: string | null;
+    status: string;
+    basePriceKrw: number | null;
+    priceKrw: number | null;
+    /** 직접 입력한 항목이면 그 내용(서버 V53) */
+    custom?: {
+      name: string;
+      description: string | null;
+      mediaId: string | null;
+      imageUrl: string | null;
+      priceKrw: number;
+      colors: string[];
+      sizes: string[];
+    } | null;
+  }[];
   images: { mediaId: string; url: string; kind: string; alt: string; sortOrder: number }[];
   skus: {
     size: string;

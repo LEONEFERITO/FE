@@ -166,6 +166,10 @@ export interface Sku {
  * 굽 추가 금액은 그대로 더한다. 담을 때는 이 상품의 slug 에 addonOf(본 상품 slug)를 실어 보낸다.
  */
 export interface ProductAddon {
+  /** 관리자가 직접 입력한 항목(서버 V53) — 자기 상세 주소가 없다 */
+  custom?: boolean;
+  /** 직접 입력한 항목의 설명 */
+  description?: string | null;
   slug: string;
   name: string;
   category: Category;
