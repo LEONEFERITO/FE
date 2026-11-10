@@ -90,7 +90,8 @@ export default async function ProductDetailPage({
       {/* 상품 · 가격 · 재고 · 이동 경로 구조화 데이터 (lib/structuredData) */}
       <JsonLd data={productStructuredData(product)} />
 
-      <main id="main" className="flex-1">
+      {/* gothic-digits — 상세의 숫자(가격 · 사이즈 · 제작 기간 …)는 고딕(globals.css, 2026-11-10 고객) */}
+      <main id="main" className="gothic-digits flex-1">
         {/*
           2026-10-06 고객 요청(피그마 "변경 요청 사항" — 이 상세 페이지 캡처): **페이지 전체 흰 바탕**.
           아래 예전 설명의 크림 · 와인 면 구분은 걷었다 — 구매 판 · 제품 상세 · 상세 사이즈가 모두 흰 면이다.

@@ -15,6 +15,7 @@ import { CATEGORY_LABEL, LINE_LABEL } from "@/types/product";
 import type { Product, SuitPiece } from "@/types/product";
 import { SHIPPING } from "@/data/shipping";
 import { leadTimeText } from "@/lib/leadTime";
+import { unitOf } from "@/lib/unit";
 
 /**
  * 구매 판 — 상세 맨 위 오른쪽 (2026-10-28 디자이너 시안으로 다시 짰다).
@@ -284,6 +285,7 @@ export function PurchasePanel({
           <h2 className="text-primary text-sm font-medium">사이즈</h2>
           {/* 표시는 마지막으로 누른 사이즈만 — 처음부터 골라져 보이면 줄이 없는데 담기가 꺼져 있어 헷갈린다 */}
           <SizeSelector
+            unit={unitOf(product.category)}
             skus={product.skus}
             value={pickedSize}
             onChange={(size) => {
@@ -302,6 +304,7 @@ export function PurchasePanel({
         lines={lines}
         unitPrice={(l) => unitPriceOf(product, l.size)}
         maxFor={(l) => lineMax(product, l.size)}
+        unit={unitOf(product.category)}
         onQuantity={setQuantity}
         onRemove={removeLine}
       />

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, CaretDown } from "@phosphor-icons/react/dist/ssr";
+import { CaretDown } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useId, useMemo, useState } from "react";
@@ -15,7 +15,7 @@ import { LINE_LABEL, type Product, type ProductLine } from "@/types/product";
  * ── 구성 ───────────────────────────────────────────────
  *   위 : 가운데 LEONE | FERITO 알약 두 개(고른 쪽 와인 · 안 고른 쪽 회색), 오른쪽 정렬(신상품 · 상품명 · 낮은가격 · 높은가격).
  *        그 아래 옅은 회색으로 깜빡이는 안내 "라인을 클릭하여 …" — 한 번 누르면 깜빡임을 멈춘다.
- *   처음 : 레오네 한 줄(PC 5개) → 페리토 한 줄. 줄마다 라인 이름과 «전체 보기».
+ *   처음 : 레오네 한 줄(PC 5개) → 페리토 한 줄. 줄마다 라인 이름(«전체 보기» 는 2026-11-10 고객 요청으로 뺐다 — 위 라인 알약으로 본다).
  *   라인을 고르면 : 그 라인 전부 → 아래에 다른 라인 한 줄. 고른 알약을 다시 누르면 처음으로.
  *
  * 예전 도구 줄(칸 수 토글 · 위아래 선)과 왼쪽 거르기(개수 · 라인 · 사이즈 · 재고)는 디자이너 요청으로 걷었다.
@@ -204,22 +204,10 @@ export function CategoryProducts({
           const label = LINE_LABEL[l];
           return (
             <section key={l} aria-label={`${label.en} ${label.kind} 라인`} className="mt-10 md:mt-14">
-              <div className="flex items-baseline justify-between gap-4">
-                <h2 className="flex items-baseline gap-2.5">
-                  <span className="font-display text-primary text-lg tracking-[0.12em] md:text-xl">{label.en}</span>
-                  <span className="text-muted text-2xs">{label.kind} 라인</span>
-                </h2>
-                {!full && all.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => pick(l)}
-                    className="text-secondary hover:text-primary ease-fluid group inline-flex min-h-11 items-center gap-1.5 text-xs transition-colors duration-300"
-                  >
-                    전체 보기 <span className="tabular-nums">({all.length})</span>
-                    <ArrowRight size={12} weight="light" aria-hidden="true" className="ease-fluid transition-transform duration-300 group-hover:translate-x-0.5" />
-                  </button>
-                )}
-              </div>
+              <h2 className="flex min-h-11 items-baseline gap-2.5">
+                <span className="font-display text-primary text-lg tracking-[0.12em] md:text-xl">{label.en}</span>
+                <span className="text-muted text-2xs">{label.kind} 라인</span>
+              </h2>
               {all.length > 0 ? (
                 <ul className={`-mx-5 mt-4 md:mx-0 md:mt-5 ${GRID}`}>
                   {shown.map((p, i) => (

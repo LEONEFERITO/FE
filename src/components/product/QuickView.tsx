@@ -7,6 +7,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "re
 import { LineSummary } from "@/components/product/LineBadge";
 import { HeelSelector } from "@/components/product/HeelSelector";
 import { SizeSelector } from "@/components/product/SizeSelector";
+import { unitOf } from "@/lib/unit";
 import { ColorSelector } from "@/components/product/ColorSelector";
 import { usePurchase } from "@/components/product/usePurchase";
 import { Eyebrow } from "@/components/ui/Eyebrow";
@@ -351,7 +352,7 @@ export function QuickView({
             )}
 
             <h3 className="text-primary text-sm font-medium">사이즈</h3>
-            <SizeSelector skus={product.skus} value={selectedSize} onChange={setSelectedSize} />
+            <SizeSelector unit={unitOf(product.category)} skus={product.skus} value={selectedSize} onChange={setSelectedSize} />
 
             <div className="mt-2 flex flex-col gap-2.5">
               <button

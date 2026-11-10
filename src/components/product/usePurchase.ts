@@ -6,6 +6,7 @@ import { useState } from "react";
 import { loginUrl } from "@/lib/auth";
 import { SHOP_CONNECTED, ShopError, addToCart, type Cart } from "@/lib/shop";
 import { heelLabel, parseHeelLabel } from "@/lib/heel";
+import { unitOf } from "@/lib/unit";
 import { isSuitSet, parseSuitLabel, suitDefaults, suitLabel, suitPrice } from "@/lib/suit";
 import type { Product } from "@/types/product";
 
@@ -142,7 +143,7 @@ export function usePurchase(product: Product) {
         return;
       }
       const count = picked.reduce((n, l) => n + l.quantity, 0);
-      setNotice({ tone: "ok", text: `${count}벌을 장바구니에 담았습니다.` });
+      setNotice({ tone: "ok", text: `${count}${unitOf(product.category)}${unitOf(product.category) === "켤레" ? "를" : "을"} 장바구니에 담았습니다.` });
       if (useLines) setLines([]);
     } catch (e) {
       if (e instanceof ShopError && e.needsLogin) {

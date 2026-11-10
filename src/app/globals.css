@@ -1416,6 +1416,30 @@ html[data-motion="on"] .brand-line {
   font-weight: 700;
 }
 
+/* ── 상품 상세의 숫자는 고딕 (2026-11-10 고객 "숫자 부분 전부 고딕체로, 제목이나 본문 서체처럼") ─────────
+ * 사이트의 라틴 글꼴(Gelasio)은 숫자도 세리프라, 상품 상세(자켓 · 셔츠 · 구두 · 액세서리 …)에서만 숫자를 한글과 같은 Noto Sans KR 로 바꾼다.
+ * public/fonts/lf-digits.woff2 = Noto Sans KR(OFL) 에서 숫자와 함께 쓰는 기호(, . ~ ( ) - + % : /)만 잘라 낸 가변 글꼴(약 5KB).
+ * unicode-range 라 영문 글자는 그대로 Gelasio — 숫자 · 기호만 이 글꼴로 그린다. 쓰는 곳: app/products/[slug] 의 main(.gothic-digits). */
+@font-face {
+  font-family: "LF Digits";
+  src: url("/fonts/lf-digits.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0025, U+0028-0029, U+002B-002F, U+0030-003A, U+007E;
+}
+/* 글꼴 유틸리티는 값이 펼쳐져 들어가(@theme inline) 변수를 덮어도 닿지 않는다 — 그래서 상세 안의 글꼴 클래스마다 앞에 LF Digits 를 붙인다 */
+.gothic-digits,
+.gothic-digits .font-body {
+  font-family: "LF Digits", var(--font-body-latin), var(--font-korean), "Apple SD Gothic Neo", serif;
+}
+.gothic-digits .font-display {
+  font-family: "LF Digits", var(--font-display-latin), var(--font-korean), "Apple SD Gothic Neo", serif;
+}
+.gothic-digits .font-card {
+  font-family: "LF Digits", var(--font-card-latin), var(--font-korean), "Apple SD Gothic Neo", serif;
+}
+
 /* ── 폰에서 입력칸을 누를 때 화면이 확대되지 않게 (2026-10-16 "칸 누를 때마다 화면이 확대") ─────────
  * iOS 사파리는 글자가 16px 보다 작은 입력칸에 커서가 들어가면 화면을 확대한다. 주문서 · 로그인 · 검색의 입력칸이
  * text-sm(14px) 이라 전부 확대됐다. 폰 너비에서는 입력칸 글자를 16px 로 — @layer 밖이라 유틸리티(text-sm)보다 세다.

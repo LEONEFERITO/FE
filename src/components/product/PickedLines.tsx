@@ -19,8 +19,11 @@ export function PickedLines({
   maxFor,
   onQuantity,
   onRemove,
+  unit = "벌",
 }: {
   lines: PickedLine[];
+  /** 수량 단위 — 신발은 «켤레»(lib/unit) */
+  unit?: string;
   unitPrice: (line: PickedLine) => number | null;
   /** 이 줄을 몇 벌까지 — 남은 수량이 적으면 그만큼 */
   maxFor?: (line: PickedLine) => number;
@@ -77,7 +80,7 @@ export function PickedLines({
         })}
       </ul>
       <p className="flex items-baseline justify-end gap-2 pr-1.5 text-sm">
-        <span className="text-secondary text-xs">총 {count}벌</span>
+        <span className="text-secondary text-xs">총 {count}{unit}</span>
         <span className="text-primary font-display text-lg tabular-nums">{won(total)}</span>
       </p>
     </div>

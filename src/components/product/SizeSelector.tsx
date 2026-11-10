@@ -22,9 +22,11 @@ interface SizeSelectorProps {
   name?: string;
   /** 한 줄 칸 수. 수트 조각은 5(사이즈 다섯이 한 줄에) */
   columns?: 4 | 5;
+  /** 수량 단위 — 신발은 «켤레»(lib/unit) */
+  unit?: string;
 }
 
-export function SizeSelector({ skus, value, onChange, name, columns = 4 }: SizeSelectorProps) {
+export function SizeSelector({ skus, value, onChange, name, columns = 4, unit = "벌" }: SizeSelectorProps) {
   const selected = skus.find((s) => s.size === value);
 
   return (
@@ -75,7 +77,7 @@ export function SizeSelector({ skus, value, onChange, name, columns = 4 }: SizeS
       */}
       {selected?.orderable && selected.remaining != null && (
         <p aria-live="polite" className="text-accent text-xs">
-          {name ? `${name} ` : ""}{selected.size} 사이즈 {selected.remaining}벌 남았습니다.
+          {name ? `${name} ` : ""}{selected.size} 사이즈 {selected.remaining}{unit} 남았습니다.
         </p>
       )}
     </div>
