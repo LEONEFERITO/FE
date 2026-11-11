@@ -19,6 +19,7 @@ import {
   getMember,
   reactivateMember,
   suspendMember,
+  resetMemberOtp,
   unlockMember,
   type AdminMemberDetail as Detail,
 } from "@/lib/admin";
@@ -163,6 +164,8 @@ export function AdminMemberDetail() {
     ],
   ];
   if (detail.withdrawnAt) rows.push(["탈퇴일", fmt(detail.withdrawnAt)]);
+  // 관리자 2단계 인증(서버 V54)
+  if (m.role !== "MEMBER") rows.push(["OTP", detail.otpEnabledAt ? `${fmt(detail.otpEnabledAt)} 등록` : "아직 등록 전 (다음 관리자 로그인 때 등록)"]);
 
   return (
     <>
@@ -293,6 +296,27 @@ function Actions({
           </p>
           <button type="button" disabled={pending} className={outline} onClick={() => run(() => unlockMember(m.id), "잠금을 풀었습니다.")}>
             로그인 잠금 해제
+          </button>
+        </div>
+      )}
+
+      {/* 관리자 OTP 초기화 — 최고 관리자만, 다른 관리자에게만(폰 분실). 서버도 같은 규칙으로 막는다 */}
+      {me !== null && isSuperAdmin(me) && !isSelf && m.role !== "MEMBER" && detail.otpEnabledAt && (
+        <div className="flex flex-col gap-2">
+          <p className="text-secondary text-2xs leading-relaxed">
+            휴대폰을 잃어 OTP 를 쓸 수 없을 때만 초기화합니다. 그 관리자는 로그아웃되고, 다음 관리자 로그인 때 QR 로 새로 등록합니다.
+          </p>
+          <button
+            type="button"
+            disabled={pending}
+            className={outline}
+            onClick={() => {
+              if (window.confirm(`${m.name}님의 OTP 를 초기화할까요? 본인 확인을 한 뒤에만 하세요.`)) {
+                run(() => resetMemberOtp(m.id), "OTP 를 초기화했습니다.");
+              }
+            }}
+          >
+            OTP 초기화
           </button>
         </div>
       )}

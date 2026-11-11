@@ -691,6 +691,7 @@ export const ACTION_LABEL: Record<string, string> = {
   SUSPENDED: "이용 정지",
   REACTIVATED: "정지 해제",
   UNLOCKED: "로그인 잠금 해제",
+  OTP_RESET: "OTP 초기화",
   CREATED_BY_COMMAND: "서버 명령으로 생성",
 };
 
@@ -724,6 +725,8 @@ export interface AdminMemberDetail {
   lockedUntil: string | null;
   withdrawnAt: string | null;
   logs: { action: string; detail: string | null; actor: string; createdAt: string }[];
+  /** 관리자 OTP 를 등록한 시각(서버 V54). 없으면 아직 등록 전 */
+  otpEnabledAt?: string | null;
 }
 
 export function listMembers(query: {
@@ -792,6 +795,11 @@ async function memberAction(
 
 export function unlockMember(id: string): Promise<void> {
   return memberAction(id, "unlock", "POST");
+}
+
+/** 관리자 OTP 초기화(서버 V54) — 최고 관리자만. 다음 관리자 로그인에서 새로 등록한다 */
+export function resetMemberOtp(id: string): Promise<void> {
+  return memberAction(id, "otp-reset", "POST");
 }
 
 export function suspendMember(id: string, reason: string): Promise<void> {

@@ -65,6 +65,8 @@ export type AuthFailure =
   | "invalid-token"
   | "no-password"
   | "admin-cannot-withdraw"
+  | "invalid-otp"
+  | "otp-expired"
   | "unauthenticated"
   | "not-connected"
   | "network"
@@ -107,6 +109,8 @@ export const AUTH_MESSAGE: Record<AuthFailure, string> = {
   "invalid-token": "링크가 만료되었거나 이미 사용되었습니다. 비밀번호 찾기를 다시 해 주세요.",
   "no-password": "간편가입 계정은 비밀번호가 없습니다. 카카오·네이버로 로그인해 주세요.",
   "admin-cannot-withdraw": "관리자 계정은 탈퇴할 수 없습니다. 먼저 관리자 권한을 해제해야 합니다.",
+  "invalid-otp": "인증번호가 맞지 않습니다. OTP 앱의 지금 6자리를 다시 넣어 주세요.",
+  "otp-expired": "인증 시간이 지났거나 여러 번 틀렸습니다. 처음부터 다시 로그인해 주세요.",
   unauthenticated: "로그인이 풀렸습니다. 다시 로그인해 주세요.",
   "not-connected":
     "로그인 서버가 아직 연결되지 않았습니다. 화면 확인용 단계입니다.",
@@ -204,17 +208,42 @@ export async function signIn(credentials: Credentials): Promise<CurrentUser> {
  * 관리자 로그인 (/admin/login). 아이디 또는 이메일. 관리자가 아닌 계정은 서버가 일반 실패와
  * 같은 답을 준다 — 화면 문구도 같다("아이디 또는 비밀번호").
  */
-export async function adminSignIn(loginId: string, password: string): Promise<CurrentUser> {
+export async function adminSignIn(loginId: string, password: string): Promise<CurrentUser | AdminOtpStep> {
   if (!AUTH_CONNECTED) {
     await new Promise((r) => setTimeout(r, 400));
     throw new AuthError("not-connected");
   }
   const res = await post("/api/auth/admin-login", { loginId, password });
-  if (res.ok) return (await res.json()) as CurrentUser;
+  if (res.ok) return (await res.json()) as CurrentUser | AdminOtpStep;
   const { code } = await readError(res);
   if (code === "ACCOUNT_LOCKED") throw new AuthError("locked");
   if (code === "ACCOUNT_SUSPENDED") throw new AuthError("suspended");
   if (res.status === 401) throw new AuthError("invalid-credentials");
+  if (res.status === 429) throw new AuthError("rate-limited");
+  throw new AuthError("unknown");
+}
+
+/**
+ * 관리자 로그인 2단계(서버 V54) — 비밀번호가 맞으면 세션 대신 이 답이 온다.
+ * OTP_SETUP 은 처음 로그인: secret · otpauthUri 로 OTP 앱에 등록(QR)한 뒤 6자리를 넣는다.
+ */
+export interface AdminOtpStep {
+  step: "OTP" | "OTP_SETUP";
+  challengeId: string;
+  secret?: string;
+  otpauthUri?: string;
+}
+
+export const isOtpStep = (r: CurrentUser | AdminOtpStep): r is AdminOtpStep => "step" in r;
+
+/** 관리자 로그인 2단계 — OTP 앱의 6자리. 맞으면 세션이 생긴다 */
+export async function adminVerifyOtp(challengeId: string, code: string): Promise<CurrentUser> {
+  const res = await post("/api/auth/admin-login/otp", { challengeId, code });
+  if (res.ok) return (await res.json()) as CurrentUser;
+  const { code: err } = await readError(res);
+  if (err === "OTP_EXPIRED") throw new AuthError("otp-expired");
+  if (res.status === 429) throw new AuthError("rate-limited");
+  if (res.status === 401 || res.status === 400) throw new AuthError("invalid-otp");
   throw new AuthError("unknown");
 }
 
