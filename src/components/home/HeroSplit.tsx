@@ -173,12 +173,7 @@ export function HeroSplit({ products }: { products: Product[] }) {
                 <ArrowUpRight size={11} weight="light" aria-hidden="true" />
               </span>
             </Link>
-            <Link
-              href="/products"
-              className="tracking-button ease-fluid inline-flex items-center rounded-full border border-primary/45 px-5 py-2.5 text-xs text-primary transition-all duration-500 hover:border-primary active:scale-[0.98] md:border-strong md:text-primary md:hover:border-accent md:hover:text-accent md:hover:shadow-soft md:px-6 md:py-3 md:text-sm"
-            >
-              전체 제품
-            </Link>
+            {/* 「전체 제품」 버튼은 2026-11-11 고객 요청으로 뺐다 */}
           </div>
         </div>
 

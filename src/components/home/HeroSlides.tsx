@@ -292,12 +292,13 @@ function Slide({ slide, first }: { slide: HeroSlide; first: boolean }) {
       </div>
 
       {/* 이름 블록과 버튼은 무대(z-10)보다 위(z-20) — 넓은 사진을 올려도 글자가 묻히지 않는다 */}
-      {/* 문 두 개. 모바일은 무대 아래 가운데, 데스크톱은 이름 블록 아래 왼쪽. 높이를 같게 고정한다(2026-10-06 요청) */}
+      {/* 버튼 — 모바일은 무대 아래 가운데, 데스크톱은 이름 블록 아래 왼쪽.
+          주 버튼은 관리자가 켠 배너에만(V35). 「전체 제품」 버튼은 2026-11-11 고객 요청으로 뺐다 — 켠 버튼이 없으면 자리도 없다 */}
+      {slide.primary && (
       <div
         data-quick-avoid=""
         className="relative z-20 mt-5 flex flex-wrap items-center justify-center gap-3 md:absolute md:bottom-10 md:left-10 md:mt-0 md:justify-start lg:left-[7%]"
       >
-        {/* 주 버튼은 관리자가 켠 배너에만(V35). 「전체 제품」은 그대로 */}
         {slide.primary && (
           <Primary
             href={slide.primary.href}
@@ -309,13 +310,8 @@ function Slide({ slide, first }: { slide: HeroSlide; first: boolean }) {
             </span>
           </Primary>
         )}
-        <Link
-          href="/products"
-          className="tracking-button ease-fluid border-strong hover:border-accent hover:text-accent hover:shadow-soft inline-flex h-11 items-center rounded-full border px-5 text-xs text-primary transition-all duration-500 active:scale-[0.98] md:h-12 md:px-6 md:text-sm"
-        >
-          전체 제품
-        </Link>
       </div>
+      )}
     </>
   );
 }
