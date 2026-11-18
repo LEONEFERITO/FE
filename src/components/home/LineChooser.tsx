@@ -31,6 +31,9 @@ import { LINE_LABEL, type Product, type ProductLine } from "@/types/product";
 
 const LINES: ProductLine[] = ["LEONE", "FERITO"];
 
+/** 카드 아래 «맞춤 정장 →» 버튼. 2026-11-18 고객 요청으로 임시로 꺼 둔다 */
+const SHOW_TAILORING = false;
+
 /** 관리자 사진이 없을 때의 라인 대표 컷 — 룩북(app/lookbook)의 첫 컷과 같다 */
 const LINE_COVER_FALLBACK: Record<ProductLine, { url: string; alt: string }> = {
   LEONE: { url: "/products/photo-black-shirt.webp", alt: "" },
@@ -114,7 +117,9 @@ export function LineChooser({
           })}
         </ul>
 
-        {/* 맞춤 정장 — 기성복 두 라인 밖의 길. 브랜드 페이지의 THE TAILORING(테일러샵 안내)으로 간다 */}
+        {/* 맞춤 정장 — 기성복 두 라인 밖의 길. 브랜드 페이지의 THE TAILORING(테일러샵 안내)으로 간다.
+            2026-11-18 고객 요청으로 임시로 숨김 — 다시 보이려면 SHOW_TAILORING 을 true 로 */}
+        {SHOW_TAILORING && (
         <div className="mt-10 flex justify-center md:mt-12">
           <Link
             href="/brand/#tailoring"
@@ -129,6 +134,7 @@ export function LineChooser({
             />
           </Link>
         </div>
+        )}
       </div>
     </section>
   );
