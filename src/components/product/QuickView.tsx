@@ -14,6 +14,7 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { pendingLabel } from "@/lib/pending";
 import { CATEGORY_LABEL, type Product } from "@/types/product";
 import { leadTimeText } from "@/lib/leadTime";
+import { displayPrice } from "@/lib/suit";
 
 /**
  * 빠른 보기 — 목록의 카드를 누르면 상세 페이지로 가지 않고 **그 자리에서 카드가 커지며** 팝업이 된다
@@ -163,9 +164,11 @@ export function QuickView({
   const photos = product.images;
   const photo = photos[Math.min(index, Math.max(0, photos.length - 1))] ?? null;
   const name = product.name ?? pendingLabel("제품명");
-  const price = product.priceKrw !== null ? `${KRW.format(product.priceKrw)}원` : null;
+  // 3피스 수트는 2피스 값을 먼저(2026-11-19 고객 요청) — 정가(취소선)는 3피스 기준이라 그때는 그리지 않는다
+  const shown = displayPrice(product);
+  const price = shown.priceKrw !== null ? `${KRW.format(shown.priceKrw)}원${shown.twoPiece ? " (2피스)" : ""}` : null;
   const listPrice =
-    product.listPriceKrw !== null && product.priceKrw !== null && product.listPriceKrw > product.priceKrw
+    !shown.twoPiece && product.listPriceKrw !== null && product.priceKrw !== null && product.listPriceKrw > product.priceKrw
       ? `${KRW.format(product.listPriceKrw)}원`
       : null;
   const step = (d: number) => setIndex((i) => (i + d + photos.length) % photos.length);

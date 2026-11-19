@@ -1,5 +1,6 @@
 import { KAKAO_CHANNEL, OFFLINE_SHOP, SNS } from "@/data/business";
 import { SITE_URL } from "@/lib/site";
+import { displayPrice } from "@/lib/suit";
 import { CATEGORY_LABEL, LINE_LABEL, type Product } from "@/types/product";
 
 /**
@@ -104,13 +105,14 @@ export function productStructuredData(product: Product) {
         brand: { "@type": "Brand", name: BRAND },
         category: category.ko,
         ...(color ? { color } : {}),
-        ...(product.priceKrw !== null
+        // 값은 상세에 처음 보이는 값과 같아야 한다 — 3피스 수트는 2피스 값(lib/suit displayPrice · suitDefaults, 2026-11-19)
+        ...(displayPrice(product).priceKrw !== null
           ? {
               offers: {
                 "@type": "Offer",
                 url,
                 priceCurrency: "KRW",
-                price: product.priceKrw,
+                price: displayPrice(product).priceKrw,
                 availability: inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
                 itemCondition: "https://schema.org/NewCondition",
                 seller: { "@type": "Organization", name: BRAND },

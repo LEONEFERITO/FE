@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { displayPrice } from "@/lib/suit";
 import type { Product } from "@/types/product";
 
 /**
@@ -45,6 +46,8 @@ export function ProductCard({ product, inset = false }: { product: Product; inse
   const split = !productColor && skuColors.length === 0 ? splitColor(name) : null;
   const title = split ? split.title : name;
   const colors = productColor ? [productColor] : split ? [split.color] : skuColors;
+  // 3피스 수트는 2피스 값을 먼저(2026-11-19 고객 요청, lib/suit displayPrice)
+  const shown = displayPrice(product);
 
 
   return (
@@ -108,13 +111,15 @@ export function ProductCard({ product, inset = false }: { product: Product; inse
           </h3>
           {colors.length > 0 && <p className="text-primary mt-1 truncate text-[15px] font-normal leading-[1.25]">{colors.join(" · ")}</p>}
           <p className="mt-3 flex flex-wrap items-baseline gap-x-2 leading-none">
-            {product.priceKrw !== null ? (
-              <span className="text-primary text-[17px] font-bold tabular-nums">{KRW.format(product.priceKrw)}원</span>
+            {/* 3피스 수트는 2피스 값을 먼저(2026-11-19 고객 요청, lib/suit displayPrice). 3피스 값은 상세에서 */}
+            {shown.priceKrw !== null ? (
+              <span className="text-primary text-[17px] font-bold tabular-nums">{KRW.format(shown.priceKrw)}원</span>
             ) : (
               // D1 이 카탈로그+문의로 확정되면 이 표시가 정상 상태가 된다.
               <span className="text-muted text-[13px]">가격 문의</span>
             )}
-            {product.priceKrw !== null && product.listPriceKrw !== null && product.listPriceKrw > product.priceKrw && (
+            {shown.twoPiece && <span className="text-muted text-[13px]">2피스</span>}
+            {!shown.twoPiece && product.priceKrw !== null && product.listPriceKrw !== null && product.listPriceKrw > product.priceKrw && (
               <span className="text-muted text-[13px] tabular-nums line-through">{KRW.format(product.listPriceKrw)}원</span>
             )}
           </p>

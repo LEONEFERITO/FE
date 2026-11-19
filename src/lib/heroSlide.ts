@@ -1,4 +1,5 @@
 import type { BannerPhoto, HeroBanner } from "@/lib/hero";
+import { displayPrice } from "@/lib/suit";
 import { CATEGORY_LABEL, LINE_LABEL, type Product, type ProductPhoto } from "@/types/product";
 
 /**
@@ -79,7 +80,9 @@ const primaryOf = (text: BannerText, fallbackHref: string) =>
   text.ctaEnabled ? { label: text.ctaLabel || "자세히 보기", href: safeHref(text.ctaUrl, fallbackHref) } : null;
 
 /** 배너가 상품에서 쓰는 값만 — 관리자 화면은 상품 전체(Product)가 아니라 수정용 응답에서 만든다 */
-export type SlideProduct = Pick<Product, "slug" | "name" | "category" | "line" | "priceKrw" | "cutout" | "images">;
+/** skus · twoPiecePriceKrw 는 있으면 3피스 수트의 2피스 값을 먼저 보인다(displayPrice). 관리자 미리보기에는 없다 */
+export type SlideProduct = Pick<Product, "slug" | "name" | "category" | "line" | "priceKrw" | "cutout" | "images"> &
+  Partial<Pick<Product, "skus" | "twoPiecePriceKrw">>;
 
 /** 서버와 같은 규칙: 사이트 안 주소(/…, // 는 안 됨) 또는 https 주소. 아니면 버린다 */
 const SAFE_URL = /^\/(?!\/)\S*$|^https:\/\/\S+$/;
@@ -100,6 +103,13 @@ function detailCuts(product: SlideProduct): [DetailCut, DetailCut] {
   return [left, right];
 }
 
+/** 슬라이드 부제의 값 — 3피스 수트는 2피스 값을 먼저(2026-11-19 고객 요청) */
+function priceLine(product: SlideProduct): string {
+  const shown = displayPrice(product);
+  if (shown.priceKrw === null) return "가격 문의";
+  return `${KRW.format(shown.priceKrw)}원${shown.twoPiece ? " (2피스)" : ""}`;
+}
+
 export function slideFromProduct(product: SlideProduct, text?: BannerText): HeroSlide {
   const name = product.name ?? "제품명 확인 중";
   const fit = product.line ? LINE_LABEL[product.line] : null; // 라인 없는 상품(V48)
@@ -113,7 +123,7 @@ export function slideFromProduct(product: SlideProduct, text?: BannerText): Hero
     frames: detailCuts(product),
     eyebrow: text?.eyebrow || [category?.en ?? product.category, fit?.ko].filter(Boolean).join(" · "),
     title: text?.title || name,
-    subtitle: text?.subtitle || (product.priceKrw !== null ? `${KRW.format(product.priceKrw)}원` : "가격 문의"),
+    subtitle: text?.subtitle || priceLine(product),
     // 문구가 없으면(배너 없이 진열 순서 맨 앞 상품) 버튼은 상품 페이지로
     sizes: sizesOf(text),
     primary: text ? primaryOf(text, href) : { label: "자세히 보기", href },

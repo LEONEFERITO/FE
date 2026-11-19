@@ -6,6 +6,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { FilterSheet } from "@/components/product/FilterSheet";
 import { ProductCard } from "@/components/product/ProductCard";
+import { displayPrice } from "@/lib/suit";
 import type { Product } from "@/types/product";
 
 /**
@@ -69,9 +70,12 @@ function sortProducts(products: Product[], sort: Sort): Product[] {
   } else {
     // 가격 문의(= null) 상품은 어느 방향이든 뒤로 — "낮은가격" 맨 앞에 가격 없는 상품이 오면 틀린 답이다.
     const dir = sort === "price-asc" ? 1 : -1;
-    list.sort((a, b) => {
-      if (a.priceKrw === null || b.priceKrw === null) return a.priceKrw === b.priceKrw ? 0 : a.priceKrw === null ? 1 : -1;
-      return (a.priceKrw - b.priceKrw) * dir;
+    // 겉에 보이는 값으로 줄 세운다 — 3피스 수트는 2피스 값(lib/suit displayPrice, 2026-11-19)
+    list.sort((x, y) => {
+      const a = displayPrice(x).priceKrw;
+      const b = displayPrice(y).priceKrw;
+      if (a === null || b === null) return a === b ? 0 : a === null ? 1 : -1;
+      return (a - b) * dir;
     });
   }
   return list;

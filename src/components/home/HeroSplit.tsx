@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useId, useState } from "react";
 
 import { Logo } from "@/components/brand/Logo";
+import { displayPrice } from "@/lib/suit";
 import { CATEGORY_LABEL, LINE_LABEL, type Product } from "@/types/product";
 
 /**
@@ -65,6 +66,8 @@ export function HeroSplit({ products }: { products: Product[] }) {
   if (!product) return null;
 
   const name = product.name ?? "제품명 확인 중";
+  // 3피스 수트는 2피스 값을 먼저(2026-11-19 고객 요청, lib/suit displayPrice)
+  const shown = displayPrice(product);
   const fit = product.line ? LINE_LABEL[product.line] : null; // 라인 없는 상품(V48)
 
   return (
@@ -149,8 +152,8 @@ export function HeroSplit({ products }: { products: Product[] }) {
             {name}
           </h1>
           <p className="text-secondary mt-2 text-(length:--fs-base) tabular-nums md:mt-4 md:text-xl">
-            {product.priceKrw !== null ? (
-              <>{KRW.format(product.priceKrw)}원</>
+            {shown.priceKrw !== null ? (
+              <>{KRW.format(shown.priceKrw)}원{shown.twoPiece ? " (2피스)" : ""}</>
             ) : (
               // D1 이 카탈로그+문의로 확정되면 이 표시가 정상 상태가 된다.
               <span className="text-secondary md:text-muted">가격 문의</span>

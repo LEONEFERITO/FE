@@ -69,12 +69,36 @@ export function parseSuitLabel(text: string): { set: SuitSet; sizes: SuitSizes }
   return null;
 }
 
-/** 처음 고른 상태 — 파는 첫 구성(3피스 먼저), 조각마다 주문할 수 있는 첫 사이즈 */
+/**
+ * 처음 고른 상태 — 2피스를 팔면 2피스, 아니면 파는 첫 구성. 조각마다 주문할 수 있는 첫 사이즈.
+ * 2026-11-19 고객 요청: 목록에 2피스 값이 먼저 보이므로(displayPrice), 상세에 들어와서도 같은 값이 먼저 보여야 한다.
+ */
 export function suitDefaults(p: Pick<Product, "skus" | "priceKrw" | "twoPiecePriceKrw">): { set: SuitSet | null; sizes: SuitSizes } {
   const sizes: SuitSizes = {};
   for (const pc of SUIT_PIECES) {
     const first = p.skus.find((s) => s.piece === pc && s.orderable);
     if (first) sizes[pc] = first.size;
   }
-  return { set: offeredSets(p)[0] ?? null, sizes };
+  const sets = offeredSets(p);
+  return { set: sets.includes("TWO") ? "TWO" : (sets[0] ?? null), sizes };
+}
+
+/**
+ * 겉(상품 카드 · 빠른 보기 · 메인 슬라이드 · 가격순 정렬)에 먼저 보일 값.
+ *
+ * 2026-11-19 고객 요청: 베스트가 있는 3피스 수트는 2피스(자켓 + 팬츠) 값을 먼저 보이고, 3피스 값은 상세에서 고르게 한다.
+ * 관리자 입력은 그대로다 — 판매가 = 3피스, 2피스 = 판매가 − 베스트 금액(서버 V44).
+ * twoPiece 가 true 면 보이는 값이 판매가가 아니다 → 정가(취소선)는 3피스 기준이라 그리지 않는다.
+ * skus 가 없는 모양(관리자 배너 미리보기)은 판매가 그대로.
+ */
+export function displayPrice(
+  p: Pick<Product, "priceKrw"> & Partial<Pick<Product, "skus" | "twoPiecePriceKrw">>,
+): { priceKrw: number | null; twoPiece: boolean } {
+  const skus = p.skus;
+  if (skus && skus.some((s) => s.piece === "VEST") && p.twoPiecePriceKrw != null) {
+    if (offeredSets({ skus, priceKrw: p.priceKrw, twoPiecePriceKrw: p.twoPiecePriceKrw }).includes("TWO")) {
+      return { priceKrw: p.twoPiecePriceKrw, twoPiece: true };
+    }
+  }
+  return { priceKrw: p.priceKrw, twoPiece: false };
 }
