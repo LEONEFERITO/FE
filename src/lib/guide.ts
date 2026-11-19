@@ -35,6 +35,15 @@ async function load(): Promise<GuideLeadTime[]> {
   return d.leadTimes.map((r) => ({ items: r.items, time: r.time }));
 }
 
+/**
+ * 주문 제작 최대 기간(일) — 표에 적힌 숫자 중 가장 큰 값("14~18일" → 18). 숫자가 없으면 null.
+ * 2026-11-19 나이스페이 심사: 주문 제작 상품은 최대 제작 기간을 홈페이지에 적어야 한다(보증보험 담보 비율 · 60일 넘으면 계약 불가).
+ */
+export function maxLeadDays(rows: GuideLeadTime[]): number | null {
+  const nums = rows.flatMap((r) => (r.time.match(/\d+/g) ?? []).map(Number));
+  return nums.length > 0 ? Math.max(...nums) : null;
+}
+
 let memo: Promise<GuideLeadTime[]> | null = null;
 
 export function getGuideLeadTimes(): Promise<GuideLeadTime[]> {

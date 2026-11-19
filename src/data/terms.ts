@@ -23,6 +23,8 @@
  * 법률 확인이 필요하다 — 적용이 안 되면 그 호를 뺀다.
  */
 
+import { BUSINESS } from "@/data/business";
+
 export type Clause = string | { text: string; items: string[] };
 
 export interface Article {
@@ -46,7 +48,7 @@ export const TERMS: LegalDocument = {
     {
       title: "목적",
       clauses: [
-        "이 약관은 회사가 운영하는 LEONE FERITO 온라인몰(이하 \"몰\")에서 제공하는 전자상거래 관련 서비스(이하 \"서비스\")를 이용할 때 회사와 이용자의 권리·의무 및 책임사항을 정하는 것을 목적으로 합니다.",
+        `이 약관은 ${BUSINESS.companyName ?? "회사"}(이하 "회사")가 운영하는 LEONE FERITO 온라인몰(이하 "몰")에서 제공하는 전자상거래 관련 서비스(이하 "서비스")를 이용할 때 회사와 이용자의 권리·의무 및 책임사항을 정하는 것을 목적으로 합니다.`,
       ],
     },
     {

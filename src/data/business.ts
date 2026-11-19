@@ -29,9 +29,11 @@ export interface BusinessInfo {
 }
 
 // 2026-10-01 고객 전달값. 사업자등록번호만 표기 형식(000-00-00000)으로 끊었고 나머지는 받은 그대로다.
+// 2026-11-19 나이스페이 심사: 사업자등록증 상호는 «스토익컴퍼니» — 레오네페리토는 브랜드(몰) 이름이다.
+// 푸터는 관리자 › 사업자 정보(서버)를 쓰지만 약관 · 개인정보처리방침 · 쿠키 정책은 이 값을 쓴다 — 관리자에서 상호를 바꾸면 여기도 바꾼다.
 // TODO(고객확인) 주소를 사업자등록증과 대조(시·도 표기 포함 여부)
 export const BUSINESS: BusinessInfo = {
-  companyName: "레오네페리토 (LEONEFERITO)",
+  companyName: "스토익컴퍼니",
   representative: "조강현",
   registrationNumber: "881-15-02245",
   mailOrderNumber: "2024-수원영통-0059",

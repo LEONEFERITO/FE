@@ -4,7 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Reveal } from "@/components/motion/Reveal";
 import { LINE_GUIDE } from "@/data/lineGuide";
-import { getGuideLeadTimes } from "@/lib/guide";
+import { getGuideLeadTimes, maxLeadDays } from "@/lib/guide";
 import { shareMetadata } from "@/lib/metadata";
 
 /**
@@ -87,6 +87,7 @@ function Section({ id, en, ko, bar = true, children }: { id: string; en?: string
 export default async function GuidePage() {
   // 제품별 제작 소요기간 — 관리자 › 가이드 · 제작 기간에서 고친다(서버 V42). 빌드할 때 받는다
   const leadTimes = await getGuideLeadTimes();
+  const maxDays = maxLeadDays(leadTimes);
   return (
     <>
       <Header />
@@ -233,6 +234,11 @@ export default async function GuidePage() {
                     ))}
                   </tbody>
                 </table>
+                {maxDays !== null && (
+                  <p className="-mt-2 text-[13px] leading-[1.75]">
+                    주문 제작 상품의 최대 제작 기간은 <b>결제 완료일로부터 {maxDays}일</b>이며, 제작을 마치는 대로 출고합니다.
+                  </p>
+                )}
               </div>
             </Section>
           </Reveal>
