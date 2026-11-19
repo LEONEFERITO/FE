@@ -1,4 +1,5 @@
-import { KAKAO_CHANNEL, OFFLINE_SHOP, SNS } from "@/data/business";
+import { BUSINESS, KAKAO_CHANNEL, OFFLINE_SHOP, SNS } from "@/data/business";
+import { SHIPPING } from "@/data/shipping";
 import { SITE_URL } from "@/lib/site";
 import { displayPrice } from "@/lib/suit";
 import { CATEGORY_LABEL, LINE_LABEL, type Product } from "@/types/product";
@@ -37,6 +38,34 @@ const OPENING_HOURS = [
   { "@type": "OpeningHoursSpecification", dayOfWeek: ["Saturday", "Sunday"], opens: "12:00", closes: "21:00" },
 ];
 
+/** 대표 전화 — "010-2434-7794 · 010-9291-0518" 의 첫 번호를 국제 표기(+82-10-…)로. 없으면 null */
+const TELEPHONE = (() => {
+  const first = BUSINESS.phone?.split("·")[0]?.trim();
+  return first && /^0\d{1,2}-\d{3,4}-\d{4}$/.test(first) ? `+82-${first.slice(1)}` : null;
+})();
+
+/**
+ * 배송 · 반품 — 구글 판매자 목록(상품 리치 결과)이 Offer 에서 읽는다. 없으면 서치콘솔이 "누락된 필드" 경고를 낸다.
+ * 값은 안내 문구와 같은 data/shipping(= 서버 app.order · app.returns). 도착까지 걸리는 날은 정한 값이 없어 적지 않는다.
+ */
+function shippingDetails(priceKrw: number) {
+  return {
+    "@type": "OfferShippingDetails",
+    shippingRate: { "@type": "MonetaryAmount", value: priceKrw >= SHIPPING.freeThresholdKrw ? 0 : SHIPPING.feeKrw, currency: "KRW" },
+    shippingDestination: { "@type": "DefinedRegion", addressCountry: "KR" },
+  };
+}
+
+const RETURN_POLICY = {
+  "@type": "MerchantReturnPolicy",
+  applicableCountry: "KR",
+  returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+  merchantReturnDays: SHIPPING.changeOfMindDays,
+  returnMethod: "https://schema.org/ReturnByMail",
+  returnFees: "https://schema.org/ReturnShippingFees",
+  returnShippingFeesAmount: { "@type": "MonetaryAmount", value: SHIPPING.changeOfMindRoundTripKrw, currency: "KRW" },
+};
+
 /** 메인 — 브랜드(Organization) · 사이트(WebSite) · 오프라인 매장(ClothingStore) */
 export function homeStructuredData() {
   if (!SITE_URL) return null;
@@ -53,6 +82,9 @@ export function homeStructuredData() {
         logo: abs("/icon.png"),
         description: "운동으로 달라진 체형을 위한 남성 기성복 브랜드. 모든 제품의 사이즈별 실측을 공개합니다.",
         sameAs,
+        ...(TELEPHONE
+          ? { contactPoint: { "@type": "ContactPoint", telephone: TELEPHONE, contactType: "customer service", areaServed: "KR", availableLanguage: "Korean" } }
+          : {}),
       },
       {
         "@type": "WebSite",
@@ -70,6 +102,7 @@ export function homeStructuredData() {
         url: abs("/brand/"),
         image: abs("/brand/tailoring.webp"),
         parentOrganization: { "@id": abs("/#organization") },
+        ...(TELEPHONE ? { telephone: TELEPHONE } : {}),
         address: {
           "@type": "PostalAddress",
           streetAddress: "매영로425번길 1, 1층",
@@ -92,6 +125,7 @@ export function productStructuredData(product: Product) {
   const line = product.line ? LINE_LABEL[product.line] : null; // 라인 없는 상품(V48)
   const inStock = product.skus.some((s) => s.orderable);
   const color = product.notice?.color ?? null;
+  const price = displayPrice(product).priceKrw;
   return {
     "@context": "https://schema.org",
     "@graph": [
@@ -106,16 +140,18 @@ export function productStructuredData(product: Product) {
         category: category.ko,
         ...(color ? { color } : {}),
         // 값은 상세에 처음 보이는 값과 같아야 한다 — 3피스 수트는 2피스 값(lib/suit displayPrice · suitDefaults, 2026-11-19)
-        ...(displayPrice(product).priceKrw !== null
+        ...(price !== null
           ? {
               offers: {
                 "@type": "Offer",
                 url,
                 priceCurrency: "KRW",
-                price: displayPrice(product).priceKrw,
+                price,
                 availability: inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
                 itemCondition: "https://schema.org/NewCondition",
                 seller: { "@type": "Organization", name: BRAND },
+                shippingDetails: shippingDetails(price),
+                hasMerchantReturnPolicy: RETURN_POLICY,
               },
             }
           : {}),
